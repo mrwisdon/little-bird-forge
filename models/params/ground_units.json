@@ -1,0 +1,44 @@
+{
+  "$comment": "Canonical parameters for the ground vehicle model files. Source column: project = read from the Java model/geometry sources; reference = measured from docs/plan/ground-units-reference-images.md R1; assumption = chosen for the export and flagged as inferred.",
+  "units": {
+    "model_units_per_block": 16,
+    "export_unit": "1 model unit; block and metre columns are derived",
+    "metre_conversion": "1 block = 1 m (assumption for the metric column only)",
+    "axes": "Y up, nose along -Z, +X is the vehicle's right (same as the Java renderer)"
+  },
+  "main_battle_tank": {
+    "bbox_model_units": [-33, 0, -78, 33, 72, 58],
+    "bbox_blocks": [4.125, 4.5, 8.5],
+    "bbox_metres": [4.13, 4.50, 8.50],
+    "boxes": 117,
+    "triangles": 1404,
+    "key_dimensions": {
+      "hull_length_units": {"value": 112, "source": "project", "evidence": "src/main/java/io/github/littlebird/entity/MainBattleTankGeometry.java:19 HULL_LENGTH_UNITS"},
+      "hull_width_units": {"value": 56, "source": "project", "evidence": "MainBattleTankGeometry.java:20 HULL_WIDTH_UNITS"},
+      "hull_top_units": {"value": 34, "source": "project", "evidence": "MainBattleTankGeometry.java:22 HULL_TOP_UNITS"},
+      "turret_pivot_height_units": {"value": 34, "source": "project", "evidence": "MainBattleTankGeometry.java:25"},
+      "barrel_length_units": {"value": 56, "source": "project", "evidence": "MainBattleTankGeometry.java:27 BARREL_LENGTH_UNITS"},
+      "road_wheels_per_side": {"value": 7, "source": "reference", "evidence": "docs/plan/ground-units-reference-images.md R1 side drawing"},
+      "skirt_panels_per_side": {"value": 6, "source": "reference", "evidence": "R1 side drawing"}
+    }
+  },
+  "infantry_fighting_vehicle": {
+    "bbox_model_units": [-31, 0, -60.5, 31, 62, 50],
+    "bbox_blocks": [3.875, 3.875, 6.906],
+    "bbox_metres": [3.88, 3.88, 6.91],
+    "boxes": 61,
+    "triangles": 732,
+    "key_dimensions": {
+      "hull_length_units": {"value": 96, "source": "project", "evidence": "src/main/java/io/github/littlebird/entity/InfantryFightingVehicleGeometry.java:20 HULL_LENGTH_UNITS"},
+      "hull_width_units": {"value": 48, "source": "project", "evidence": "InfantryFightingVehicleGeometry.java:21 HULL_WIDTH_UNITS"},
+      "hull_top_units": {"value": 30, "source": "project", "evidence": "InfantryFightingVehicleGeometry.java:23 HULL_TOP_UNITS"},
+      "barrel_length_units": {"value": 40, "source": "project", "evidence": "InfantryFightingVehicleGeometry.java:27 BARREL_LENGTH_UNITS"},
+      "axles": {"value": 3, "source": "reference", "evidence": "R3/R4 show a 6x6 vehicle"},
+      "missile_tubes": {"value": 4, "source": "assumption", "evidence": "R3 shows a quad launcher box; tube count inferred"}
+    }
+  },
+  "known_deviation": {
+    "tank_vs_real_m1": "The export envelope is 8.50 m nose-to-muzzle and 4.13 m wide; a real M1A5 is about 9.8 m gun-forward and 3.66 m wide. The model is the game envelope, not a dimensioned replica.",
+    "reference_ratio": "R1 body length:height = 1202:555 = 2.17:1; the game hull is 100:50 = 2.00:1, a 7.7% deviation (see docs/plan/ground-units-model-log.md)."
+  }
+}

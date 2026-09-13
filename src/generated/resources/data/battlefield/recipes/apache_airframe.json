@@ -1,0 +1,36 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "battlefield:airframe_section"
+    },
+    {
+      "item": "battlefield:airframe_section"
+    },
+    {
+      "item": "battlefield:airframe_section"
+    },
+    {
+      "item": "battlefield:airframe_section"
+    },
+    {
+      "item": "battlefield:rotor_assembly"
+    },
+    {
+      "item": "battlefield:rotor_assembly"
+    },
+    {
+      "item": "battlefield:aircraft_engine"
+    },
+    {
+      "item": "battlefield:aircraft_engine"
+    },
+    {
+      "item": "battlefield:avionics_unit"
+    }
+  ],
+  "result": {
+    "item": "battlefield:apache_airframe"
+  }
+}

@@ -1,0 +1,25 @@
+item 3 evidence: M1A5 smoke discharger (server NBT read back in-game)
+command used per step: /data get entity @s RootVehicle
+
+  stage                               WeaponSlot      SmokeCharges     SmokeCooldown       SmokeActive   Ammo_mpat_Ready
+  A aboard (main gun slot)                     0                 2                 0                 0                 5
+  B press G (smoke slot)                       2                 2                 0                 0                 5
+  C fire smoke                                 2                 1               343               143                 5
+  D trigger again during cooldown               2                 1               269                69                 5
+  E after cooldown                             2                 1                 0                 0                 5
+
+findings:
+  - G switches the driver slot 0 (main gun) -> 2 (smoke)
+  - one trigger consumes exactly one charge (2 -> 1) and starts both clocks
+  - triggering again during the cooldown consumes nothing (charges stay 1)
+  - the cooldown reaches 0 again, so the launcher is ready once more
+  - the main gun rack stays at 5 the whole time: the slots do not interfere
+
+visual: item3_smoke_cloud.png shows the particle cloud around the hull after a shot
+
+defect found and fixed during this item:
+  an old-format save restored the magazines but not the smoke launcher, and
+  ensureMagazines returned early, so MainBattleTankEntity.addAdditionalSaveData
+  threw NPE on SmokeLauncher.State. See run/crash-reports/crash-2026-09-12_17.02.10-server.txt.
+  Fixed by making the initialisation idempotent (fills any missing piece) and by
+  null-guarding the save; the same world then loaded and saved cleanly.

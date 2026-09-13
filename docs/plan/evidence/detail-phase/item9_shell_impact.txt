@@ -1,0 +1,23 @@
+120mm shell: projectile, muzzle fireball, block destruction and dust
+
+steps:
+  1 /fill 3 119 18 9 122 18 minecraft:stone      (a stone wall 6 blocks down the barrel)
+  2 /execute if block 6 120 18 minecraft:stone run say BEFORE_STONE    -> BEFORE_STONE  (wall present)
+  3 hold the trigger for ~4 ticks                (one 120mm round leaves the muzzle)
+  4 /execute unless block 6 120 18 minecraft:stone run say AFTER_WALL_GONE -> AFTER_WALL_GONE
+
+result: the wall block was destroyed by the shell, and the shot frame shows the muzzle
+        flash (white core + flame) at the barrel and dark explosion sprites where it hit.
+        No tracer streak is drawn for the main gun any more (the coax keeps the hitscan).
+
+defect found and fixed during this stage:
+  the new main_gun_shell entity type had no renderer registered, so the client render
+  dispatcher handed the frustum check a null renderer and the client crashed with a
+  NullPointerException (run/crash-reports/crash-2026-09-12_19.06.40-client.txt).
+  Fixed by adding client/MainGunShellRenderer (renders nothing on purpose: the fireball
+  is the visual) and registering it in ClientModEvents. Re-ran the same steps: no new crash.
+
+audio: this headless rig cannot open an OpenAL device ("Error starting SoundSystem" in
+  run/logs/latest.log), so the fire/flight/impact sounds cannot be heard here; their calls
+  are in place (fire = GUN_SHOT pitched per shell type, flight = ROCKET_LAUNCH pitched up
+  every 3 ticks, impact = EXPLOSION 1.6/0.7) and are finalised in stage 6.

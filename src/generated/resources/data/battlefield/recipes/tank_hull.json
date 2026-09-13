@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "battlefield:armor_plate"
+    },
+    {
+      "item": "battlefield:armor_plate"
+    },
+    {
+      "item": "battlefield:armor_plate"
+    },
+    {
+      "item": "battlefield:armor_plate"
+    },
+    {
+      "item": "battlefield:track_assembly"
+    },
+    {
+      "item": "battlefield:track_assembly"
+    },
+    {
+      "item": "battlefield:turret_ring"
+    }
+  ],
+  "result": {
+    "item": "battlefield:tank_hull"
+  }
+}

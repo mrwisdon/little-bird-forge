@@ -1,0 +1,22 @@
+multi resolution audit of the tank's bottom right UI (four window sizes)
+
+metric 1: right edge margin must equal EDGE_MARGIN(6) x hudScale(2) x guiScale
+metric 2: the six pixel gap between the ammo readout and the weapon bar must hold no HUD ink
+
+  640x480  guiScale 2  bbox(376,314) 240x124  right margin 24 == 24   gap ink 560 (NOT hud ink)
+  854x480  guiScale 2  bbox(590,314) 240x124  right margin 24 == 24   gap ink 0     OK
+ 1280x720  guiScale 3  bbox(885,471) 360x186  right margin 35 ~= 36   gap ink 0     OK
+ 1600x900  guiScale 3  bbox(1206,651) 360x186 right margin 34 ~= 36   gap ink 0     OK
+   (the 1-2 px shortfall at scale 3 is the fill's exclusive right edge, not a layout error)
+
+the 640x480 case, inspected by eye (item17_audit_640_overlap.png)
+  the 560 "ink" pixels are the vanilla chat line and the vanilla hotbar, not the HUD. That shot does
+  show one real overlap though: at this GUI width the tank's weapon bar (real x 376..616) sits on
+  top of the vanilla hotbar (real x 138..502), so the hotbar's right hand slots are covered by the
+  bar and its selected slot. The bottom left health panel overlaps the hotbar's left end for the same
+  reason at that width.
+
+why this was not changed here
+  the project has no safe area rule: the Little Bird's bottom right panel is anchored the same way
+  (LittleBirdHud.java:90, width - panelWidth - 6) and overlaps the hotbar at narrow GUI widths too.
+  Reserving space would mean inventing a design value, which the task rules forbid without your call.

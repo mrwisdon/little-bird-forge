@@ -1,0 +1,31 @@
+alignment: the ground vehicle views now use the Little Bird's rules
+
+differences that were aligned
+  1. FOV keys - the ground hulls no longer have their own keys. GroundCamera reads exactly the two
+     the Little Bird reads: third_person_fov_multiplier (exterior) and cockpit_fov_multiplier
+     (turret interior). Deleted: ground_third_person_fov_multiplier, ground_interior_fov_multiplier.
+  2. Interior eye height - positionRider now adds the shared cockpit_eye_lift_blocks (0.40) instead
+     of a ground-only key. Deleted: ground_interior_camera_lift_blocks.
+  3. Camera mode - GroundVehicleInput now mirrors LittleBirdInput.applyCameraMode: boarding saves
+     the player's current camera and forces third person, the cockpit key switches to first person,
+     and leaving restores the saved camera (a first person preference falls back to third person,
+     which is what the aircraft do).
+  4. Rider body - GroundRiderRender cancels the player render while riding, the same rule
+     LittleBirdInput.onRenderPlayer already applies to the helicopter.
+
+already consistent
+  - the toggle key is the same cockpit key (C) the aircraft use.
+
+deliberately NOT copied (ground hulls have no equivalent)
+  - camera roll: the aircraft roll with the airframe's bank; a tank does not bank.
+  - cockpit hidden model parts: the Little Bird hides its cabin/roof/rotor parts. The ground models
+    do not need it - Minecraft culls box interior faces, so the turret walls are already see-through
+    from inside, and the barrel must stay visible because it is what the fire control aims along.
+  - shoulder view (right mouse over-the-shoulder): an aircraft-only convenience, not requested here.
+
+evidence
+  - item14_aligned_interior.png: interior camera via the shared cockpit key, fire control reading 18 m.
+  - item14_aligned_camera_restored.png: after dismounting, the camera is back to third person and the
+    player model is drawn again.
+  - run/config/battlefield-client.toml now carries only the aircraft's three view keys:
+        third_person_fov_multiplier = 1.35 / cockpit_fov_multiplier = 1.0 / cockpit_eye_lift_blocks = 0.4

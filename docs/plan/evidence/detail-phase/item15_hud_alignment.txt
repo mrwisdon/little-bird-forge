@@ -1,0 +1,25 @@
+fix: the tank's bottom-right readout was 12 GUI pixels wider than the weapon bar
+
+symptom (measured on the pixels of align_exterior.png, a 854x480 shot)
+  - readout cyan top edge : x 566..829  (264 px = 132 GUI)
+  - weapon slot bar       : x 590..830  (240 px = 120 GUI)
+  Right edges matched, the left edges differed by 24 px, so the readout stuck out to the left of
+  the slots it belongs to.
+
+cause
+  GroundHudLayout had its own READOUT_WIDTH = 132 while the bar is barWidth(slots) = 120 for the
+  tank's three slots, and both were positioned from the right margin. readout() also computed the
+  bar's Y with the default three slot layout, so a two weapon hull would have placed the readout
+  against the wrong bar height.
+
+fix (layout only, no drawing changes)
+  - deleted READOUT_WIDTH; the readout now takes the bar's own rect: same x, same width, and
+    READOUT_HEIGHT above it, via readout(screenWidth, screenHeight, hudScale, rows).
+  - GroundHud passes its real row count (TANK_ROWS / IFV_ROWS).
+  - GroundHudLayoutTest: the readout must now match the bar on both edges, plus a new case pinning
+    the two weapon hull's narrower bar and readout.
+
+measured after the fix (854x480 shot)
+  - readout cyan top edge : x 590..829  (240 px = 120 GUI)
+  - whole cyan extent     : bbox 240x124 at offset +590,+314 -> readout, slots and legends share
+    one left edge and one right edge.

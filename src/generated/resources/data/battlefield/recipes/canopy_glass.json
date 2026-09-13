@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "minecraft:iron_bars"
+    },
+    "S": {
+      "item": "minecraft:glass"
+    }
+  },
+  "pattern": [
+    "SSS",
+    "B B",
+    "SSS"
+  ],
+  "result": {
+    "item": "battlefield:canopy_glass"
+  },
+  "show_notification": true
+}

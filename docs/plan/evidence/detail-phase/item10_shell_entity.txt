@@ -1,0 +1,20 @@
+120mm shell: the round is now a visible entity, not only a fireball
+
+what changed
+  - client/MainGunShellModel   : layered model - dart body, tapered cap, brass driving band,
+                                 rear rim and four tail fins (nose along -Z, 64x64 texture)
+  - client/MainGunShellRenderer: draws that model along the round's flight yaw/pitch; the HE
+                                 round is drawn 1.15x and tinted warm, the AP dart at 1x
+  - textures/entity/main_gun_shell.png : self-made 64x64 palette (steel / brass / dark), generated
+                                 by script - no third party art
+  - MainGunShellBallistics.MUZZLE_SPEED 10 -> 5 blocks per tick (100 m/s) so the round is actually
+                                 visible on its way out instead of crossing the screen in 6 ticks
+
+evidence
+  - item10_shell_entity.png : the round floating in front of the stone wall (dart + brass bands)
+  - spawning the entity by command works and does not crash:
+      /summon battlefield:main_gun_shell 6.5 120.8 16.5
+
+note: a single frame of the round mid-flight is still hard to catch with the screenshot tool on
+this headless rig (the round flies ~5 blocks per tick and the capture has ~0.3-0.5 s of latency),
+so the picture above is the same entity standing still. Flying rounds are the same model.

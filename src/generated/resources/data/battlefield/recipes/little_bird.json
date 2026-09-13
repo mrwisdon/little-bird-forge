@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "battlefield:airframe_section"
+    },
+    "C": {
+      "item": "battlefield:canopy_glass"
+    },
+    "E": {
+      "item": "battlefield:aircraft_engine"
+    },
+    "R": {
+      "item": "battlefield:rotor_assembly"
+    },
+    "V": {
+      "item": "battlefield:avionics_unit"
+    }
+  },
+  "pattern": [
+    "ARA",
+    " E ",
+    "ACV"
+  ],
+  "result": {
+    "item": "battlefield:little_bird"
+  },
+  "show_notification": true
+}

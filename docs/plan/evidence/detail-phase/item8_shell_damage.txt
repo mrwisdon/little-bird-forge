@@ -1,0 +1,12 @@
+120mm shell types: AP vs HE armour damage, measured in game
+target: EBAA Wildcat IFV (max health 90, armoured)
+steps: board the tank as driver -> summon an IFV 8 blocks down the barrel line
+       -> fire a round -> read /data get entity @e[type=battlefield:infantry_fighting_vehicle,limit=1] Health
+       -> kill it, summon a fresh one -> press B (shell carousel) -> fire again
+
+  readings: 90.0 (before AP), 50.0 (after AP), 65.0 (after HE)
+  AP: 90 -> 50  = 40 armour damage  (config main_gun_vehicle_damage = 40.0)
+  HE: 90 -> 65  = 25 armour damage  (config main_gun_he_vehicle_damage = 25.0)
+
+shell names: hud.battlefield.shell.ap = 穿甲弹 / AP, hud.battlefield.shell.he = 高爆弹 / HE
+splash (Q3, enlarged): AP main_gun_splash_radius = 3.0, HE main_gun_he_splash_radius = 4.0

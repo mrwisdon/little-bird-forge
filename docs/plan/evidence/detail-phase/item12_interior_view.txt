@@ -1,0 +1,26 @@
+stage 2: turret interior view with barrel crosshair and fire control
+
+what changed
+  - client/GroundView (new interface): isInteriorView()/setInteriorView(), a client-only flag.
+  - MainBattleTankEntity + InfantryFightingVehicleEntity: implement GroundView, and positionRider
+    lifts the crew seat by ground_interior_camera_lift_blocks (default 0.60) while the interior
+    camera is up, so the camera sits inside the turret ring.
+  - client/GroundVehicleInput: the existing cockpit key (C) now toggles the interior camera for
+    ground hulls and switches the camera to FIRST_PERSON (back to THIRD_PERSON_BACK when leaving).
+  - LittleBirdConfig: ground_interior_fov_multiplier (default 1.00) and
+    ground_interior_camera_lift_blocks (default 0.60) - separate keys from the exterior FOV so the
+    two cameras cannot drag each other.
+  - client/GroundHud: while the interior camera is up it draws the FIRE CONTROL only - a crosshair
+    on the gun line (projected turret yaw/pitch, not the screen centre), the range in metres to the
+    first collider on that line, the hit marker, and a GUN bearing readout when the barrel is more
+    than a degree off the view. The exterior camera draws none of it.
+
+evidence
+  - item12_interior_fire_control.png: interior camera, barrel crosshair with "18 m" range to the
+    stone wall 18 blocks down the gun line, plus the ammo/health panels.
+  - item12_exterior_no_fire_control.png: after pressing C again the camera returns to third person
+    and the fire control markers are gone; only the plain exterior reticle remains.
+  - GroundViewMathTest pins the FOV split (exterior key vs interior key vs aircraft 1.0).
+
+not verified here: the gunner-seat variant needs a second player (single player cannot take seat 1),
+and the turret slew is fast enough that the "GUN xx deg" off-axis readout did not show in a frame.

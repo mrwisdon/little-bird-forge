@@ -1,0 +1,20 @@
+stage 3: the crew's own body is no longer drawn on a ground hull
+
+what changed
+  - client/GroundRiderRender (new): RenderPlayerEvent.Pre is cancelled while the player rides a
+    MainBattleTankEntity or an InfantryFightingVehicleEntity - the same rule the Apache already
+    follows (ApacheRiderRender). Rendering only: the hull, turret, barrel, other units, the HUD and
+    the entity hitbox (which comes from EntityType.sized) are untouched.
+
+evidence
+  - item13_rider_hidden_compare.png: left = before (the rider's head/back pokes out above the
+    turret roof), right = after (no player model on the tank at all). Same tank, same camera.
+  - item13_view_switch_stable.png: after three rounds of C (interior) / F5 (third person) switching
+    the game is still up, the interior fire control still reads 18 m, no leftover player model, and
+    no new crash report (run/crash-reports still holds only the two older files).
+  - run/logs/latest.log errors are only the headless rig's own: the narrator cannot load libflite and
+    OpenAL cannot open a device - both pre-date this work and are unrelated to the view system.
+
+note: hiding is applied in both cameras (like the Apache) rather than only in the turret interior:
+vanilla already hides the local body in first person, so an interior-only rule would have been a
+no-op, while the third person body was visibly poking through the turret roof.

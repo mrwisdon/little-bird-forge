@@ -1,0 +1,37 @@
+{
+  "parent": "battlefield:first_little_bird",
+  "display": {
+    "icon": {
+      "item": "battlefield:infantry_fighting_vehicle"
+    },
+    "title": {
+      "translate": "advancements.battlefield.infantry_fighting_vehicle.title"
+    },
+    "description": {
+      "translate": "advancements.battlefield.infantry_fighting_vehicle.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "crafted": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "battlefield:infantry_fighting_vehicle"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "crafted"
+    ]
+  ]
+}

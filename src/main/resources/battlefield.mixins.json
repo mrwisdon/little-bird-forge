@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "io.github.littlebird.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "battlefield.refmap.json",
+  "mixins": [],
+  "client": [
+    "CameraDistanceMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  },
+  "minVersion": "0.8"
+}

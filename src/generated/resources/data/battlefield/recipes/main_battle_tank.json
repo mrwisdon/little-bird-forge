@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "battlefield:tank_hull"
+    },
+    {
+      "item": "battlefield:armor_plate"
+    },
+    {
+      "item": "battlefield:cannon_barrel"
+    },
+    {
+      "item": "battlefield:aircraft_engine"
+    },
+    {
+      "item": "battlefield:targeting_computer"
+    }
+  ],
+  "result": {
+    "item": "battlefield:main_battle_tank"
+  }
+}

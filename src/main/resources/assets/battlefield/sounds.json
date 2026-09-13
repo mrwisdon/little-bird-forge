@@ -1,0 +1,27 @@
+{
+  "engine": {
+    "sounds": [
+      "battlefield:engine"
+    ]
+  },
+  "gun": {
+    "sounds": [
+      "battlefield:gun"
+    ]
+  },
+  "gun_shot": {
+    "sounds": [
+      "battlefield:gun_shot"
+    ]
+  },
+  "rocket_launch": {
+    "sounds": [
+      "battlefield:rocket_launch"
+    ]
+  },
+  "explosion": {
+    "sounds": [
+      "battlefield:explosion"
+    ]
+  }
+}

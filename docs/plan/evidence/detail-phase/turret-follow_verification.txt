@@ -1,0 +1,50 @@
+turret interior camera follows the turret - in-game verification
+
+method
+  - dev client: ./gradlew runClient. The dev run needed the LWJGL linux natives on java.library.path
+    (JAVA_TOOL_OPTIONS=-Djava.library.path=/tmp/mclibs) - an environment gap that predates this change
+    (the 12:19 log already failed with "Failed to locate library: liblwjgl.so" on the unmodified tree).
+  - windows: DISPLAY=:0 (WSLg) and DISPLAY=:99 (Xvfb 1600x1000 + openbox). :99 was used for the
+    controlled captures because openbox gives the window real input focus, which first-person mouse
+    look needs.
+  - save: "New World" (creative, cheats). The player loads already riding the M1A5; C toggles the
+    turret interior view (GroundVehicleInput.java:84-88).
+  - turn input: xdotool mousemove_relative warps of 350-500 px; the driver's look lays the turret
+    (MainBattleTankEntity.tickTurret:213-231), the turret slews at 3 deg/tick.
+  - before/after were captured with the identical save, warp steps and capture script; the only
+    difference is the six source files reverted to the backup
+    docs/plan/backups/2026-09-13_pre-turret-follow/ for the "before" run.
+
+results
+
+  1. turret body no longer sweeps the lens (acceptance 1)
+     before_settled.png / before_midslew.png: the barrel jumps between the left edge, out of frame
+       (pointing at the wall, range "6 m") and the lower right across the steps; "GUN -xx deg"
+       appears because the turret is still off the view axis.
+     after_full_circle.png: 13 frames over a full 360 deg traverse. The barrel stays at the same
+       spot in the lens (lower right, same angle) in every frame; the stone wall and terrain rotate
+       a full circle behind it.
+     after_settled.png / after_midslew.png: same, including captures taken 0.15 s into each step.
+
+  2. camera yaw == turret yaw, hull turn adds correctly (acceptance 2)
+     code: GroundCamera.computeCameraAngles sets the camera yaw to view.turretYawDeg(); the same
+       value places the rider in MainBattleTankEntity.positionRider / InfantryFightingVehicleEntity.
+     after_hull_turn.png: holding D rotates the hull while the mouse is still. The hull and world
+       rotate under the lens, the barrel stays fixed in the lens - turret-stabilised, no reversal,
+       no jump.
+     after_rapid.png: five +/-500 px reversals. The barrel stays put; the world swings back and
+       forth; no jitter and no clipping/spike visible in the frames.
+
+  3. pitch is untouched (acceptance 4)
+     only yaw is taken (followYawDeg returns the turret yaw), so the camera pitch is still
+     minecraft.player.getViewXRot; the fire control pitch projection is unchanged. The GUN bearing
+     readout still compares the turret with the mouse look, so it keeps reporting the slew offset
+     (that is why it still flickers during a fast traverse, as before).
+
+  residual / not measured here
+     - The camera and the turret model both read the same 20 Hz synced value, so during a traverse
+       the world steps at 20 Hz. No interpolation was added (the brief forbids smoothing away
+       structural issues). Not judged a defect in these captures.
+     - "no clipping" is judged from the captured frames only; a longer play test is still worthwhile.
+     - Only the tank was exercised in game. The IFV shares the exact same code path (same
+       followYawDeg call, same computeCameraAngles guard) but was not driven.

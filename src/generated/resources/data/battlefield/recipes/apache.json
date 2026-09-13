@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "battlefield:apache_airframe"
+    },
+    "C": {
+      "item": "battlefield:canopy_glass"
+    },
+    "W": {
+      "item": "battlefield:apache_weapons"
+    }
+  },
+  "pattern": [
+    "A  ",
+    " W ",
+    " C "
+  ],
+  "result": {
+    "item": "battlefield:apache"
+  },
+  "show_notification": true
+}

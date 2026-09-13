@@ -1,0 +1,30 @@
+fix: the tank readout's third line spilled out of its box and touched the weapon bar
+
+symptom (854x480, pixel measurement)
+  - readout box      : GUI y 157..191  (real 314..382)
+  - weapon bar top   : GUI y 197       (real 394)
+  - the six pixel gap between them (real y 383..393) contained 20 pixels of cyan (#8AF0E8):
+    the vehicle chip's health ring was drawn below the readout box.
+
+root cause
+  GroundHud called GunshipHudDraw.vehicleChip(..., readout.y() + 22, ...) while vehicleChip laid
+  its name/value on one line and its health ring at y + 12 with radius 5, so the chip's content
+  spanned 17 px below its origin: 22 + 17 = 39 in a 34 px box -> 6 px overflow, exactly reaching the
+  bar's top edge. A fixed offset plus a primitive that ignored its container's height.
+
+fix (root cause, layout only)
+  - vehicleChip is now a single line: name, then a radius 4 health ring, then the value, all inside
+    the 9 pixel line the caller gives it - it can no longer overflow whatever box it is put in.
+  - both call sites (tank and IFV) bottom align the chip inside the readout box:
+    readout.y() + GroundHudLayout.READOUT_HEIGHT - 10.
+  Only these two files changed; no design value was invented (the box and its height are the
+  project's own layout constants).
+
+verification
+  - gap real y 383..393, x 590..830: cyan 0, text 0, danger 0, white 0  (was cyan 20)
+  - 854x480 cyan bbox 240x124 @ +590,+314 : readout, slots and legends share one left and right edge
+  - 1280x720 cyan bbox 360x186 @ +885,+471 : same layout at GUI scale 3, margin 36 px, no regression
+  - ./gradlew build BUILD SUCCESSFUL, tests 308 / 0 failures, JAR synced to the instance
+
+not covered here
+  only 854x480 and 1280x720 were sampled; other GUI scales and ultrawide aspect ratios were not.

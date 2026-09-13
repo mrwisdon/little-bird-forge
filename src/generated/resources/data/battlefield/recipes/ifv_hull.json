@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "battlefield:armor_plate"
+    },
+    {
+      "item": "battlefield:armor_plate"
+    },
+    {
+      "item": "battlefield:wheel_assembly"
+    },
+    {
+      "item": "battlefield:wheel_assembly"
+    },
+    {
+      "item": "battlefield:wheel_assembly"
+    },
+    {
+      "item": "battlefield:wheel_assembly"
+    },
+    {
+      "item": "battlefield:turret_ring"
+    }
+  ],
+  "result": {
+    "item": "battlefield:ifv_hull"
+  }
+}

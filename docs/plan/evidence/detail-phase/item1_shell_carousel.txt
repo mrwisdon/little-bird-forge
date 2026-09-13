@@ -1,0 +1,18 @@
+item 1 evidence: 120mm shell carousel on the M1A5 (server NBT read back in-game)
+command used per step: /data get entity @s RootVehicle
+
+  stage                    ShellType  mpat Ready  mpat Reserve  heat Ready  heat Reserve    CoaxAmmo
+  A initial                        0           5          15           5          15         300
+  B after MPAT shot                0           4          15           5          15         300
+  C after B (switch shell)         1           4          15           5          15         300
+  D after HEAT shot                1           4          15           4          15         300
+  E after R + wait                 1           4          15           5          14         300
+
+findings:
+  - MPAT and HEAT keep separate ready/reserve racks: firing one never changes the other
+  - B switches ShellType 0 -> 1 and the HUD-facing ready count follows the selected type
+  - R now completes: HEAT ready 4->5 with reserve 15->14 after the reload clock ran
+  - coax stays 300 throughout, so main gun and coax ammo/cooldown are independent
+
+note: the reload clock was a pre-existing defect - only ApacheEntity called
+      TwoStageMagazine.tick, so ground vehicle reloads never finished. Fixed in this item.

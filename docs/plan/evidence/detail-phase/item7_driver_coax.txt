@@ -1,0 +1,13 @@
+driver-accessible coax: the driver selects it with the weapon key and fires it
+command: /data get entity @s RootVehicle
+
+  stage                         WeaponSlot          CoaxAmmo   Ammo_mpat_Ready
+  A default (main gun)                   0               300                 5
+  B after G (coax)                       1               300                 5
+  C after a 1.5s burst                   1               285                 5
+
+findings:
+  - the driver carousel is now main gun -> coax -> smoke (G cycles)
+  - firing as the driver drains only the coax belt (300 -> 285)
+  - the main gun rack stays at 5, so the two weapons keep separate ammo and clocks
+  - the gunner keeps the same coax mount, sharing belt and heat clock (unchanged)

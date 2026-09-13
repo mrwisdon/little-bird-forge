@@ -1,0 +1,20 @@
+stage 1: ground vehicle exterior FOV
+
+what changed
+  - LittleBirdConfig: new client key ground_third_person_fov_multiplier (default 1.35, range 1.0-2.5)
+    accessor groundThirdPersonFovMultiplier(); the aircraft keys third_person_fov_multiplier (1.35)
+    and cockpit_fov_multiplier (1.00) are untouched.
+  - client/GroundCamera: a new FORGE-bus computeFov handler that only reacts while the local player
+    rides a MainBattleTankEntity or an InfantryFightingVehicleEntity, so it can never touch the
+    aircraft camera.
+  - client/GroundViewMath (pure rules): decides which multiplier applies; unit tested for the
+    aircraft case (returns 1.0), the ground exterior case, the future turret interior case and
+    nonsense config values.
+
+evidence
+  - item11_fov_compare.png: left = ground_third_person_fov_multiplier 1.0, right = 1.35, same tank,
+    same spot, same third person camera. The wider setting shows noticeably more of the scene.
+  - run/config/battlefield-client.toml during the two runs:
+        third_person_fov_multiplier = 1.35        (aircraft, unchanged all along)
+        cockpit_fov_multiplier = 1.0
+        ground_third_person_fov_multiplier = 1.35 -> then 1.0 for the comparison shot

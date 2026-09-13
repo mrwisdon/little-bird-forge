@@ -1,0 +1,30 @@
+1) main gun reload cooldown and ammo resupply cooldown
+
+   main_gun_reload_ticks      = 60 ticks   (3 s)  - the reload cooldown
+   main_gun_auto_reload       = true             - the gun starts it by itself once a round is gone
+   main_gun_resupply_ticks    = 100 ticks  (5 s)  - the resupply cooldown
+   main_gun_resupply_batch    = 1 round
+   Both clocks already existed in TwoStageMagazine; the tank simply passed resupplyTicks = 0 before.
+   The HUD now shows them: the ring around the ready count fills with the reload, and the reserve
+   number dims while its own cooldown runs.
+   Unit tests: MainGunAmmoTest.theResupplyCooldownDripsRoundsBack + aZeroResupplyCooldownNeverRefills.
+
+2) hotbar safe area for the ground HUD
+
+   The panels step up by exactly the overlap with the vanilla hotbar (182 x 22 GUI, centred on the
+   bottom), and by nothing more. GroundHudLayout.hotbarLift + tests theLiftIsExactlyTheOverlap and
+   panelsStepUpWhereTheHotbarWouldBeCovered.
+   Measured at 854x480 before: cyan bbox y started at 314 (real); after: 294 - the block rose the
+   expected 10 GUI (20 real) and its bottom (real 417) now sits above the hotbar top (real 436).
+
+3) build
+
+   ./gradlew build BUILD SUCCESSFUL, tests 312 / 0 failures, JAR cb58e7ed229afef7... identical in
+   build/libs and in the instance mods folder.
+
+not yet captured
+   - the timed NBT series (ready 5 -> 4 -> 5, reserve 15 -> 14 -> 15): the /data get chat line wraps
+     in run/logs, so the automated parse returned nothing. The final read in the screenshot does show
+     Ammo_mpat_Ready: 5 / Ammo_mpat_Reserve: 15, which is the state after one shot plus both clocks.
+   - the 640x480 safe area shot was taken while the window resize had not settled (guiScale read
+     1.83), so that size is not verified.
