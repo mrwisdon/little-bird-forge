@@ -1,5 +1,5 @@
 {
-  "$comment": "Canonical parameters for the ground vehicle model files. Source column: project = read from the Java model/geometry sources; reference = measured from docs/plan/ground-units-reference-images.md R1; assumption = chosen for the export and flagged as inferred.",
+  "$comment": "Canonical parameters for the ground vehicle model files. Source column: project = read from the Java model/geometry sources; blender = exported from blender_m1a5 via tools/generate_ground_unit_model.py; reference = measured from docs/plan/ground-units-reference-images.md R1; assumption = chosen for the export and flagged as inferred.",
   "units": {
     "model_units_per_block": 16,
     "export_unit": "1 model unit; block and metre columns are derived",
@@ -7,19 +7,20 @@
     "axes": "Y up, nose along -Z, +X is the vehicle's right (same as the Java renderer)"
   },
   "main_battle_tank": {
-    "bbox_model_units": [-33, 0, -78, 33, 72, 58],
-    "bbox_blocks": [4.125, 4.5, 8.5],
-    "bbox_metres": [4.13, 4.50, 8.50],
-    "boxes": 117,
-    "triangles": 1404,
+    "bbox_model_units": [-29.28, 0, -92.88, 29.28, 69.44, 63.44],
+    "bbox_blocks": [3.66, 4.34, 9.77],
+    "bbox_metres": [3.66, 4.34, 9.77],
+    "boxes": 208,
+    "triangles": 2496,
     "key_dimensions": {
-      "hull_length_units": {"value": 112, "source": "project", "evidence": "src/main/java/io/github/littlebird/entity/MainBattleTankGeometry.java:19 HULL_LENGTH_UNITS"},
-      "hull_width_units": {"value": 56, "source": "project", "evidence": "MainBattleTankGeometry.java:20 HULL_WIDTH_UNITS"},
-      "hull_top_units": {"value": 34, "source": "project", "evidence": "MainBattleTankGeometry.java:22 HULL_TOP_UNITS"},
-      "turret_pivot_height_units": {"value": 34, "source": "project", "evidence": "MainBattleTankGeometry.java:25"},
-      "barrel_length_units": {"value": 56, "source": "project", "evidence": "MainBattleTankGeometry.java:27 BARREL_LENGTH_UNITS"},
-      "road_wheels_per_side": {"value": 7, "source": "reference", "evidence": "docs/plan/ground-units-reference-images.md R1 side drawing"},
-      "skirt_panels_per_side": {"value": 6, "source": "reference", "evidence": "R1 side drawing"}
+      "hull_length_units": {"value": 126.88, "source": "blender", "evidence": "real M1A2 hull 7.93 m x 16; tools/data/m1a5_boxes.json"},
+      "hull_width_units": {"value": 58.56, "source": "blender", "evidence": "real M1A2 width 3.66 m x 16"},
+      "hull_top_units": {"value": 24.32, "source": "blender", "evidence": "Blender hull roof z 1.52 m x 16 (revision 2, lowered per feedback)"},
+      "turret_pivot_height_units": {"value": 24.32, "source": "blender", "evidence": "turret ring on the hull roof; matches MainBattleTankGeometry"},
+      "barrel_length_units": {"value": 92.88, "source": "blender", "evidence": "muzzle at y -5.805 m from the hull centre x 16"},
+      "track_height_units": {"value": 15.52, "source": "blender", "evidence": "track top z 0.97 m x 16"},
+      "road_wheels_per_side": {"value": 7, "source": "blender", "evidence": "blender_m1a5 build.py road_wheels=7"},
+      "skirt_panels_per_side": {"value": 6, "source": "blender", "evidence": "blender_m1a5 build.py skirts 6 panels"}
     }
   },
   "infantry_fighting_vehicle": {
@@ -38,7 +39,7 @@
     }
   },
   "known_deviation": {
-    "tank_vs_real_m1": "The export envelope is 8.50 m nose-to-muzzle and 4.13 m wide; a real M1A5 is about 9.8 m gun-forward and 3.66 m wide. The model is the game envelope, not a dimensioned replica.",
-    "reference_ratio": "R1 body length:height = 1202:555 = 2.17:1; the game hull is 100:50 = 2.00:1, a 7.7% deviation (see docs/plan/ground-units-model-log.md)."
+    "tank_real_scale": "The tank model was replaced by the Blender-derived box set on 2026-09-14: 9.77 m gun-forward, 3.66 m wide, 2.44 m to the turret roof - the real M1A2 dimensions the mod now uses (MainBattleTankGeometry). The STL lifts rotated armour plates to their axis-aligned bounds, so glacis and turret-top slopes are slightly conservative.",
+    "ifv_reference_ratio": "IFV bbox still matches its Java geometry; see docs/plan/ground-units-model-log.md for the earlier ratio notes."
   }
 }

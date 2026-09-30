@@ -8,7 +8,10 @@ Parts listed under a vehicle's TURRET group are offset by TURRET_OFFSET_Y at bui
 in the Java models they are children of the animated turret part.
 """
 
-TURRET_OFFSET_Y = {"main_battle_tank": 34.0, "infantry_fighting_vehicle": 36.0}
+from ground_units_tank_data import TANK_BOXES, TURRET_OFFSET_Y_UNITS
+
+TURRET_OFFSET_Y = {"main_battle_tank": TURRET_OFFSET_Y_UNITS,
+                   "infantry_fighting_vehicle": 36.0}
 
 UNITS_PER_BLOCK = 16.0
 
@@ -18,68 +21,8 @@ def _box(part, turret, x, y, z, w, h, d):
 
 
 def main_battle_tank():
-    boxes = []
-    # ---- hull ----
-    boxes.append(_box("hull_lower", False, -26, 8, -50, 52, 18, 100))
-    boxes.append(_box("hull_upper", False, -28, 26, -46, 56, 8, 92))
-    boxes.append(_box("glacis_lower", False, -26, 14, -58, 52, 12, 8))
-    boxes.append(_box("glacis_upper", False, -24, 22, -62, 48, 10, 8))
-    boxes.append(_box("engine_deck", False, -26, 34, 16, 52, 6, 34))
-    boxes.append(_box("rear_plate", False, -26, 10, 50, 52, 24, 4))
-    # ---- running gear: 7 road wheels a side ----
-    boxes.append(_box("track_left", False, -31, 0, -54, 5, 14, 108))
-    boxes.append(_box("track_right", False, 26, 0, -54, 5, 14, 108))
-    for i in range(9):
-        z = -50.0 + i * 12.0
-        boxes.append(_box("tread_left_%d" % i, False, -31, 14, z, 5, 2, 8))
-        boxes.append(_box("tread_right_%d" % i, False, 26, 14, z, 5, 2, 8))
-    for i in range(7):
-        z = -42.0 + i * 14.0 - 5.0
-        boxes.append(_box("wheel_left_%d" % i, False, -30, 2, z, 5, 10, 10))
-        boxes.append(_box("wheel_right_%d" % i, False, 25, 2, z, 5, 10, 10))
-        boxes.append(_box("hub_left_%d" % i, False, -32, 6, z + 4, 1, 2, 2))
-        boxes.append(_box("hub_right_%d" % i, False, 31, 6, z + 4, 1, 2, 2))
-    boxes.append(_box("sprocket_left", False, -30, 3, 44, 5, 12, 9))
-    boxes.append(_box("sprocket_right", False, 25, 3, 44, 5, 12, 9))
-    boxes.append(_box("idler_left", False, -30, 3, -53, 5, 12, 9))
-    boxes.append(_box("idler_right", False, 25, 3, -53, 5, 12, 9))
-    # ---- fittings ----
-    for i in range(6):
-        z = -50.0 + i * 17.0
-        boxes.append(_box("skirt_left_%d" % i, False, -32, 10, z, 3, 16, 15))
-        boxes.append(_box("skirt_left_bolt_%d" % i, False, -33, 12, z + 3, 1, 12, 1))
-        boxes.append(_box("skirt_right_%d" % i, False, 29, 10, z, 3, 16, 15))
-        boxes.append(_box("skirt_right_bolt_%d" % i, False, 32, 12, z + 3, 1, 12, 1))
-    boxes.append(_box("headlight_left", False, -27, 24, -60, 6, 6, 4))
-    boxes.append(_box("headlight_right", False, 21, 24, -60, 6, 6, 4))
-    boxes.append(_box("tow_hook_left", False, -10, 18, -64, 4, 4, 4))
-    boxes.append(_box("tow_hook_right", False, 6, 18, -64, 4, 4, 4))
-    for i in range(8):
-        boxes.append(_box("grille_slat_%d" % i, False, -22, 40, 18.0 + i * 4.0, 44, 1, 2))
-    boxes.append(_box("exhaust", False, -32, 14, 52, 6, 10, 6))
-    # ---- turret (offset at build time) ----
-    boxes.append(_box("turret", True, -16, 0, -20, 32, 16, 40))
-    boxes.append(_box("turret_seam_front", True, -14, 16, -18, 28, 1, 1))
-    boxes.append(_box("turret_seam_rear", True, -14, 16, 14, 28, 1, 1))
-    boxes.append(_box("bustle", True, -14, 2, 20, 28, 12, 14))
-    boxes.append(_box("mantlet", True, -8, 2, -26, 16, 10, 6))
-    boxes.append(_box("barrel", True, -3, 4, -74, 6, 6, 48))
-    boxes.append(_box("bore_evacuator", True, -4, 3, -66, 8, 8, 4))
-    boxes.append(_box("thermal_sleeve", True, -4, 3, -60, 8, 8, 20))
-    boxes.append(_box("muzzle", True, -4, 3, -78, 8, 8, 4))
-    boxes.append(_box("cupola", True, -8, 16, -8, 14, 8, 14))
-    for i, x in enumerate((-6, -2, 2)):
-        boxes.append(_box("periscope_%d" % i, True, x, 24, -10, 2, 2, 2))
-    boxes.append(_box("loader_hatch", True, 6, 16, 0, 10, 3, 12))
-    boxes.append(_box("smoke_left", True, -18, 8, -18, 4, 6, 10))
-    boxes.append(_box("smoke_right", True, 14, 8, -18, 4, 6, 10))
-    boxes.append(_box("commander_gun_mount", True, -2, 24, -8, 4, 6, 6))
-    boxes.append(_box("commander_gun_barrel", True, -1, 26, -24, 2, 2, 16))
-    boxes.append(_box("gunner_sight", True, -10, 16, -16, 8, 6, 8))
-    boxes.append(_box("wind_sensor", True, -2, 16, 30, 4, 6, 4))
-    boxes.append(_box("antenna_left", True, -12, 16, 26, 1, 22, 1))
-    boxes.append(_box("antenna_right", True, 10, 16, 28, 1, 18, 1))
-    return boxes
+    """GENERATED from blender_m1a5 - see tools/generate_ground_unit_model.py."""
+    return [_box(p, t, x, y, z, w, h, d) for (p, t, x, y, z, w, h, d) in TANK_BOXES]
 
 
 def infantry_fighting_vehicle():

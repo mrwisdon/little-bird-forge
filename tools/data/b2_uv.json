@@ -1,0 +1,233 @@
+{
+  "texture_size": 512,
+  "note": "Frozen UV zones of textures/entity/b2.png. (u0,v0) top-left origin texels = the texOffs passed to CubeListBuilder, identical to UV_ZONES in tools/generate_b2_model.py. 'need' is the maximum Minecraft box unwrap 2*(width+depth) x (depth+height) the zone accepts; generate_b2_model.py splits any box that exceeds it.",
+  "zones": {
+    "skin": [
+      0,
+      0
+    ],
+    "panel": [
+      256,
+      0
+    ],
+    "glass": [
+      384,
+      0
+    ],
+    "intake": [
+      448,
+      0
+    ],
+    "exhaust": [
+      0,
+      144
+    ],
+    "metal": [
+      128,
+      144
+    ],
+    "bay_white": [
+      256,
+      144
+    ],
+    "gear_white": [
+      352,
+      144
+    ],
+    "ordnance": [
+      416,
+      144
+    ],
+    "tire": [
+      0,
+      208
+    ],
+    "light_r": [
+      48,
+      208
+    ],
+    "light_g": [
+      80,
+      208
+    ],
+    "light_w": [
+      112,
+      208
+    ],
+    "gold": [
+      144,
+      208
+    ]
+  },
+  "need": {
+    "skin": [
+      256,
+      144
+    ],
+    "panel": [
+      128,
+      96
+    ],
+    "glass": [
+      64,
+      48
+    ],
+    "intake": [
+      64,
+      48
+    ],
+    "exhaust": [
+      128,
+      64
+    ],
+    "metal": [
+      128,
+      64
+    ],
+    "bay_white": [
+      96,
+      48
+    ],
+    "gear_white": [
+      64,
+      32
+    ],
+    "ordnance": [
+      96,
+      48
+    ],
+    "tire": [
+      48,
+      32
+    ],
+    "light_r": [
+      32,
+      16
+    ],
+    "light_g": [
+      32,
+      16
+    ],
+    "light_w": [
+      32,
+      16
+    ],
+    "gold": [
+      32,
+      16
+    ]
+  },
+  "colors": {
+    "skin": [
+      38,
+      41,
+      46
+    ],
+    "panel": [
+      34,
+      37,
+      42
+    ],
+    "glass": [
+      27,
+      42,
+      36
+    ],
+    "intake": [
+      14,
+      15,
+      17
+    ],
+    "exhaust": [
+      52,
+      56,
+      60
+    ],
+    "metal": [
+      138,
+      144,
+      150
+    ],
+    "gear_white": [
+      216,
+      218,
+      214
+    ],
+    "bay_white": [
+      200,
+      203,
+      198
+    ],
+    "tire": [
+      23,
+      24,
+      26
+    ],
+    "ordnance": [
+      85,
+      88,
+      74
+    ],
+    "light_r": [
+      192,
+      48,
+      40
+    ],
+    "light_g": [
+      47,
+      168,
+      79
+    ],
+    "light_w": [
+      232,
+      230,
+      216
+    ],
+    "gold": [
+      201,
+      162,
+      39
+    ],
+    "dark": [
+      20,
+      21,
+      24
+    ],
+    "spare": [
+      92,
+      102,
+      112
+    ]
+  },
+  "preview": {
+    "texture_size": 256,
+    "cell": 64,
+    "note": "Contract rows, in contract order. With flip_v=true Forge samples v -> 1-v (ObjModel.java:428), so contract row r lives in PNG file row 3-r; columns are not flipped. Cell centre pixel for (col, contract row r) is (col*64+32, (3-r)*64+32).",
+    "rows": [
+      [
+        "skin",
+        "panel",
+        "glass",
+        "intake"
+      ],
+      [
+        "exhaust",
+        "metal",
+        "gear_white",
+        "bay_white"
+      ],
+      [
+        "tire",
+        "ordnance",
+        "light_r",
+        "light_g"
+      ],
+      [
+        "light_w",
+        "gold",
+        "dark",
+        "spare"
+      ]
+    ]
+  }
+}

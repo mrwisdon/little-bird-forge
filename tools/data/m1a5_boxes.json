@@ -1,0 +1,7033 @@
+{
+ "source": "blender_m1a5/m1a5.blend",
+ "units_per_metre": 16.0,
+ "axes": "MC: Y up, nose -Z, +X right",
+ "pivot": [
+  0.0,
+  23.04,
+  0.0
+ ],
+ "bounds": {
+  "min": [
+   -29.28,
+   0.0,
+   -92.88
+  ],
+  "max": [
+   29.28,
+   46.88,
+   63.44
+  ]
+ },
+ "profiles": {
+  "turret": [
+   [
+    -2.05,
+    1.05,
+    1.44,
+    1.86
+   ],
+   [
+    -1.8,
+    1.7,
+    1.44,
+    2.1
+   ],
+   [
+    -1.35,
+    2.35,
+    1.44,
+    2.26
+   ],
+   [
+    -0.6,
+    2.68,
+    1.44,
+    2.44
+   ],
+   [
+    0.6,
+    2.72,
+    1.44,
+    2.44
+   ],
+   [
+    1.3,
+    2.5,
+    1.44,
+    2.4
+   ]
+  ],
+  "hull": [
+   [
+    -3.965,
+    0.43
+   ],
+   [
+    -3.465,
+    0.98
+   ],
+   [
+    -3.465,
+    1.44
+   ],
+   [
+    3.965,
+    1.44
+   ],
+   [
+    3.965,
+    0.43
+   ]
+  ],
+  "hull_half": 27.52
+ },
+ "parts": [
+  {
+   "name": "M1A5_AntennaBase1",
+   "group": "turret",
+   "category": "olive_dark",
+   "kind": "box",
+   "verts": 16,
+   "faces": 10,
+   "min": [
+    -15.2,
+    39.04,
+    15.52
+   ],
+   "max": [
+    -13.6,
+    40.96,
+    17.12
+   ]
+  },
+  {
+   "name": "M1A5_AntennaBase2",
+   "group": "turret",
+   "category": "olive_dark",
+   "kind": "box",
+   "verts": 16,
+   "faces": 10,
+   "min": [
+    13.6,
+    39.04,
+    15.52
+   ],
+   "max": [
+    15.2,
+    40.96,
+    17.12
+   ]
+  },
+  {
+   "name": "M1A5_Arm_L1",
+   "group": "body",
+   "category": "steel",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -19.52,
+    6.56,
+    -41.92
+   ],
+   "max": [
+    -17.6,
+    12.0,
+    -39.68
+   ]
+  },
+  {
+   "name": "M1A5_Arm_L2",
+   "group": "body",
+   "category": "steel",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -19.52,
+    6.56,
+    -28.32
+   ],
+   "max": [
+    -17.6,
+    12.0,
+    -26.08
+   ]
+  },
+  {
+   "name": "M1A5_Arm_L3",
+   "group": "body",
+   "category": "steel",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -19.52,
+    6.56,
+    -14.72
+   ],
+   "max": [
+    -17.6,
+    12.0,
+    -12.48
+   ]
+  },
+  {
+   "name": "M1A5_Arm_L4",
+   "group": "body",
+   "category": "steel",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -19.52,
+    6.56,
+    -1.12
+   ],
+   "max": [
+    -17.6,
+    12.0,
+    1.12
+   ]
+  },
+  {
+   "name": "M1A5_Arm_L5",
+   "group": "body",
+   "category": "steel",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -19.52,
+    6.56,
+    12.48
+   ],
+   "max": [
+    -17.6,
+    12.0,
+    14.72
+   ]
+  },
+  {
+   "name": "M1A5_Arm_L6",
+   "group": "body",
+   "category": "steel",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -19.52,
+    6.56,
+    26.08
+   ],
+   "max": [
+    -17.6,
+    12.0,
+    28.32
+   ]
+  },
+  {
+   "name": "M1A5_Arm_L7",
+   "group": "body",
+   "category": "steel",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -19.52,
+    6.56,
+    39.68
+   ],
+   "max": [
+    -17.6,
+    12.0,
+    41.92
+   ]
+  },
+  {
+   "name": "M1A5_Arm_R1",
+   "group": "body",
+   "category": "steel",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    17.6,
+    6.56,
+    -41.92
+   ],
+   "max": [
+    19.52,
+    12.0,
+    -39.68
+   ]
+  },
+  {
+   "name": "M1A5_Arm_R2",
+   "group": "body",
+   "category": "steel",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    17.6,
+    6.56,
+    -28.32
+   ],
+   "max": [
+    19.52,
+    12.0,
+    -26.08
+   ]
+  },
+  {
+   "name": "M1A5_Arm_R3",
+   "group": "body",
+   "category": "steel",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    17.6,
+    6.56,
+    -14.72
+   ],
+   "max": [
+    19.52,
+    12.0,
+    -12.48
+   ]
+  },
+  {
+   "name": "M1A5_Arm_R4",
+   "group": "body",
+   "category": "steel",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    17.6,
+    6.56,
+    -1.12
+   ],
+   "max": [
+    19.52,
+    12.0,
+    1.12
+   ]
+  },
+  {
+   "name": "M1A5_Arm_R5",
+   "group": "body",
+   "category": "steel",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    17.6,
+    6.56,
+    12.48
+   ],
+   "max": [
+    19.52,
+    12.0,
+    14.72
+   ]
+  },
+  {
+   "name": "M1A5_Arm_R6",
+   "group": "body",
+   "category": "steel",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    17.6,
+    6.56,
+    26.08
+   ],
+   "max": [
+    19.52,
+    12.0,
+    28.32
+   ]
+  },
+  {
+   "name": "M1A5_Arm_R7",
+   "group": "body",
+   "category": "steel",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    17.6,
+    6.56,
+    39.68
+   ],
+   "max": [
+    19.52,
+    12.0,
+    41.92
+   ]
+  },
+  {
+   "name": "M1A5_Barrel",
+   "group": "gun",
+   "category": "gunmetal",
+   "kind": "cyl",
+   "verts": 32,
+   "faces": 18,
+   "min": [
+    -0.992,
+    30.368,
+    -92.88
+   ],
+   "max": [
+    0.992,
+    32.352,
+    -58.8
+   ]
+  },
+  {
+   "name": "M1A5_BoreEvacuator",
+   "group": "gun",
+   "category": "gunmetal",
+   "kind": "cyl",
+   "verts": 32,
+   "faces": 18,
+   "min": [
+    -2.048,
+    29.312,
+    -59.6
+   ],
+   "max": [
+    2.048,
+    33.408,
+    -50.8
+   ]
+  },
+  {
+   "name": "M1A5_BustleBarL1",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -20.4,
+    24.64,
+    22.32
+   ],
+   "max": [
+    -19.6,
+    33.44,
+    23.12
+   ]
+  },
+  {
+   "name": "M1A5_BustleBarL2",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -20.4,
+    24.64,
+    27.1733
+   ],
+   "max": [
+    -19.6,
+    33.44,
+    27.9733
+   ]
+  },
+  {
+   "name": "M1A5_BustleBarL3",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -20.4,
+    24.64,
+    32.0267
+   ],
+   "max": [
+    -19.6,
+    33.44,
+    32.8267
+   ]
+  },
+  {
+   "name": "M1A5_BustleBarL4",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -20.4,
+    24.64,
+    36.88
+   ],
+   "max": [
+    -19.6,
+    33.44,
+    37.68
+   ]
+  },
+  {
+   "name": "M1A5_BustleBarR1",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -19.44,
+    24.64,
+    38.8
+   ],
+   "max": [
+    -18.64,
+    33.44,
+    39.6
+   ]
+  },
+  {
+   "name": "M1A5_BustleBarR2",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -13.0933,
+    24.64,
+    38.8
+   ],
+   "max": [
+    -12.2933,
+    33.44,
+    39.6
+   ]
+  },
+  {
+   "name": "M1A5_BustleBarR3",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -6.7467,
+    24.64,
+    38.8
+   ],
+   "max": [
+    -5.9467,
+    33.44,
+    39.6
+   ]
+  },
+  {
+   "name": "M1A5_BustleBarR4",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -0.4,
+    24.64,
+    38.8
+   ],
+   "max": [
+    0.4,
+    33.44,
+    39.6
+   ]
+  },
+  {
+   "name": "M1A5_BustleBarR5",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    5.9467,
+    24.64,
+    38.8
+   ],
+   "max": [
+    6.7467,
+    33.44,
+    39.6
+   ]
+  },
+  {
+   "name": "M1A5_BustleBarR6",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    12.2933,
+    24.64,
+    38.8
+   ],
+   "max": [
+    13.0933,
+    33.44,
+    39.6
+   ]
+  },
+  {
+   "name": "M1A5_BustleBarR7",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.64,
+    24.64,
+    38.8
+   ],
+   "max": [
+    19.44,
+    33.44,
+    39.6
+   ]
+  },
+  {
+   "name": "M1A5_BustleBarRt1",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    19.6,
+    24.64,
+    22.32
+   ],
+   "max": [
+    20.4,
+    33.44,
+    23.12
+   ]
+  },
+  {
+   "name": "M1A5_BustleBarRt2",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    19.6,
+    24.64,
+    27.1733
+   ],
+   "max": [
+    20.4,
+    33.44,
+    27.9733
+   ]
+  },
+  {
+   "name": "M1A5_BustleBarRt3",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    19.6,
+    24.64,
+    32.0267
+   ],
+   "max": [
+    20.4,
+    33.44,
+    32.8267
+   ]
+  },
+  {
+   "name": "M1A5_BustleBarRt4",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    19.6,
+    24.64,
+    36.88
+   ],
+   "max": [
+    20.4,
+    33.44,
+    37.68
+   ]
+  },
+  {
+   "name": "M1A5_BustleCan",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -17.6,
+    25.6,
+    22.64
+   ],
+   "max": [
+    -12.8,
+    31.36,
+    26.16
+   ]
+  },
+  {
+   "name": "M1A5_BustleCrate1",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -18.96,
+    24.96,
+    25.2
+   ],
+   "max": [
+    -2.16,
+    31.36,
+    38.0
+   ]
+  },
+  {
+   "name": "M1A5_BustleCrate2",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    2.32,
+    24.96,
+    22.8
+   ],
+   "max": [
+    17.52,
+    30.72,
+    32.4
+   ]
+  },
+  {
+   "name": "M1A5_BustleFloor",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -20.0,
+    24.24,
+    20.8
+   ],
+   "max": [
+    20.0,
+    25.04,
+    39.2
+   ]
+  },
+  {
+   "name": "M1A5_BustlePack",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    6.8,
+    28.64,
+    31.52
+   ],
+   "max": [
+    15.6,
+    34.08,
+    38.72
+   ]
+  },
+  {
+   "name": "M1A5_BustleRailTop",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -20.0,
+    32.96,
+    38.72
+   ],
+   "max": [
+    20.0,
+    33.92,
+    39.68
+   ]
+  },
+  {
+   "name": "M1A5_BustleRear",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -20.0,
+    24.64,
+    38.8
+   ],
+   "max": [
+    20.0,
+    33.44,
+    39.6
+   ]
+  },
+  {
+   "name": "M1A5_BustleRoll",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 24,
+   "faces": 14,
+   "min": [
+    -11.6,
+    29.76,
+    33.2
+   ],
+   "max": [
+    2.0,
+    34.88,
+    38.32
+   ]
+  },
+  {
+   "name": "M1A5_BustleSideL",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -20.4,
+    24.64,
+    20.8
+   ],
+   "max": [
+    -19.6,
+    33.44,
+    39.2
+   ]
+  },
+  {
+   "name": "M1A5_BustleSideR",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    19.6,
+    24.64,
+    20.8
+   ],
+   "max": [
+    20.4,
+    33.44,
+    39.2
+   ]
+  },
+  {
+   "name": "M1A5_CITV",
+   "group": "turret",
+   "category": "glass",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    2.24,
+    39.2,
+    7.04
+   ],
+   "max": [
+    8.0,
+    43.68,
+    14.08
+   ]
+  },
+  {
+   "name": "M1A5_CITVLens",
+   "group": "turret",
+   "category": "glass",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    3.52,
+    40.0,
+    6.4
+   ],
+   "max": [
+    6.72,
+    42.88,
+    7.04
+   ]
+  },
+  {
+   "name": "M1A5_Cupola",
+   "group": "turret",
+   "category": "olive",
+   "kind": "cyl",
+   "verts": 36,
+   "faces": 20,
+   "min": [
+    4.2378,
+    39.04,
+    -4.32
+   ],
+   "max": [
+    14.3222,
+    42.88,
+    5.92
+   ]
+  },
+  {
+   "name": "M1A5_CupolaLid",
+   "group": "turret",
+   "category": "olive",
+   "kind": "cyl",
+   "verts": 36,
+   "faces": 20,
+   "min": [
+    4.8681,
+    42.88,
+    -3.68
+   ],
+   "max": [
+    13.6919,
+    43.68,
+    5.28
+   ]
+  },
+  {
+   "name": "M1A5_DeckFrame",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -23.2,
+    22.88,
+    26.0
+   ],
+   "max": [
+    23.2,
+    23.84,
+    58.8
+   ]
+  },
+  {
+   "name": "M1A5_DeckLouverG1_1",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -21.68,
+    23.44,
+    30.24
+   ],
+   "max": [
+    -3.28,
+    24.24,
+    32.16
+   ]
+  },
+  {
+   "name": "M1A5_DeckLouverG1_2",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -21.68,
+    23.44,
+    36.96
+   ],
+   "max": [
+    -3.28,
+    24.24,
+    38.88
+   ]
+  },
+  {
+   "name": "M1A5_DeckLouverG1_3",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -21.68,
+    23.44,
+    43.68
+   ],
+   "max": [
+    -3.28,
+    24.24,
+    45.6
+   ]
+  },
+  {
+   "name": "M1A5_DeckLouverG1_4",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -21.68,
+    23.44,
+    50.4
+   ],
+   "max": [
+    -3.28,
+    24.24,
+    52.32
+   ]
+  },
+  {
+   "name": "M1A5_DeckLouverG2_1",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    3.28,
+    23.44,
+    30.24
+   ],
+   "max": [
+    21.68,
+    24.24,
+    32.16
+   ]
+  },
+  {
+   "name": "M1A5_DeckLouverG2_2",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    3.28,
+    23.44,
+    36.96
+   ],
+   "max": [
+    21.68,
+    24.24,
+    38.88
+   ]
+  },
+  {
+   "name": "M1A5_DeckLouverG2_3",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    3.28,
+    23.44,
+    43.68
+   ],
+   "max": [
+    21.68,
+    24.24,
+    45.6
+   ]
+  },
+  {
+   "name": "M1A5_DeckLouverG2_4",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    3.28,
+    23.44,
+    50.4
+   ],
+   "max": [
+    21.68,
+    24.24,
+    52.32
+   ]
+  },
+  {
+   "name": "M1A5_DriverGuard",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -14.08,
+    23.52,
+    -44.64
+   ],
+   "max": [
+    -3.52,
+    25.12,
+    -42.4
+   ]
+  },
+  {
+   "name": "M1A5_DriverHatch",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -13.76,
+    22.96,
+    -43.36
+   ],
+   "max": [
+    -3.84,
+    24.08,
+    -31.84
+   ]
+  },
+  {
+   "name": "M1A5_Exhaust",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.0,
+    19.36,
+    49.6
+   ],
+   "max": [
+    -22.56,
+    23.52,
+    57.6
+   ]
+  },
+  {
+   "name": "M1A5_FenderRail_L",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -27.68,
+    22.24,
+    -57.6
+   ],
+   "max": [
+    -26.08,
+    23.2,
+    51.2
+   ]
+  },
+  {
+   "name": "M1A5_FenderRail_R",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    26.08,
+    22.24,
+    -57.6
+   ],
+   "max": [
+    27.68,
+    23.2,
+    51.2
+   ]
+  },
+  {
+   "name": "M1A5_FrontFlap",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -5.76,
+    5.6,
+    -62.32
+   ],
+   "max": [
+    5.76,
+    11.04,
+    -61.36
+   ]
+  },
+  {
+   "name": "M1A5_FuelCap_L",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 24,
+   "faces": 14,
+   "min": [
+    -15.84,
+    23.52,
+    47.36
+   ],
+   "max": [
+    -11.36,
+    24.48,
+    51.84
+   ]
+  },
+  {
+   "name": "M1A5_FuelCap_R",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 24,
+   "faces": 14,
+   "min": [
+    11.36,
+    23.52,
+    47.36
+   ],
+   "max": [
+    15.84,
+    24.48,
+    51.84
+   ]
+  },
+  {
+   "name": "M1A5_GlacisERA1",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -21.6,
+    21.28,
+    -52.16
+   ],
+   "max": [
+    -12.0,
+    23.52,
+    -45.44
+   ]
+  },
+  {
+   "name": "M1A5_GlacisERA2",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -10.4,
+    21.28,
+    -52.16
+   ],
+   "max": [
+    -0.8,
+    23.52,
+    -45.44
+   ]
+  },
+  {
+   "name": "M1A5_GlacisERA3",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    0.8,
+    21.28,
+    -52.16
+   ],
+   "max": [
+    10.4,
+    23.52,
+    -45.44
+   ]
+  },
+  {
+   "name": "M1A5_GlacisERA4",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    12.0,
+    21.28,
+    -52.16
+   ],
+   "max": [
+    21.6,
+    23.52,
+    -45.44
+   ]
+  },
+  {
+   "name": "M1A5_GrabBar_L1",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.48,
+    20.8,
+    -28.32
+   ],
+   "max": [
+    -27.84,
+    21.44,
+    -22.88
+   ]
+  },
+  {
+   "name": "M1A5_GrabBar_L2",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.48,
+    20.8,
+    2.08
+   ],
+   "max": [
+    -27.84,
+    21.44,
+    7.52
+   ]
+  },
+  {
+   "name": "M1A5_GrabBar_L3",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.48,
+    20.8,
+    32.48
+   ],
+   "max": [
+    -27.84,
+    21.44,
+    37.92
+   ]
+  },
+  {
+   "name": "M1A5_GrabBar_R1",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    27.84,
+    20.8,
+    -28.32
+   ],
+   "max": [
+    28.48,
+    21.44,
+    -22.88
+   ]
+  },
+  {
+   "name": "M1A5_GrabBar_R2",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    27.84,
+    20.8,
+    2.08
+   ],
+   "max": [
+    28.48,
+    21.44,
+    7.52
+   ]
+  },
+  {
+   "name": "M1A5_GrabBar_R3",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    27.84,
+    20.8,
+    32.48
+   ],
+   "max": [
+    28.48,
+    21.44,
+    37.92
+   ]
+  },
+  {
+   "name": "M1A5_GunShield",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -7.68,
+    26.4,
+    -28.0
+   ],
+   "max": [
+    7.68,
+    36.32,
+    -26.4
+   ]
+  },
+  {
+   "name": "M1A5_GunnerSight",
+   "group": "turret",
+   "category": "glass",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -12.32,
+    38.72,
+    -19.68
+   ],
+   "max": [
+    -5.28,
+    42.56,
+    -12.32
+   ]
+  },
+  {
+   "name": "M1A5_GunnerSightHead",
+   "group": "turret",
+   "category": "glass",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -11.2,
+    39.52,
+    -20.32
+   ],
+   "max": [
+    -6.4,
+    42.4,
+    -19.36
+   ]
+  },
+  {
+   "name": "M1A5_Headlight_L",
+   "group": "body",
+   "category": "light_yellow",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -24.96,
+    15.68,
+    -54.32
+   ],
+   "max": [
+    -18.24,
+    17.28,
+    -52.72
+   ]
+  },
+  {
+   "name": "M1A5_Headlight_R",
+   "group": "body",
+   "category": "light_yellow",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.24,
+    15.68,
+    -54.32
+   ],
+   "max": [
+    24.96,
+    17.28,
+    -52.72
+   ]
+  },
+  {
+   "name": "M1A5_HullLink_L1",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.48,
+    15.52,
+    -22.08
+   ],
+   "max": [
+    -27.52,
+    20.96,
+    -19.52
+   ]
+  },
+  {
+   "name": "M1A5_HullLink_L2",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.48,
+    15.52,
+    -18.56
+   ],
+   "max": [
+    -27.52,
+    20.96,
+    -16.0
+   ]
+  },
+  {
+   "name": "M1A5_HullLink_L3",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.48,
+    15.52,
+    -15.04
+   ],
+   "max": [
+    -27.52,
+    20.96,
+    -12.48
+   ]
+  },
+  {
+   "name": "M1A5_HullLink_L4",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.48,
+    15.52,
+    -11.52
+   ],
+   "max": [
+    -27.52,
+    20.96,
+    -8.96
+   ]
+  },
+  {
+   "name": "M1A5_HullLink_R1",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    27.52,
+    15.52,
+    -22.08
+   ],
+   "max": [
+    28.48,
+    20.96,
+    -19.52
+   ]
+  },
+  {
+   "name": "M1A5_HullLink_R2",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    27.52,
+    15.52,
+    -18.56
+   ],
+   "max": [
+    28.48,
+    20.96,
+    -16.0
+   ]
+  },
+  {
+   "name": "M1A5_HullLink_R3",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    27.52,
+    15.52,
+    -15.04
+   ],
+   "max": [
+    28.48,
+    20.96,
+    -12.48
+   ]
+  },
+  {
+   "name": "M1A5_HullLink_R4",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    27.52,
+    15.52,
+    -11.52
+   ],
+   "max": [
+    28.48,
+    20.96,
+    -8.96
+   ]
+  },
+  {
+   "name": "M1A5_HullLower",
+   "group": "body",
+   "category": "olive",
+   "kind": "complex",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -18.4,
+    6.88,
+    -63.44
+   ],
+   "max": [
+    18.4,
+    15.68,
+    63.44
+   ]
+  },
+  {
+   "name": "M1A5_HullUpper",
+   "group": "body",
+   "category": "olive",
+   "kind": "complex",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -27.52,
+    15.68,
+    -55.44
+   ],
+   "max": [
+    27.52,
+    23.04,
+    63.44
+   ]
+  },
+  {
+   "name": "M1A5_IdlerHub_L",
+   "group": "body",
+   "category": "hub",
+   "kind": "cyl",
+   "verts": 20,
+   "faces": 12,
+   "min": [
+    -25.44,
+    6.0861,
+    -56.96
+   ],
+   "max": [
+    -21.92,
+    9.4339,
+    -53.44
+   ]
+  },
+  {
+   "name": "M1A5_IdlerHub_R",
+   "group": "body",
+   "category": "hub",
+   "kind": "cyl",
+   "verts": 20,
+   "faces": 12,
+   "min": [
+    21.92,
+    6.0861,
+    -56.96
+   ],
+   "max": [
+    25.44,
+    9.4339,
+    -53.44
+   ]
+  },
+  {
+   "name": "M1A5_Idler_L",
+   "group": "body",
+   "category": "roller",
+   "kind": "cyl",
+   "verts": 32,
+   "faces": 18,
+   "min": [
+    -25.12,
+    1.36,
+    -61.6
+   ],
+   "max": [
+    -22.24,
+    14.16,
+    -48.8
+   ]
+  },
+  {
+   "name": "M1A5_Idler_R",
+   "group": "body",
+   "category": "roller",
+   "kind": "cyl",
+   "verts": 32,
+   "faces": 18,
+   "min": [
+    22.24,
+    1.36,
+    -61.6
+   ],
+   "max": [
+    25.12,
+    14.16,
+    -48.8
+   ]
+  },
+  {
+   "name": "M1A5_LoaderHatch",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 36,
+   "faces": 20,
+   "min": [
+    -15.1271,
+    39.04,
+    -0.8
+   ],
+   "max": [
+    -5.6729,
+    40.16,
+    8.8
+   ]
+  },
+  {
+   "name": "M1A5_LoaderMGBarrel",
+   "group": "turret",
+   "category": "gunmetal",
+   "kind": "cyl",
+   "verts": 16,
+   "faces": 10,
+   "min": [
+    -15.936,
+    41.664,
+    -8.8
+   ],
+   "max": [
+    -15.424,
+    42.176,
+    2.4
+   ]
+  },
+  {
+   "name": "M1A5_LoaderMGBase",
+   "group": "turret",
+   "category": "gunmetal",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -16.64,
+    39.52,
+    5.44
+   ],
+   "max": [
+    -14.72,
+    41.12,
+    8.0
+   ]
+  },
+  {
+   "name": "M1A5_LoaderMGBody",
+   "group": "turret",
+   "category": "gunmetal",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -16.48,
+    40.96,
+    1.12
+   ],
+   "max": [
+    -14.88,
+    42.88,
+    5.92
+   ]
+  },
+  {
+   "name": "M1A5_LowerERA1",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -21.6,
+    10.24,
+    -62.32
+   ],
+   "max": [
+    -12.0,
+    12.8,
+    -57.52
+   ]
+  },
+  {
+   "name": "M1A5_LowerERA2",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -10.4,
+    10.24,
+    -62.32
+   ],
+   "max": [
+    -0.8,
+    12.8,
+    -57.52
+   ]
+  },
+  {
+   "name": "M1A5_LowerERA3",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    0.8,
+    10.24,
+    -62.32
+   ],
+   "max": [
+    10.4,
+    12.8,
+    -57.52
+   ]
+  },
+  {
+   "name": "M1A5_LowerERA4",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    12.0,
+    10.24,
+    -62.32
+   ],
+   "max": [
+    21.6,
+    12.8,
+    -57.52
+   ]
+  },
+  {
+   "name": "M1A5_M240Barrel",
+   "group": "turret",
+   "category": "gunmetal",
+   "kind": "cyl",
+   "verts": 20,
+   "faces": 12,
+   "min": [
+    -9.8435,
+    42.304,
+    -20.4
+   ],
+   "max": [
+    -9.3565,
+    42.816,
+    -6.8
+   ]
+  },
+  {
+   "name": "M1A5_M240Mount",
+   "group": "turret",
+   "category": "gunmetal",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -10.4,
+    40.48,
+    -3.2
+   ],
+   "max": [
+    -8.8,
+    42.08,
+    1.6
+   ]
+  },
+  {
+   "name": "M1A5_M240Receiver",
+   "group": "turret",
+   "category": "gunmetal",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -10.4,
+    41.6,
+    -7.36
+   ],
+   "max": [
+    -8.8,
+    43.52,
+    -1.6
+   ]
+  },
+  {
+   "name": "M1A5_Mantlet",
+   "group": "turret",
+   "category": "gunmetal",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -8.48,
+    26.88,
+    -34.08
+   ],
+   "max": [
+    8.48,
+    35.84,
+    -27.36
+   ]
+  },
+  {
+   "name": "M1A5_MudFlapF_L",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    5.52,
+    -64.16
+   ],
+   "max": [
+    -23.2,
+    14.32,
+    -63.36
+   ]
+  },
+  {
+   "name": "M1A5_MudFlapF_R",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    23.2,
+    5.52,
+    -64.16
+   ],
+   "max": [
+    28.64,
+    14.32,
+    -63.36
+   ]
+  },
+  {
+   "name": "M1A5_MudFlapR_L",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    6.56,
+    62.32
+   ],
+   "max": [
+    -23.2,
+    14.56,
+    63.12
+   ]
+  },
+  {
+   "name": "M1A5_MudFlapR_R",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    23.2,
+    6.56,
+    62.32
+   ],
+   "max": [
+    28.64,
+    14.56,
+    63.12
+   ]
+  },
+  {
+   "name": "M1A5_Muzzle",
+   "group": "gun",
+   "category": "gunmetal",
+   "kind": "cyl",
+   "verts": 32,
+   "faces": 18,
+   "min": [
+    -1.408,
+    29.952,
+    -92.88
+   ],
+   "max": [
+    1.408,
+    32.768,
+    -88.16
+   ]
+  },
+  {
+   "name": "M1A5_RWSBarrel",
+   "group": "turret",
+   "category": "gunmetal",
+   "kind": "cyl",
+   "verts": 20,
+   "faces": 12,
+   "min": [
+    13.4252,
+    43.488,
+    -25.6
+   ],
+   "max": [
+    14.0948,
+    44.192,
+    -12.8
+   ]
+  },
+  {
+   "name": "M1A5_RWSBase",
+   "group": "turret",
+   "category": "gunmetal",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    11.68,
+    39.2,
+    -8.8
+   ],
+   "max": [
+    15.84,
+    43.36,
+    -4.0
+   ]
+  },
+  {
+   "name": "M1A5_RWSBody",
+   "group": "turret",
+   "category": "gunmetal",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    12.16,
+    42.24,
+    -13.12
+   ],
+   "max": [
+    15.36,
+    45.44,
+    -6.08
+   ]
+  },
+  {
+   "name": "M1A5_RWSReceiver",
+   "group": "turret",
+   "category": "gunmetal",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    12.48,
+    44.64,
+    -15.2
+   ],
+   "max": [
+    15.04,
+    46.88,
+    -9.76
+   ]
+  },
+  {
+   "name": "M1A5_Rail_L",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -21.52,
+    36.72,
+    -12.0
+   ],
+   "max": [
+    -20.72,
+    37.52,
+    8.8
+   ]
+  },
+  {
+   "name": "M1A5_Rail_R",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    20.72,
+    36.72,
+    -12.0
+   ],
+   "max": [
+    21.52,
+    37.52,
+    8.8
+   ]
+  },
+  {
+   "name": "M1A5_RearPlate",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -18.4,
+    9.6,
+    62.32
+   ],
+   "max": [
+    18.4,
+    24.0,
+    63.44
+   ]
+  },
+  {
+   "name": "M1A5_RoadWheelRim_L1",
+   "group": "body",
+   "category": "roller",
+   "kind": "cyl",
+   "verts": 36,
+   "faces": 20,
+   "min": [
+    -25.44,
+    2.5298,
+    -44.08
+   ],
+   "max": [
+    -21.92,
+    8.9902,
+    -37.52
+   ]
+  },
+  {
+   "name": "M1A5_RoadWheelRim_L2",
+   "group": "body",
+   "category": "roller",
+   "kind": "cyl",
+   "verts": 36,
+   "faces": 20,
+   "min": [
+    -25.44,
+    2.5298,
+    -30.48
+   ],
+   "max": [
+    -21.92,
+    8.9902,
+    -23.92
+   ]
+  },
+  {
+   "name": "M1A5_RoadWheelRim_L3",
+   "group": "body",
+   "category": "roller",
+   "kind": "cyl",
+   "verts": 36,
+   "faces": 20,
+   "min": [
+    -25.44,
+    2.5298,
+    -16.88
+   ],
+   "max": [
+    -21.92,
+    8.9902,
+    -10.32
+   ]
+  },
+  {
+   "name": "M1A5_RoadWheelRim_L4",
+   "group": "body",
+   "category": "roller",
+   "kind": "cyl",
+   "verts": 36,
+   "faces": 20,
+   "min": [
+    -25.44,
+    2.5298,
+    -3.28
+   ],
+   "max": [
+    -21.92,
+    8.9902,
+    3.28
+   ]
+  },
+  {
+   "name": "M1A5_RoadWheelRim_L5",
+   "group": "body",
+   "category": "roller",
+   "kind": "cyl",
+   "verts": 36,
+   "faces": 20,
+   "min": [
+    -25.44,
+    2.5298,
+    10.32
+   ],
+   "max": [
+    -21.92,
+    8.9902,
+    16.88
+   ]
+  },
+  {
+   "name": "M1A5_RoadWheelRim_L6",
+   "group": "body",
+   "category": "roller",
+   "kind": "cyl",
+   "verts": 36,
+   "faces": 20,
+   "min": [
+    -25.44,
+    2.5298,
+    23.92
+   ],
+   "max": [
+    -21.92,
+    8.9902,
+    30.48
+   ]
+  },
+  {
+   "name": "M1A5_RoadWheelRim_L7",
+   "group": "body",
+   "category": "roller",
+   "kind": "cyl",
+   "verts": 36,
+   "faces": 20,
+   "min": [
+    -25.44,
+    2.5298,
+    37.52
+   ],
+   "max": [
+    -21.92,
+    8.9902,
+    44.08
+   ]
+  },
+  {
+   "name": "M1A5_RoadWheelRim_R1",
+   "group": "body",
+   "category": "roller",
+   "kind": "cyl",
+   "verts": 36,
+   "faces": 20,
+   "min": [
+    21.92,
+    2.5298,
+    -44.08
+   ],
+   "max": [
+    25.44,
+    8.9902,
+    -37.52
+   ]
+  },
+  {
+   "name": "M1A5_RoadWheelRim_R2",
+   "group": "body",
+   "category": "roller",
+   "kind": "cyl",
+   "verts": 36,
+   "faces": 20,
+   "min": [
+    21.92,
+    2.5298,
+    -30.48
+   ],
+   "max": [
+    25.44,
+    8.9902,
+    -23.92
+   ]
+  },
+  {
+   "name": "M1A5_RoadWheelRim_R3",
+   "group": "body",
+   "category": "roller",
+   "kind": "cyl",
+   "verts": 36,
+   "faces": 20,
+   "min": [
+    21.92,
+    2.5298,
+    -16.88
+   ],
+   "max": [
+    25.44,
+    8.9902,
+    -10.32
+   ]
+  },
+  {
+   "name": "M1A5_RoadWheelRim_R4",
+   "group": "body",
+   "category": "roller",
+   "kind": "cyl",
+   "verts": 36,
+   "faces": 20,
+   "min": [
+    21.92,
+    2.5298,
+    -3.28
+   ],
+   "max": [
+    25.44,
+    8.9902,
+    3.28
+   ]
+  },
+  {
+   "name": "M1A5_RoadWheelRim_R5",
+   "group": "body",
+   "category": "roller",
+   "kind": "cyl",
+   "verts": 36,
+   "faces": 20,
+   "min": [
+    21.92,
+    2.5298,
+    10.32
+   ],
+   "max": [
+    25.44,
+    8.9902,
+    16.88
+   ]
+  },
+  {
+   "name": "M1A5_RoadWheelRim_R6",
+   "group": "body",
+   "category": "roller",
+   "kind": "cyl",
+   "verts": 36,
+   "faces": 20,
+   "min": [
+    21.92,
+    2.5298,
+    23.92
+   ],
+   "max": [
+    25.44,
+    8.9902,
+    30.48
+   ]
+  },
+  {
+   "name": "M1A5_RoadWheelRim_R7",
+   "group": "body",
+   "category": "roller",
+   "kind": "cyl",
+   "verts": 36,
+   "faces": 20,
+   "min": [
+    21.92,
+    2.5298,
+    37.52
+   ],
+   "max": [
+    25.44,
+    8.9902,
+    44.08
+   ]
+  },
+  {
+   "name": "M1A5_RoadWheelTire_L1",
+   "group": "body",
+   "category": "roller",
+   "kind": "cyl",
+   "verts": 40,
+   "faces": 22,
+   "min": [
+    -25.12,
+    0.48,
+    -46.08
+   ],
+   "max": [
+    -22.24,
+    11.04,
+    -35.52
+   ]
+  },
+  {
+   "name": "M1A5_RoadWheelTire_L2",
+   "group": "body",
+   "category": "roller",
+   "kind": "cyl",
+   "verts": 40,
+   "faces": 22,
+   "min": [
+    -25.12,
+    0.48,
+    -32.48
+   ],
+   "max": [
+    -22.24,
+    11.04,
+    -21.92
+   ]
+  },
+  {
+   "name": "M1A5_RoadWheelTire_L3",
+   "group": "body",
+   "category": "roller",
+   "kind": "cyl",
+   "verts": 40,
+   "faces": 22,
+   "min": [
+    -25.12,
+    0.48,
+    -18.88
+   ],
+   "max": [
+    -22.24,
+    11.04,
+    -8.32
+   ]
+  },
+  {
+   "name": "M1A5_RoadWheelTire_L4",
+   "group": "body",
+   "category": "roller",
+   "kind": "cyl",
+   "verts": 40,
+   "faces": 22,
+   "min": [
+    -25.12,
+    0.48,
+    -5.28
+   ],
+   "max": [
+    -22.24,
+    11.04,
+    5.28
+   ]
+  },
+  {
+   "name": "M1A5_RoadWheelTire_L5",
+   "group": "body",
+   "category": "roller",
+   "kind": "cyl",
+   "verts": 40,
+   "faces": 22,
+   "min": [
+    -25.12,
+    0.48,
+    8.32
+   ],
+   "max": [
+    -22.24,
+    11.04,
+    18.88
+   ]
+  },
+  {
+   "name": "M1A5_RoadWheelTire_L6",
+   "group": "body",
+   "category": "roller",
+   "kind": "cyl",
+   "verts": 40,
+   "faces": 22,
+   "min": [
+    -25.12,
+    0.48,
+    21.92
+   ],
+   "max": [
+    -22.24,
+    11.04,
+    32.48
+   ]
+  },
+  {
+   "name": "M1A5_RoadWheelTire_L7",
+   "group": "body",
+   "category": "roller",
+   "kind": "cyl",
+   "verts": 40,
+   "faces": 22,
+   "min": [
+    -25.12,
+    0.48,
+    35.52
+   ],
+   "max": [
+    -22.24,
+    11.04,
+    46.08
+   ]
+  },
+  {
+   "name": "M1A5_RoadWheelTire_R1",
+   "group": "body",
+   "category": "roller",
+   "kind": "cyl",
+   "verts": 40,
+   "faces": 22,
+   "min": [
+    22.24,
+    0.48,
+    -46.08
+   ],
+   "max": [
+    25.12,
+    11.04,
+    -35.52
+   ]
+  },
+  {
+   "name": "M1A5_RoadWheelTire_R2",
+   "group": "body",
+   "category": "roller",
+   "kind": "cyl",
+   "verts": 40,
+   "faces": 22,
+   "min": [
+    22.24,
+    0.48,
+    -32.48
+   ],
+   "max": [
+    25.12,
+    11.04,
+    -21.92
+   ]
+  },
+  {
+   "name": "M1A5_RoadWheelTire_R3",
+   "group": "body",
+   "category": "roller",
+   "kind": "cyl",
+   "verts": 40,
+   "faces": 22,
+   "min": [
+    22.24,
+    0.48,
+    -18.88
+   ],
+   "max": [
+    25.12,
+    11.04,
+    -8.32
+   ]
+  },
+  {
+   "name": "M1A5_RoadWheelTire_R4",
+   "group": "body",
+   "category": "roller",
+   "kind": "cyl",
+   "verts": 40,
+   "faces": 22,
+   "min": [
+    22.24,
+    0.48,
+    -5.28
+   ],
+   "max": [
+    25.12,
+    11.04,
+    5.28
+   ]
+  },
+  {
+   "name": "M1A5_RoadWheelTire_R5",
+   "group": "body",
+   "category": "roller",
+   "kind": "cyl",
+   "verts": 40,
+   "faces": 22,
+   "min": [
+    22.24,
+    0.48,
+    8.32
+   ],
+   "max": [
+    25.12,
+    11.04,
+    18.88
+   ]
+  },
+  {
+   "name": "M1A5_RoadWheelTire_R6",
+   "group": "body",
+   "category": "roller",
+   "kind": "cyl",
+   "verts": 40,
+   "faces": 22,
+   "min": [
+    22.24,
+    0.48,
+    21.92
+   ],
+   "max": [
+    25.12,
+    11.04,
+    32.48
+   ]
+  },
+  {
+   "name": "M1A5_RoadWheelTire_R7",
+   "group": "body",
+   "category": "roller",
+   "kind": "cyl",
+   "verts": 40,
+   "faces": 22,
+   "min": [
+    22.24,
+    0.48,
+    35.52
+   ],
+   "max": [
+    25.12,
+    11.04,
+    46.08
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L1_00",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    15.36,
+    -48.96
+   ],
+   "max": [
+    -28.48,
+    18.56,
+    -44.1333
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L1_01",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    15.36,
+    -43.8133
+   ],
+   "max": [
+    -28.48,
+    18.56,
+    -38.9867
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L1_02",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    15.36,
+    -38.6667
+   ],
+   "max": [
+    -28.48,
+    18.56,
+    -33.84
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L1_10",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    18.88,
+    -48.96
+   ],
+   "max": [
+    -28.48,
+    22.08,
+    -44.1333
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L1_11",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    18.88,
+    -43.8133
+   ],
+   "max": [
+    -28.48,
+    22.08,
+    -38.9867
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L1_12",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    18.88,
+    -38.6667
+   ],
+   "max": [
+    -28.48,
+    22.08,
+    -33.84
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L2_00",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    12.8,
+    -32.08
+   ],
+   "max": [
+    -28.48,
+    17.28,
+    -27.2533
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L2_01",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    12.8,
+    -26.9333
+   ],
+   "max": [
+    -28.48,
+    17.28,
+    -22.1067
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L2_02",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    12.8,
+    -21.7867
+   ],
+   "max": [
+    -28.48,
+    17.28,
+    -16.96
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L2_10",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    17.6,
+    -32.08
+   ],
+   "max": [
+    -28.48,
+    22.08,
+    -27.2533
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L2_11",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    17.6,
+    -26.9333
+   ],
+   "max": [
+    -28.48,
+    22.08,
+    -22.1067
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L2_12",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    17.6,
+    -21.7867
+   ],
+   "max": [
+    -28.48,
+    22.08,
+    -16.96
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L3_00",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    11.2,
+    -15.2
+   ],
+   "max": [
+    -28.48,
+    16.48,
+    -10.3733
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L3_01",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    11.2,
+    -10.0533
+   ],
+   "max": [
+    -28.48,
+    16.48,
+    -5.2267
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L3_02",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    11.2,
+    -4.9067
+   ],
+   "max": [
+    -28.48,
+    16.48,
+    -0.08
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L3_10",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    16.8,
+    -15.2
+   ],
+   "max": [
+    -28.48,
+    22.08,
+    -10.3733
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L3_11",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    16.8,
+    -10.0533
+   ],
+   "max": [
+    -28.48,
+    22.08,
+    -5.2267
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L3_12",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    16.8,
+    -4.9067
+   ],
+   "max": [
+    -28.48,
+    22.08,
+    -0.08
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L4_00",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    11.2,
+    1.68
+   ],
+   "max": [
+    -28.48,
+    16.48,
+    6.5067
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L4_01",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    11.2,
+    6.8267
+   ],
+   "max": [
+    -28.48,
+    16.48,
+    11.6533
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L4_02",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    11.2,
+    11.9733
+   ],
+   "max": [
+    -28.48,
+    16.48,
+    16.8
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L4_10",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    16.8,
+    1.68
+   ],
+   "max": [
+    -28.48,
+    22.08,
+    6.5067
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L4_11",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    16.8,
+    6.8267
+   ],
+   "max": [
+    -28.48,
+    22.08,
+    11.6533
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L4_12",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    16.8,
+    11.9733
+   ],
+   "max": [
+    -28.48,
+    22.08,
+    16.8
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L5_00",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    12.48,
+    18.56
+   ],
+   "max": [
+    -28.48,
+    17.12,
+    23.3867
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L5_01",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    12.48,
+    23.7067
+   ],
+   "max": [
+    -28.48,
+    17.12,
+    28.5333
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L5_02",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    12.48,
+    28.8533
+   ],
+   "max": [
+    -28.48,
+    17.12,
+    33.68
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L5_10",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    17.44,
+    18.56
+   ],
+   "max": [
+    -28.48,
+    22.08,
+    23.3867
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L5_11",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    17.44,
+    23.7067
+   ],
+   "max": [
+    -28.48,
+    22.08,
+    28.5333
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L5_12",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    17.44,
+    28.8533
+   ],
+   "max": [
+    -28.48,
+    22.08,
+    33.68
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L6_00",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    15.68,
+    35.44
+   ],
+   "max": [
+    -28.48,
+    18.72,
+    40.2667
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L6_01",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    15.68,
+    40.5867
+   ],
+   "max": [
+    -28.48,
+    18.72,
+    45.4133
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L6_02",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    15.68,
+    45.7333
+   ],
+   "max": [
+    -28.48,
+    18.72,
+    50.56
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L6_10",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    19.04,
+    35.44
+   ],
+   "max": [
+    -28.48,
+    22.08,
+    40.2667
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L6_11",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    19.04,
+    40.5867
+   ],
+   "max": [
+    -28.48,
+    22.08,
+    45.4133
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_L6_12",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -29.28,
+    19.04,
+    45.7333
+   ],
+   "max": [
+    -28.48,
+    22.08,
+    50.56
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R1_00",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    15.36,
+    -48.96
+   ],
+   "max": [
+    29.28,
+    18.56,
+    -44.1333
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R1_01",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    15.36,
+    -43.8133
+   ],
+   "max": [
+    29.28,
+    18.56,
+    -38.9867
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R1_02",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    15.36,
+    -38.6667
+   ],
+   "max": [
+    29.28,
+    18.56,
+    -33.84
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R1_10",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    18.88,
+    -48.96
+   ],
+   "max": [
+    29.28,
+    22.08,
+    -44.1333
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R1_11",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    18.88,
+    -43.8133
+   ],
+   "max": [
+    29.28,
+    22.08,
+    -38.9867
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R1_12",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    18.88,
+    -38.6667
+   ],
+   "max": [
+    29.28,
+    22.08,
+    -33.84
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R2_00",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    12.8,
+    -32.08
+   ],
+   "max": [
+    29.28,
+    17.28,
+    -27.2533
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R2_01",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    12.8,
+    -26.9333
+   ],
+   "max": [
+    29.28,
+    17.28,
+    -22.1067
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R2_02",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    12.8,
+    -21.7867
+   ],
+   "max": [
+    29.28,
+    17.28,
+    -16.96
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R2_10",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    17.6,
+    -32.08
+   ],
+   "max": [
+    29.28,
+    22.08,
+    -27.2533
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R2_11",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    17.6,
+    -26.9333
+   ],
+   "max": [
+    29.28,
+    22.08,
+    -22.1067
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R2_12",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    17.6,
+    -21.7867
+   ],
+   "max": [
+    29.28,
+    22.08,
+    -16.96
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R3_00",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    11.2,
+    -15.2
+   ],
+   "max": [
+    29.28,
+    16.48,
+    -10.3733
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R3_01",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    11.2,
+    -10.0533
+   ],
+   "max": [
+    29.28,
+    16.48,
+    -5.2267
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R3_02",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    11.2,
+    -4.9067
+   ],
+   "max": [
+    29.28,
+    16.48,
+    -0.08
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R3_10",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    16.8,
+    -15.2
+   ],
+   "max": [
+    29.28,
+    22.08,
+    -10.3733
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R3_11",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    16.8,
+    -10.0533
+   ],
+   "max": [
+    29.28,
+    22.08,
+    -5.2267
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R3_12",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    16.8,
+    -4.9067
+   ],
+   "max": [
+    29.28,
+    22.08,
+    -0.08
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R4_00",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    11.2,
+    1.68
+   ],
+   "max": [
+    29.28,
+    16.48,
+    6.5067
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R4_01",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    11.2,
+    6.8267
+   ],
+   "max": [
+    29.28,
+    16.48,
+    11.6533
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R4_02",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    11.2,
+    11.9733
+   ],
+   "max": [
+    29.28,
+    16.48,
+    16.8
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R4_10",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    16.8,
+    1.68
+   ],
+   "max": [
+    29.28,
+    22.08,
+    6.5067
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R4_11",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    16.8,
+    6.8267
+   ],
+   "max": [
+    29.28,
+    22.08,
+    11.6533
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R4_12",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    16.8,
+    11.9733
+   ],
+   "max": [
+    29.28,
+    22.08,
+    16.8
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R5_00",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    12.48,
+    18.56
+   ],
+   "max": [
+    29.28,
+    17.12,
+    23.3867
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R5_01",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    12.48,
+    23.7067
+   ],
+   "max": [
+    29.28,
+    17.12,
+    28.5333
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R5_02",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    12.48,
+    28.8533
+   ],
+   "max": [
+    29.28,
+    17.12,
+    33.68
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R5_10",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    17.44,
+    18.56
+   ],
+   "max": [
+    29.28,
+    22.08,
+    23.3867
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R5_11",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    17.44,
+    23.7067
+   ],
+   "max": [
+    29.28,
+    22.08,
+    28.5333
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R5_12",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    17.44,
+    28.8533
+   ],
+   "max": [
+    29.28,
+    22.08,
+    33.68
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R6_00",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    15.68,
+    35.44
+   ],
+   "max": [
+    29.28,
+    18.72,
+    40.2667
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R6_01",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    15.68,
+    40.5867
+   ],
+   "max": [
+    29.28,
+    18.72,
+    45.4133
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R6_02",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    15.68,
+    45.7333
+   ],
+   "max": [
+    29.28,
+    18.72,
+    50.56
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R6_10",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    19.04,
+    35.44
+   ],
+   "max": [
+    29.28,
+    22.08,
+    40.2667
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R6_11",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    19.04,
+    40.5867
+   ],
+   "max": [
+    29.28,
+    22.08,
+    45.4133
+   ]
+  },
+  {
+   "name": "M1A5_SkirtERA_R6_12",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    28.48,
+    19.04,
+    45.7333
+   ],
+   "max": [
+    29.28,
+    22.08,
+    50.56
+   ]
+  },
+  {
+   "name": "M1A5_Skirt_L1",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.48,
+    14.72,
+    -49.6
+   ],
+   "max": [
+    -27.52,
+    22.72,
+    -33.2
+   ]
+  },
+  {
+   "name": "M1A5_Skirt_L2",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.48,
+    12.16,
+    -32.72
+   ],
+   "max": [
+    -27.52,
+    22.72,
+    -16.32
+   ]
+  },
+  {
+   "name": "M1A5_Skirt_L3",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.48,
+    10.56,
+    -15.84
+   ],
+   "max": [
+    -27.52,
+    22.72,
+    0.56
+   ]
+  },
+  {
+   "name": "M1A5_Skirt_L4",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.48,
+    10.56,
+    1.04
+   ],
+   "max": [
+    -27.52,
+    22.72,
+    17.44
+   ]
+  },
+  {
+   "name": "M1A5_Skirt_L5",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.48,
+    11.84,
+    17.92
+   ],
+   "max": [
+    -27.52,
+    22.72,
+    34.32
+   ]
+  },
+  {
+   "name": "M1A5_Skirt_L6",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.48,
+    15.04,
+    34.8
+   ],
+   "max": [
+    -27.52,
+    22.72,
+    51.2
+   ]
+  },
+  {
+   "name": "M1A5_Skirt_R1",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    27.52,
+    14.72,
+    -49.6
+   ],
+   "max": [
+    28.48,
+    22.72,
+    -33.2
+   ]
+  },
+  {
+   "name": "M1A5_Skirt_R2",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    27.52,
+    12.16,
+    -32.72
+   ],
+   "max": [
+    28.48,
+    22.72,
+    -16.32
+   ]
+  },
+  {
+   "name": "M1A5_Skirt_R3",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    27.52,
+    10.56,
+    -15.84
+   ],
+   "max": [
+    28.48,
+    22.72,
+    0.56
+   ]
+  },
+  {
+   "name": "M1A5_Skirt_R4",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    27.52,
+    10.56,
+    1.04
+   ],
+   "max": [
+    28.48,
+    22.72,
+    17.44
+   ]
+  },
+  {
+   "name": "M1A5_Skirt_R5",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    27.52,
+    11.84,
+    17.92
+   ],
+   "max": [
+    28.48,
+    22.72,
+    34.32
+   ]
+  },
+  {
+   "name": "M1A5_Skirt_R6",
+   "group": "body",
+   "category": "skirt",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    27.52,
+    15.04,
+    34.8
+   ],
+   "max": [
+    28.48,
+    22.72,
+    51.2
+   ]
+  },
+  {
+   "name": "M1A5_SmokeBase_L",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -18.72,
+    26.72,
+    -28.64
+   ],
+   "max": [
+    -13.92,
+    30.88,
+    -26.4
+   ]
+  },
+  {
+   "name": "M1A5_SmokeBase_R",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    13.92,
+    26.72,
+    -28.64
+   ],
+   "max": [
+    18.72,
+    30.88,
+    -26.4
+   ]
+  },
+  {
+   "name": "M1A5_Smoke_L00",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 16,
+   "faces": 10,
+   "min": [
+    -12.88,
+    26.48,
+    -30.08
+   ],
+   "max": [
+    -11.44,
+    27.92,
+    -26.88
+   ]
+  },
+  {
+   "name": "M1A5_Smoke_L01",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 16,
+   "faces": 10,
+   "min": [
+    -14.48,
+    26.48,
+    -30.08
+   ],
+   "max": [
+    -13.04,
+    27.92,
+    -26.88
+   ]
+  },
+  {
+   "name": "M1A5_Smoke_L10",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 16,
+   "faces": 10,
+   "min": [
+    -12.88,
+    28.24,
+    -30.08
+   ],
+   "max": [
+    -11.44,
+    29.68,
+    -26.88
+   ]
+  },
+  {
+   "name": "M1A5_Smoke_L11",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 16,
+   "faces": 10,
+   "min": [
+    -14.48,
+    28.24,
+    -30.08
+   ],
+   "max": [
+    -13.04,
+    29.68,
+    -26.88
+   ]
+  },
+  {
+   "name": "M1A5_Smoke_L20",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 16,
+   "faces": 10,
+   "min": [
+    -12.88,
+    30.0,
+    -30.08
+   ],
+   "max": [
+    -11.44,
+    31.44,
+    -26.88
+   ]
+  },
+  {
+   "name": "M1A5_Smoke_L21",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 16,
+   "faces": 10,
+   "min": [
+    -14.48,
+    30.0,
+    -30.08
+   ],
+   "max": [
+    -13.04,
+    31.44,
+    -26.88
+   ]
+  },
+  {
+   "name": "M1A5_Smoke_R00",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 16,
+   "faces": 10,
+   "min": [
+    11.44,
+    26.48,
+    -30.08
+   ],
+   "max": [
+    12.88,
+    27.92,
+    -26.88
+   ]
+  },
+  {
+   "name": "M1A5_Smoke_R01",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 16,
+   "faces": 10,
+   "min": [
+    13.04,
+    26.48,
+    -30.08
+   ],
+   "max": [
+    14.48,
+    27.92,
+    -26.88
+   ]
+  },
+  {
+   "name": "M1A5_Smoke_R10",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 16,
+   "faces": 10,
+   "min": [
+    11.44,
+    28.24,
+    -30.08
+   ],
+   "max": [
+    12.88,
+    29.68,
+    -26.88
+   ]
+  },
+  {
+   "name": "M1A5_Smoke_R11",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 16,
+   "faces": 10,
+   "min": [
+    13.04,
+    28.24,
+    -30.08
+   ],
+   "max": [
+    14.48,
+    29.68,
+    -26.88
+   ]
+  },
+  {
+   "name": "M1A5_Smoke_R20",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 16,
+   "faces": 10,
+   "min": [
+    11.44,
+    30.0,
+    -30.08
+   ],
+   "max": [
+    12.88,
+    31.44,
+    -26.88
+   ]
+  },
+  {
+   "name": "M1A5_Smoke_R21",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 16,
+   "faces": 10,
+   "min": [
+    13.04,
+    30.0,
+    -30.08
+   ],
+   "max": [
+    14.48,
+    31.44,
+    -26.88
+   ]
+  },
+  {
+   "name": "M1A5_SpareLink_L1",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -21.04,
+    28.0,
+    -5.2
+   ],
+   "max": [
+    -19.92,
+    33.44,
+    -2.8
+   ]
+  },
+  {
+   "name": "M1A5_SpareLink_L2",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -21.04,
+    28.0,
+    -2.0
+   ],
+   "max": [
+    -19.92,
+    33.44,
+    0.4
+   ]
+  },
+  {
+   "name": "M1A5_SpareLink_L3",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -21.04,
+    28.0,
+    1.2
+   ],
+   "max": [
+    -19.92,
+    33.44,
+    3.6
+   ]
+  },
+  {
+   "name": "M1A5_SpareLink_L4",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -21.04,
+    28.0,
+    4.4
+   ],
+   "max": [
+    -19.92,
+    33.44,
+    6.8
+   ]
+  },
+  {
+   "name": "M1A5_SpareLink_R1",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    19.92,
+    28.0,
+    -5.2
+   ],
+   "max": [
+    21.04,
+    33.44,
+    -2.8
+   ]
+  },
+  {
+   "name": "M1A5_SpareLink_R2",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    19.92,
+    28.0,
+    -2.0
+   ],
+   "max": [
+    21.04,
+    33.44,
+    0.4
+   ]
+  },
+  {
+   "name": "M1A5_SpareLink_R3",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    19.92,
+    28.0,
+    1.2
+   ],
+   "max": [
+    21.04,
+    33.44,
+    3.6
+   ]
+  },
+  {
+   "name": "M1A5_SpareLink_R4",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    19.92,
+    28.0,
+    4.4
+   ],
+   "max": [
+    21.04,
+    33.44,
+    6.8
+   ]
+  },
+  {
+   "name": "M1A5_Sprocket_L",
+   "group": "body",
+   "category": "steel",
+   "kind": "cyl",
+   "verts": 32,
+   "faces": 18,
+   "min": [
+    -25.28,
+    2.256,
+    49.696
+   ],
+   "max": [
+    -22.08,
+    13.264,
+    60.704
+   ]
+  },
+  {
+   "name": "M1A5_Sprocket_R",
+   "group": "body",
+   "category": "steel",
+   "kind": "cyl",
+   "verts": 32,
+   "faces": 18,
+   "min": [
+    22.08,
+    2.256,
+    49.696
+   ],
+   "max": [
+    25.28,
+    13.264,
+    60.704
+   ]
+  },
+  {
+   "name": "M1A5_StowBag_L",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -22.72,
+    33.28,
+    -18.08
+   ],
+   "max": [
+    -19.84,
+    37.12,
+    -12.32
+   ]
+  },
+  {
+   "name": "M1A5_StowBag_R",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    19.84,
+    33.28,
+    -18.08
+   ],
+   "max": [
+    22.72,
+    37.12,
+    -12.32
+   ]
+  },
+  {
+   "name": "M1A5_StowBoxA_L",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -22.56,
+    33.76,
+    1.12
+   ],
+   "max": [
+    -20.0,
+    37.92,
+    7.84
+   ]
+  },
+  {
+   "name": "M1A5_StowBoxA_R",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    20.0,
+    33.76,
+    1.12
+   ],
+   "max": [
+    22.56,
+    37.92,
+    7.84
+   ]
+  },
+  {
+   "name": "M1A5_StowBoxB_L",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -22.56,
+    33.76,
+    9.76
+   ],
+   "max": [
+    -20.0,
+    37.28,
+    15.2
+   ]
+  },
+  {
+   "name": "M1A5_StowBoxB_R",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    20.0,
+    33.76,
+    9.76
+   ],
+   "max": [
+    22.56,
+    37.28,
+    15.2
+   ]
+  },
+  {
+   "name": "M1A5_StowRoll_L",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 20,
+   "faces": 12,
+   "min": [
+    -23.1139,
+    33.44,
+    -12.0
+   ],
+   "max": [
+    -19.7661,
+    36.96,
+    0.8
+   ]
+  },
+  {
+   "name": "M1A5_StowRoll_R",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 20,
+   "faces": 12,
+   "min": [
+    19.7661,
+    33.44,
+    -12.0
+   ],
+   "max": [
+    23.1139,
+    36.96,
+    0.8
+   ]
+  },
+  {
+   "name": "M1A5_TailLightA_L",
+   "group": "body",
+   "category": "light_yellow",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -15.04,
+    19.52,
+    62.16
+   ],
+   "max": [
+    -12.16,
+    22.08,
+    63.44
+   ]
+  },
+  {
+   "name": "M1A5_TailLightA_R",
+   "group": "body",
+   "category": "light_yellow",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    12.16,
+    19.52,
+    62.16
+   ],
+   "max": [
+    15.04,
+    22.08,
+    63.44
+   ]
+  },
+  {
+   "name": "M1A5_TailLightB_L",
+   "group": "body",
+   "category": "light_yellow",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -15.04,
+    16.48,
+    62.16
+   ],
+   "max": [
+    -12.16,
+    18.72,
+    63.44
+   ]
+  },
+  {
+   "name": "M1A5_TailLightB_R",
+   "group": "body",
+   "category": "light_yellow",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    12.16,
+    16.48,
+    62.16
+   ],
+   "max": [
+    15.04,
+    18.72,
+    63.44
+   ]
+  },
+  {
+   "name": "M1A5_TailLight_L",
+   "group": "body",
+   "category": "light_yellow",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -14.88,
+    18.88,
+    61.68
+   ],
+   "max": [
+    -12.32,
+    22.08,
+    63.28
+   ]
+  },
+  {
+   "name": "M1A5_TailLight_R",
+   "group": "body",
+   "category": "light_yellow",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    12.32,
+    18.88,
+    61.68
+   ],
+   "max": [
+    14.88,
+    22.08,
+    63.28
+   ]
+  },
+  {
+   "name": "M1A5_ThermalSleeve",
+   "group": "gun",
+   "category": "sleeve_tan",
+   "kind": "cyl",
+   "verts": 32,
+   "faces": 18,
+   "min": [
+    -1.68,
+    29.68,
+    -51.6
+   ],
+   "max": [
+    1.68,
+    33.04,
+    -18.8
+   ]
+  },
+  {
+   "name": "M1A5_TorsionBar_L1",
+   "group": "body",
+   "category": "steel",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -18.88,
+    7.52,
+    -42.24
+   ],
+   "max": [
+    -17.28,
+    9.12,
+    -39.36
+   ]
+  },
+  {
+   "name": "M1A5_TorsionBar_L2",
+   "group": "body",
+   "category": "steel",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -18.88,
+    7.52,
+    -28.64
+   ],
+   "max": [
+    -17.28,
+    9.12,
+    -25.76
+   ]
+  },
+  {
+   "name": "M1A5_TorsionBar_L3",
+   "group": "body",
+   "category": "steel",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -18.88,
+    7.52,
+    -15.04
+   ],
+   "max": [
+    -17.28,
+    9.12,
+    -12.16
+   ]
+  },
+  {
+   "name": "M1A5_TorsionBar_L4",
+   "group": "body",
+   "category": "steel",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -18.88,
+    7.52,
+    -1.44
+   ],
+   "max": [
+    -17.28,
+    9.12,
+    1.44
+   ]
+  },
+  {
+   "name": "M1A5_TorsionBar_L5",
+   "group": "body",
+   "category": "steel",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -18.88,
+    7.52,
+    12.16
+   ],
+   "max": [
+    -17.28,
+    9.12,
+    15.04
+   ]
+  },
+  {
+   "name": "M1A5_TorsionBar_L6",
+   "group": "body",
+   "category": "steel",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -18.88,
+    7.52,
+    25.76
+   ],
+   "max": [
+    -17.28,
+    9.12,
+    28.64
+   ]
+  },
+  {
+   "name": "M1A5_TorsionBar_L7",
+   "group": "body",
+   "category": "steel",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -18.88,
+    7.52,
+    39.36
+   ],
+   "max": [
+    -17.28,
+    9.12,
+    42.24
+   ]
+  },
+  {
+   "name": "M1A5_TorsionBar_R1",
+   "group": "body",
+   "category": "steel",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    17.28,
+    7.52,
+    -42.24
+   ],
+   "max": [
+    18.88,
+    9.12,
+    -39.36
+   ]
+  },
+  {
+   "name": "M1A5_TorsionBar_R2",
+   "group": "body",
+   "category": "steel",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    17.28,
+    7.52,
+    -28.64
+   ],
+   "max": [
+    18.88,
+    9.12,
+    -25.76
+   ]
+  },
+  {
+   "name": "M1A5_TorsionBar_R3",
+   "group": "body",
+   "category": "steel",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    17.28,
+    7.52,
+    -15.04
+   ],
+   "max": [
+    18.88,
+    9.12,
+    -12.16
+   ]
+  },
+  {
+   "name": "M1A5_TorsionBar_R4",
+   "group": "body",
+   "category": "steel",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    17.28,
+    7.52,
+    -1.44
+   ],
+   "max": [
+    18.88,
+    9.12,
+    1.44
+   ]
+  },
+  {
+   "name": "M1A5_TorsionBar_R5",
+   "group": "body",
+   "category": "steel",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    17.28,
+    7.52,
+    12.16
+   ],
+   "max": [
+    18.88,
+    9.12,
+    15.04
+   ]
+  },
+  {
+   "name": "M1A5_TorsionBar_R6",
+   "group": "body",
+   "category": "steel",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    17.28,
+    7.52,
+    25.76
+   ],
+   "max": [
+    18.88,
+    9.12,
+    28.64
+   ]
+  },
+  {
+   "name": "M1A5_TorsionBar_R7",
+   "group": "body",
+   "category": "steel",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    17.28,
+    7.52,
+    39.36
+   ],
+   "max": [
+    18.88,
+    9.12,
+    42.24
+   ]
+  },
+  {
+   "name": "M1A5_TowCable",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -10.4,
+    14.0,
+    -59.04
+   ],
+   "max": [
+    10.4,
+    14.8,
+    -58.24
+   ]
+  },
+  {
+   "name": "M1A5_TowCableLoop",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 24,
+   "faces": 14,
+   "min": [
+    -0.4,
+    10.88,
+    -60.24
+   ],
+   "max": [
+    0.4,
+    14.08,
+    -57.04
+   ]
+  },
+  {
+   "name": "M1A5_TowCableSide_L",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -27.6,
+    19.44,
+    -11.2
+   ],
+   "max": [
+    -26.8,
+    20.24,
+    30.4
+   ]
+  },
+  {
+   "name": "M1A5_TowCableSide_R",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    26.8,
+    19.44,
+    -11.2
+   ],
+   "max": [
+    27.6,
+    20.24,
+    30.4
+   ]
+  },
+  {
+   "name": "M1A5_TowHook_L",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -13.12,
+    8.64,
+    -63.28
+   ],
+   "max": [
+    -10.88,
+    11.2,
+    -61.36
+   ]
+  },
+  {
+   "name": "M1A5_TowHook_R",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    10.88,
+    8.64,
+    -63.28
+   ],
+   "max": [
+    13.12,
+    11.2,
+    -61.36
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_L1",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    0.0,
+    -56.8
+   ],
+   "max": [
+    -18.72,
+    0.96,
+    -53.6
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_L10",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    0.0,
+    1.6471
+   ],
+   "max": [
+    -18.72,
+    0.96,
+    4.8471
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_L11",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    0.0,
+    8.1412
+   ],
+   "max": [
+    -18.72,
+    0.96,
+    11.3412
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_L12",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    0.0,
+    14.6353
+   ],
+   "max": [
+    -18.72,
+    0.96,
+    17.8353
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_L13",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    0.0,
+    21.1294
+   ],
+   "max": [
+    -18.72,
+    0.96,
+    24.3294
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_L14",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    0.0,
+    27.6235
+   ],
+   "max": [
+    -18.72,
+    0.96,
+    30.8235
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_L15",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    0.0,
+    34.1176
+   ],
+   "max": [
+    -18.72,
+    0.96,
+    37.3176
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_L16",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    0.0,
+    40.6118
+   ],
+   "max": [
+    -18.72,
+    0.96,
+    43.8118
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_L17",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    0.0,
+    47.1059
+   ],
+   "max": [
+    -18.72,
+    0.96,
+    50.3059
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_L18",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    0.0,
+    53.6
+   ],
+   "max": [
+    -18.72,
+    0.96,
+    56.8
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_L2",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    0.0,
+    -50.3059
+   ],
+   "max": [
+    -18.72,
+    0.96,
+    -47.1059
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_L3",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    0.0,
+    -43.8118
+   ],
+   "max": [
+    -18.72,
+    0.96,
+    -40.6118
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_L4",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    0.0,
+    -37.3176
+   ],
+   "max": [
+    -18.72,
+    0.96,
+    -34.1176
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_L5",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    0.0,
+    -30.8235
+   ],
+   "max": [
+    -18.72,
+    0.96,
+    -27.6235
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_L6",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    0.0,
+    -24.3294
+   ],
+   "max": [
+    -18.72,
+    0.96,
+    -21.1294
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_L7",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    0.0,
+    -17.8353
+   ],
+   "max": [
+    -18.72,
+    0.96,
+    -14.6353
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_L8",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    0.0,
+    -11.3412
+   ],
+   "max": [
+    -18.72,
+    0.96,
+    -8.1412
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_L9",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    0.0,
+    -4.8471
+   ],
+   "max": [
+    -18.72,
+    0.96,
+    -1.6471
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_R1",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    0.0,
+    -56.8
+   ],
+   "max": [
+    28.64,
+    0.96,
+    -53.6
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_R10",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    0.0,
+    1.6471
+   ],
+   "max": [
+    28.64,
+    0.96,
+    4.8471
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_R11",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    0.0,
+    8.1412
+   ],
+   "max": [
+    28.64,
+    0.96,
+    11.3412
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_R12",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    0.0,
+    14.6353
+   ],
+   "max": [
+    28.64,
+    0.96,
+    17.8353
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_R13",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    0.0,
+    21.1294
+   ],
+   "max": [
+    28.64,
+    0.96,
+    24.3294
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_R14",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    0.0,
+    27.6235
+   ],
+   "max": [
+    28.64,
+    0.96,
+    30.8235
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_R15",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    0.0,
+    34.1176
+   ],
+   "max": [
+    28.64,
+    0.96,
+    37.3176
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_R16",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    0.0,
+    40.6118
+   ],
+   "max": [
+    28.64,
+    0.96,
+    43.8118
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_R17",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    0.0,
+    47.1059
+   ],
+   "max": [
+    28.64,
+    0.96,
+    50.3059
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_R18",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    0.0,
+    53.6
+   ],
+   "max": [
+    28.64,
+    0.96,
+    56.8
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_R2",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    0.0,
+    -50.3059
+   ],
+   "max": [
+    28.64,
+    0.96,
+    -47.1059
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_R3",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    0.0,
+    -43.8118
+   ],
+   "max": [
+    28.64,
+    0.96,
+    -40.6118
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_R4",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    0.0,
+    -37.3176
+   ],
+   "max": [
+    28.64,
+    0.96,
+    -34.1176
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_R5",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    0.0,
+    -30.8235
+   ],
+   "max": [
+    28.64,
+    0.96,
+    -27.6235
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_R6",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    0.0,
+    -24.3294
+   ],
+   "max": [
+    28.64,
+    0.96,
+    -21.1294
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_R7",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    0.0,
+    -17.8353
+   ],
+   "max": [
+    28.64,
+    0.96,
+    -14.6353
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_R8",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    0.0,
+    -11.3412
+   ],
+   "max": [
+    28.64,
+    0.96,
+    -8.1412
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeBot_R9",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    0.0,
+    -4.8471
+   ],
+   "max": [
+    28.64,
+    0.96,
+    -1.6471
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_L1",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    14.56,
+    -56.8
+   ],
+   "max": [
+    -18.72,
+    15.52,
+    -53.6
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_L10",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    14.56,
+    1.6471
+   ],
+   "max": [
+    -18.72,
+    15.52,
+    4.8471
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_L11",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    14.56,
+    8.1412
+   ],
+   "max": [
+    -18.72,
+    15.52,
+    11.3412
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_L12",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    14.56,
+    14.6353
+   ],
+   "max": [
+    -18.72,
+    15.52,
+    17.8353
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_L13",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    14.56,
+    21.1294
+   ],
+   "max": [
+    -18.72,
+    15.52,
+    24.3294
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_L14",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    14.56,
+    27.6235
+   ],
+   "max": [
+    -18.72,
+    15.52,
+    30.8235
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_L15",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    14.56,
+    34.1176
+   ],
+   "max": [
+    -18.72,
+    15.52,
+    37.3176
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_L16",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    14.56,
+    40.6118
+   ],
+   "max": [
+    -18.72,
+    15.52,
+    43.8118
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_L17",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    14.56,
+    47.1059
+   ],
+   "max": [
+    -18.72,
+    15.52,
+    50.3059
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_L18",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    14.56,
+    53.6
+   ],
+   "max": [
+    -18.72,
+    15.52,
+    56.8
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_L2",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    14.56,
+    -50.3059
+   ],
+   "max": [
+    -18.72,
+    15.52,
+    -47.1059
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_L3",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    14.56,
+    -43.8118
+   ],
+   "max": [
+    -18.72,
+    15.52,
+    -40.6118
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_L4",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    14.56,
+    -37.3176
+   ],
+   "max": [
+    -18.72,
+    15.52,
+    -34.1176
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_L5",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    14.56,
+    -30.8235
+   ],
+   "max": [
+    -18.72,
+    15.52,
+    -27.6235
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_L6",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    14.56,
+    -24.3294
+   ],
+   "max": [
+    -18.72,
+    15.52,
+    -21.1294
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_L7",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    14.56,
+    -17.8353
+   ],
+   "max": [
+    -18.72,
+    15.52,
+    -14.6353
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_L8",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    14.56,
+    -11.3412
+   ],
+   "max": [
+    -18.72,
+    15.52,
+    -8.1412
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_L9",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -28.64,
+    14.56,
+    -4.8471
+   ],
+   "max": [
+    -18.72,
+    15.52,
+    -1.6471
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_R1",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    14.56,
+    -56.8
+   ],
+   "max": [
+    28.64,
+    15.52,
+    -53.6
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_R10",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    14.56,
+    1.6471
+   ],
+   "max": [
+    28.64,
+    15.52,
+    4.8471
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_R11",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    14.56,
+    8.1412
+   ],
+   "max": [
+    28.64,
+    15.52,
+    11.3412
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_R12",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    14.56,
+    14.6353
+   ],
+   "max": [
+    28.64,
+    15.52,
+    17.8353
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_R13",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    14.56,
+    21.1294
+   ],
+   "max": [
+    28.64,
+    15.52,
+    24.3294
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_R14",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    14.56,
+    27.6235
+   ],
+   "max": [
+    28.64,
+    15.52,
+    30.8235
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_R15",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    14.56,
+    34.1176
+   ],
+   "max": [
+    28.64,
+    15.52,
+    37.3176
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_R16",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    14.56,
+    40.6118
+   ],
+   "max": [
+    28.64,
+    15.52,
+    43.8118
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_R17",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    14.56,
+    47.1059
+   ],
+   "max": [
+    28.64,
+    15.52,
+    50.3059
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_R18",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    14.56,
+    53.6
+   ],
+   "max": [
+    28.64,
+    15.52,
+    56.8
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_R2",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    14.56,
+    -50.3059
+   ],
+   "max": [
+    28.64,
+    15.52,
+    -47.1059
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_R3",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    14.56,
+    -43.8118
+   ],
+   "max": [
+    28.64,
+    15.52,
+    -40.6118
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_R4",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    14.56,
+    -37.3176
+   ],
+   "max": [
+    28.64,
+    15.52,
+    -34.1176
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_R5",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    14.56,
+    -30.8235
+   ],
+   "max": [
+    28.64,
+    15.52,
+    -27.6235
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_R6",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    14.56,
+    -24.3294
+   ],
+   "max": [
+    28.64,
+    15.52,
+    -21.1294
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_R7",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    14.56,
+    -17.8353
+   ],
+   "max": [
+    28.64,
+    15.52,
+    -14.6353
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_R8",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    14.56,
+    -11.3412
+   ],
+   "max": [
+    28.64,
+    15.52,
+    -8.1412
+   ]
+  },
+  {
+   "name": "M1A5_TrackShoeTop_R9",
+   "group": "body",
+   "category": "track",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    18.72,
+    14.56,
+    -4.8471
+   ],
+   "max": [
+    28.64,
+    15.52,
+    -1.6471
+   ]
+  },
+  {
+   "name": "M1A5_Track_L",
+   "group": "body",
+   "category": "track",
+   "kind": "ring",
+   "verts": 104,
+   "faces": 104,
+   "min": [
+    -28.48,
+    0.0,
+    -62.96
+   ],
+   "max": [
+    -18.88,
+    15.52,
+    62.96
+   ],
+   "ring": {
+    "zc": 0.485,
+    "r_out": 0.485,
+    "r_in": 0.365,
+    "width": 0.6,
+    "y_front": -3.45,
+    "y_rear": 3.45
+   }
+  },
+  {
+   "name": "M1A5_Track_R",
+   "group": "body",
+   "category": "track",
+   "kind": "ring",
+   "verts": 104,
+   "faces": 104,
+   "min": [
+    18.88,
+    0.0,
+    -62.96
+   ],
+   "max": [
+    28.48,
+    15.52,
+    62.96
+   ],
+   "ring": {
+    "zc": 0.485,
+    "r_out": 0.485,
+    "r_in": 0.365,
+    "width": 0.6,
+    "y_front": -3.45,
+    "y_rear": 3.45
+   }
+  },
+  {
+   "name": "M1A5_TrimVane",
+   "group": "body",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -16.8,
+    9.12,
+    -64.64
+   ],
+   "max": [
+    16.8,
+    15.84,
+    -63.84
+   ]
+  },
+  {
+   "name": "M1A5_Turret",
+   "group": "turret",
+   "category": "olive",
+   "kind": "complex",
+   "verts": 24,
+   "faces": 22,
+   "min": [
+    -21.76,
+    23.04,
+    -32.8
+   ],
+   "max": [
+    21.76,
+    39.04,
+    20.8
+   ]
+  },
+  {
+   "name": "M1A5_TurretERA_L1",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -22.88,
+    29.6,
+    -10.4
+   ],
+   "max": [
+    -20.64,
+    35.04,
+    -2.4
+   ]
+  },
+  {
+   "name": "M1A5_TurretERA_L2",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -22.88,
+    29.6,
+    -0.8
+   ],
+   "max": [
+    -20.64,
+    35.04,
+    7.2
+   ]
+  },
+  {
+   "name": "M1A5_TurretERA_L3",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    -22.88,
+    29.6,
+    8.8
+   ],
+   "max": [
+    -20.64,
+    35.04,
+    16.8
+   ]
+  },
+  {
+   "name": "M1A5_TurretERA_R1",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    20.64,
+    29.6,
+    -10.4
+   ],
+   "max": [
+    22.88,
+    35.04,
+    -2.4
+   ]
+  },
+  {
+   "name": "M1A5_TurretERA_R2",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    20.64,
+    29.6,
+    -0.8
+   ],
+   "max": [
+    22.88,
+    35.04,
+    7.2
+   ]
+  },
+  {
+   "name": "M1A5_TurretERA_R3",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 8,
+   "faces": 6,
+   "min": [
+    20.64,
+    29.6,
+    8.8
+   ],
+   "max": [
+    22.88,
+    35.04,
+    16.8
+   ]
+  },
+  {
+   "name": "M1A5_WheelHub_L1",
+   "group": "body",
+   "category": "hub",
+   "kind": "cyl",
+   "verts": 24,
+   "faces": 14,
+   "min": [
+    -25.76,
+    4.4,
+    -42.16
+   ],
+   "max": [
+    -21.6,
+    7.12,
+    -39.44
+   ]
+  },
+  {
+   "name": "M1A5_WheelHub_L2",
+   "group": "body",
+   "category": "hub",
+   "kind": "cyl",
+   "verts": 24,
+   "faces": 14,
+   "min": [
+    -25.76,
+    4.4,
+    -28.56
+   ],
+   "max": [
+    -21.6,
+    7.12,
+    -25.84
+   ]
+  },
+  {
+   "name": "M1A5_WheelHub_L3",
+   "group": "body",
+   "category": "hub",
+   "kind": "cyl",
+   "verts": 24,
+   "faces": 14,
+   "min": [
+    -25.76,
+    4.4,
+    -14.96
+   ],
+   "max": [
+    -21.6,
+    7.12,
+    -12.24
+   ]
+  },
+  {
+   "name": "M1A5_WheelHub_L4",
+   "group": "body",
+   "category": "hub",
+   "kind": "cyl",
+   "verts": 24,
+   "faces": 14,
+   "min": [
+    -25.76,
+    4.4,
+    -1.36
+   ],
+   "max": [
+    -21.6,
+    7.12,
+    1.36
+   ]
+  },
+  {
+   "name": "M1A5_WheelHub_L5",
+   "group": "body",
+   "category": "hub",
+   "kind": "cyl",
+   "verts": 24,
+   "faces": 14,
+   "min": [
+    -25.76,
+    4.4,
+    12.24
+   ],
+   "max": [
+    -21.6,
+    7.12,
+    14.96
+   ]
+  },
+  {
+   "name": "M1A5_WheelHub_L6",
+   "group": "body",
+   "category": "hub",
+   "kind": "cyl",
+   "verts": 24,
+   "faces": 14,
+   "min": [
+    -25.76,
+    4.4,
+    25.84
+   ],
+   "max": [
+    -21.6,
+    7.12,
+    28.56
+   ]
+  },
+  {
+   "name": "M1A5_WheelHub_L7",
+   "group": "body",
+   "category": "hub",
+   "kind": "cyl",
+   "verts": 24,
+   "faces": 14,
+   "min": [
+    -25.76,
+    4.4,
+    39.44
+   ],
+   "max": [
+    -21.6,
+    7.12,
+    42.16
+   ]
+  },
+  {
+   "name": "M1A5_WheelHub_R1",
+   "group": "body",
+   "category": "hub",
+   "kind": "cyl",
+   "verts": 24,
+   "faces": 14,
+   "min": [
+    21.6,
+    4.4,
+    -42.16
+   ],
+   "max": [
+    25.76,
+    7.12,
+    -39.44
+   ]
+  },
+  {
+   "name": "M1A5_WheelHub_R2",
+   "group": "body",
+   "category": "hub",
+   "kind": "cyl",
+   "verts": 24,
+   "faces": 14,
+   "min": [
+    21.6,
+    4.4,
+    -28.56
+   ],
+   "max": [
+    25.76,
+    7.12,
+    -25.84
+   ]
+  },
+  {
+   "name": "M1A5_WheelHub_R3",
+   "group": "body",
+   "category": "hub",
+   "kind": "cyl",
+   "verts": 24,
+   "faces": 14,
+   "min": [
+    21.6,
+    4.4,
+    -14.96
+   ],
+   "max": [
+    25.76,
+    7.12,
+    -12.24
+   ]
+  },
+  {
+   "name": "M1A5_WheelHub_R4",
+   "group": "body",
+   "category": "hub",
+   "kind": "cyl",
+   "verts": 24,
+   "faces": 14,
+   "min": [
+    21.6,
+    4.4,
+    -1.36
+   ],
+   "max": [
+    25.76,
+    7.12,
+    1.36
+   ]
+  },
+  {
+   "name": "M1A5_WheelHub_R5",
+   "group": "body",
+   "category": "hub",
+   "kind": "cyl",
+   "verts": 24,
+   "faces": 14,
+   "min": [
+    21.6,
+    4.4,
+    12.24
+   ],
+   "max": [
+    25.76,
+    7.12,
+    14.96
+   ]
+  },
+  {
+   "name": "M1A5_WheelHub_R6",
+   "group": "body",
+   "category": "hub",
+   "kind": "cyl",
+   "verts": 24,
+   "faces": 14,
+   "min": [
+    21.6,
+    4.4,
+    25.84
+   ],
+   "max": [
+    25.76,
+    7.12,
+    28.56
+   ]
+  },
+  {
+   "name": "M1A5_WheelHub_R7",
+   "group": "body",
+   "category": "hub",
+   "kind": "cyl",
+   "verts": 24,
+   "faces": 14,
+   "min": [
+    21.6,
+    4.4,
+    39.44
+   ],
+   "max": [
+    25.76,
+    7.12,
+    42.16
+   ]
+  },
+  {
+   "name": "M1A5_WindSensor",
+   "group": "turret",
+   "category": "olive",
+   "kind": "box",
+   "verts": 16,
+   "faces": 10,
+   "min": [
+    -2.88,
+    39.04,
+    17.44
+   ],
+   "max": [
+    -1.92,
+    45.76,
+    18.4
+   ]
+  }
+ ]
+}

@@ -27,8 +27,11 @@ python3 models/src/verify_models.py         # re-reads the STL files and checks 
 cannot pass silently. It exits non-zero on mismatch.
 
 ## Verification performed
-- `main_battle_tank.stl`: 1404 triangles, bbox `[-33, 0, -78] .. [33, 72, 58]` model units.
-- `infantry_fighting_vehicle.stl`: 732 triangles, bbox `[-31, 0, -60.5] .. [31, 62, 50]` model units.
+- `main_battle_tank.stl`: 208 boxes / 2496 triangles, bbox `[-29.28, 0, -92.88] .. [29.28, 69.44, 63.44]`
+  model units (3.66 x 4.34 x 9.77 blocks). The tank box list is **generated** from the Blender model
+  (blender_m1a5) by `tools/generate_ground_unit_model.py` into `models/src/ground_units_tank_data.py`;
+  it matches the in-game `MainBattleTankModel` box for box.
+- `infantry_fighting_vehicle.stl`: 61 boxes / 732 triangles, bbox `[-31, 0, -60.5] .. [31, 62, 50]` model units.
 - Both match the parameters exactly (tolerance 1e-3); see `params/ground_units.json` and
   `build/box_manifest.json`.
 
@@ -38,6 +41,9 @@ cannot pass silently. It exits non-zero on mismatch.
    identical to the in-game shape but is **not** a CAD-grade or print-ready part.
 2. **Reference coverage.** The references (see `docs/plan/ground-units-reference-images.md`) have
    no orthographic front/back/top views, so width and roof layout are estimated from 3/4 renders.
+   The tank's hull length, width, hull-top height, turret ring and barrel reach instead come from the
+   real M1A2 dimensions measured in the Blender source model (`params/ground_units.json`); rotated
+   armour plates are lifted to their axis-aligned bounds in the STL.
 3. **Inferred values.** `params/ground_units.json` marks each value as `project`, `reference` or
    `assumption`; the missile tube count is the only `assumption`.
 4. **Preview PNG** is a flat painter's-algorithm silhouette for shape checking, not a render.
