@@ -24,6 +24,10 @@ bin/
 .classpath
 .project
 
+# Python caches (offline model / texture pipeline)
+__pycache__/
+*.pyc
+
 # OS
 Thumbs.db
 desktop.ini
