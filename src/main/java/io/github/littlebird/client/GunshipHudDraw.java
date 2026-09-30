@@ -59,13 +59,13 @@ public final class GunshipHudDraw {
     }
 
     /**
-     * Called by the hit feedback packet for any aircraft: flashes a marker, and when the target
-     * was an airframe also refreshes the health readout under the crosshair.
+     * Called by the hit feedback packet for any pack hull: flashes a marker, and for a hull also
+     * refreshes the health readout under the crosshair.
      */
-    public static void onHitFeedback(boolean kill, boolean aircraft, float healthFraction) {
+    public static void onHitFeedback(boolean kill, boolean vehicle, float healthFraction) {
         hitMarkerUntil = System.currentTimeMillis() + HIT_MARKER_MILLIS;
         hitMarkerKill = kill;
-        if (aircraft && Float.isFinite(healthFraction)) {
+        if (vehicle && Float.isFinite(healthFraction)) {
             enemyBarUntil = System.currentTimeMillis() + ENEMY_BAR_MILLIS;
             enemyBarFraction = Math.max(0.0F, Math.min(1.0F, healthFraction));
         }

@@ -220,7 +220,7 @@ public final class LittleBirdInput {
     /** Hides the riding player on every client, including armour and held items. */
     @SubscribeEvent
     public static void onRenderPlayer(RenderPlayerEvent.Pre event) {
-        if (event.getEntity().getVehicle() instanceof LittleBirdEntity) {
+        if (event.getEntity().getVehicle() instanceof io.github.littlebird.entity.GunshipRider) {
             event.setCanceled(true);
         }
     }

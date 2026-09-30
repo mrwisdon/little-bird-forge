@@ -13,7 +13,9 @@ public enum MainGunAmmoType {
     /** Armour-piercing round: the default load, best against vehicles. */
     AP("ap"),
     /** High explosive round: less armour penetration, a bigger blast. */
-    HE("he");
+    HE("he"),
+    /** Canister round: forty pellets in a cone, short range and lethal up close. */
+    CANISTER("canister");
 
     private final String id;
 

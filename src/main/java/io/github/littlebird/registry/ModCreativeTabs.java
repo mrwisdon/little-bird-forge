@@ -21,6 +21,12 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.APACHE.get());
                         output.accept(ModItems.MAIN_BATTLE_TANK.get());
                         output.accept(ModItems.INFANTRY_FIGHTING_VEHICLE.get());
+                        output.accept(ModItems.BRADLEY.get());
+                        output.accept(ModItems.F35.get());
+                        output.accept(ModItems.F35_PREVIEW.get());
+                        output.accept(ModItems.SU57.get());
+                        output.accept(ModItems.B2.get());
+                        output.accept(ModItems.B2_PREVIEW.get());
                         output.accept(ModItems.AIRFRAME_SECTION.get());
                         output.accept(ModItems.ROTOR_ASSEMBLY.get());
                         output.accept(ModItems.AIRCRAFT_ENGINE.get());
@@ -31,6 +37,7 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.APACHE_AIRFRAME.get());
                         output.accept(ModItems.APACHE_WEAPONS.get());
                         output.accept(ModItems.AMMO_CRATE.get());
+                        output.accept(ModItems.VEHICLE_FACTORY.get());
                         output.accept(ModItems.ARMOR_PLATE.get());
                         output.accept(ModItems.TRACK_ASSEMBLY.get());
                         output.accept(ModItems.WHEEL_ASSEMBLY.get());

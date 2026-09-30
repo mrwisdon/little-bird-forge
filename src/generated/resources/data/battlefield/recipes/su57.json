@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "battlefield:su57_airframe"
+    },
+    {
+      "item": "battlefield:aircraft_engine"
+    },
+    {
+      "item": "battlefield:aircraft_engine"
+    },
+    {
+      "item": "battlefield:su57_weapons"
+    }
+  ],
+  "result": {
+    "item": "battlefield:su57"
+  }
+}

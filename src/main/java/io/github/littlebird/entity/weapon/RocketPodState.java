@@ -60,6 +60,60 @@ public final class RocketPodState {
         }
     }
 
+    /**
+     * Reserve-to-pod transfer clock. Pressing reload starts it and the rounds land when it reaches
+     * zero, so a crew cannot top the pods up instantly mid-fight.
+     */
+    public record Reload(int ticksLeft) {
+        public static Reload idle() {
+            return new Reload(0);
+        }
+
+        public boolean running() {
+            return ticksLeft > 0;
+        }
+
+        /** 0..1 progress for the HUD bar; an idle clock reads as finished. */
+        public float fraction(int totalTicks) {
+            if (totalTicks <= 0) {
+                return 0.0F;
+            }
+            int left = Math.max(0, Math.min(totalTicks, ticksLeft));
+            return 1.0F - left / (float) totalTicks;
+        }
+    }
+
+    /**
+     * Starts the clock, unless one is already running or there is nothing to move. A zero tick
+     * clock means the config asked for an instant reload, and is returned as an idle clock.
+     */
+    public static Reload begin(Reload current, int ticks, int missing, int reserve) {
+        if (current != null && current.running()) {
+            return current;
+        }
+        if (missing <= 0 || reserve <= 0) {
+            return Reload.idle();
+        }
+        return new Reload(Math.max(0, ticks));
+    }
+
+    /** One tick of the clock. Never goes below zero. */
+    public static Reload tick(Reload current) {
+        int left = current == null ? 0 : Math.max(0, current.ticksLeft());
+        return new Reload(left > 0 ? left - 1 : 0);
+    }
+
+    /** True on the tick the clock lands, which is when the pods are filled. */
+    public static boolean completes(Reload before, Reload after) {
+        return before != null && before.running() && after != null && !after.running();
+    }
+
+    /** Rounds the reserve gives up when the clock lands: only what the pods are missing. */
+    public static int transferAmount(int readyRemaining, int reserve) {
+        int missing = READY_CAPACITY - Math.max(0, readyRemaining);
+        return Math.max(0, Math.min(missing, Math.max(0, reserve)));
+    }
+
     public record Step(Snapshot snapshot, boolean launch, int pod, int tube) {
     }
 

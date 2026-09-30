@@ -40,6 +40,8 @@ public final class MainBattleTankRenderer extends EntityRenderer<MainBattleTankE
         float pitch = Mth.lerp(partialTick, entity.xRotO, entity.getXRot());
         pose.mulPose(Axis.YP.rotationDegrees(LittleBirdModelMath.modelYawDegrees(yaw)));
         pose.mulPose(Axis.XP.rotationDegrees(LittleBirdModelMath.modelPitchDegrees(pitch)));
+        pose.mulPose(Axis.ZP.rotationDegrees(
+                LittleBirdModelMath.modelRollDegrees(entity.getHullRollDeg())));
         model.setupAnim(entity, 0.0F, 0.0F, entity.tickCount + partialTick, 0.0F, pitch);
         VertexConsumer consumer = buffer.getBuffer(model.renderType(TEXTURE));
         model.renderToBuffer(pose, consumer, packedLight, OverlayTexture.NO_OVERLAY,

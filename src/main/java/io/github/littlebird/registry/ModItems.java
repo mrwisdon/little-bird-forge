@@ -19,6 +19,32 @@ public final class ModItems {
             () -> new io.github.littlebird.item.ApacheDeployItem(
                     new Item.Properties().stacksTo(1)));
 
+    public static final RegistryObject<Item> F35 = ITEMS.register("f35",
+            () -> new io.github.littlebird.item.JetDeployItem(
+                    new Item.Properties().stacksTo(1), () -> ModEntities.F35.get()));
+
+    /**
+     * Import-pipeline probe: the Blender-built F-35 mesh shipped as a {@code forge:obj} item model.
+     * No gameplay behaviour, no entity - it only exists to prove the OBJ assets load and render.
+     */
+    public static final RegistryObject<Item> F35_PREVIEW = ITEMS.register("f35_preview",
+            () -> new Item(new Item.Properties().stacksTo(1)));
+
+    public static final RegistryObject<Item> SU57 = ITEMS.register("su57",
+            () -> new io.github.littlebird.item.JetDeployItem(
+                    new Item.Properties().stacksTo(1), () -> ModEntities.SU57.get()));
+
+    public static final RegistryObject<Item> B2 = ITEMS.register("b2",
+            () -> new io.github.littlebird.item.JetDeployItem(
+                    new Item.Properties().stacksTo(1), () -> ModEntities.B2.get()));
+
+    /**
+     * Import-pipeline probe: the Blender-built B-2 mesh shipped as a {@code forge:obj}
+     * item model. No gameplay behaviour, no entity - {@link #B2} deploys the aircraft.
+     */
+    public static final RegistryObject<Item> B2_PREVIEW = ITEMS.register("b2_preview",
+            () -> new Item(new Item.Properties().stacksTo(1)));
+
     public static final RegistryObject<Item> MAIN_BATTLE_TANK = ITEMS.register("main_battle_tank",
             () -> new io.github.littlebird.item.MainBattleTankDeployItem(
                     new Item.Properties().stacksTo(1)));
@@ -26,6 +52,10 @@ public final class ModItems {
     public static final RegistryObject<Item> INFANTRY_FIGHTING_VEHICLE = ITEMS.register(
             "infantry_fighting_vehicle",
             () -> new io.github.littlebird.item.InfantryFightingVehicleDeployItem(
+                    new Item.Properties().stacksTo(1)));
+
+    public static final RegistryObject<Item> BRADLEY = ITEMS.register("bradley",
+            () -> new io.github.littlebird.item.BradleyDeployItem(
                     new Item.Properties().stacksTo(1)));
 
     // ------------------------------------------------------------------
@@ -68,6 +98,26 @@ public final class ModItems {
             () -> new Item(new Item.Properties()));
 
     // ------------------------------------------------------------------
+    // Fixed wing chain: eleven parts do not fit a 3x3 grid, so the two jets
+    // assemble in three stages exactly like the Apache.
+    // ------------------------------------------------------------------
+    /** Half finished F-35 airframe, before the engines and weapon bay go on. */
+    public static final RegistryObject<Item> F35_AIRFRAME = ITEMS.register("f35_airframe",
+            () -> new Item(new Item.Properties()));
+
+    /** F-35 weapon bay: two pylons and the fire control computer. */
+    public static final RegistryObject<Item> F35_WEAPONS = ITEMS.register("f35_weapons",
+            () -> new Item(new Item.Properties()));
+
+    /** Half finished Su-57 airframe, before the engines and weapon bay go on. */
+    public static final RegistryObject<Item> SU57_AIRFRAME = ITEMS.register("su57_airframe",
+            () -> new Item(new Item.Properties()));
+
+    /** Su-57 weapon bay: two pylons and the fire control computer. */
+    public static final RegistryObject<Item> SU57_WEAPONS = ITEMS.register("su57_weapons",
+            () -> new Item(new Item.Properties()));
+
+    // ------------------------------------------------------------------
     // Ground vehicle crafting chain: parts, then the two hull assemblies.
     // ------------------------------------------------------------------
     /** Rolled armour plate: the skin of both ground hulls. */
@@ -101,6 +151,11 @@ public final class ModItems {
     /** Ammunition crate: park next to one and it restocks the aircraft. */
     public static final RegistryObject<Item> AMMO_CRATE = ITEMS.register("ammo_crate",
             () -> new net.minecraft.world.item.BlockItem(ModBlocks.AMMO_CRATE.get(),
+                    new Item.Properties()));
+
+    /** The vehicle factory block, as an item. */
+    public static final RegistryObject<Item> VEHICLE_FACTORY = ITEMS.register("vehicle_factory",
+            () -> new net.minecraft.world.item.BlockItem(ModBlocks.VEHICLE_FACTORY.get(),
                     new Item.Properties()));
 
     private ModItems() {

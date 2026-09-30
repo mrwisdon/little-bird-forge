@@ -102,4 +102,61 @@ final class RocketPodStateTest {
         assertTrue(step.launch());
         assertEquals(RocketPodState.READY_CAPACITY - 1, step.snapshot().totalRemaining());
     }
+
+    @Test
+    void theReloadClockStartsOnceAndCannotBeRestarted() {
+        RocketPodState.Reload idle = RocketPodState.Reload.idle();
+        assertFalse(idle.running());
+        RocketPodState.Reload started = RocketPodState.begin(idle, 40, 5, 20);
+        assertTrue(started.running());
+        assertEquals(40, started.ticksLeft());
+        // Hammering the reload key must not restart or shorten the clock.
+        RocketPodState.Reload again = RocketPodState.begin(started, 40, 5, 20);
+        assertEquals(40, again.ticksLeft());
+        assertEquals(started, RocketPodState.begin(started, 99, 5, 20),
+                "a running clock is handed back untouched, whatever the config says");
+        // Nothing missing, or an empty reserve: no clock at all.
+        assertFalse(RocketPodState.begin(idle, 40, 0, 20).running());
+        assertFalse(RocketPodState.begin(idle, 40, -2, 20).running());
+        assertFalse(RocketPodState.begin(idle, 40, 5, 0).running());
+        // The config can still ask for the old instant reload.
+        assertFalse(RocketPodState.begin(idle, 0, 5, 20).running());
+    }
+
+    @Test
+    void theRoundsLandOnTheTickTheClockReachesZero() {
+        RocketPodState.Reload reload = new RocketPodState.Reload(2);
+        RocketPodState.Reload first = RocketPodState.tick(reload);
+        assertEquals(1, first.ticksLeft());
+        assertFalse(RocketPodState.completes(reload, first));
+        RocketPodState.Reload second = RocketPodState.tick(first);
+        assertEquals(0, second.ticksLeft());
+        assertTrue(RocketPodState.completes(first, second));
+        // Idle stays idle and the clock never runs negative, so it cannot complete twice.
+        RocketPodState.Reload third = RocketPodState.tick(second);
+        assertEquals(0, third.ticksLeft());
+        assertFalse(RocketPodState.completes(second, third));
+        assertFalse(RocketPodState.completes(RocketPodState.Reload.idle(),
+                RocketPodState.Reload.idle()));
+        assertFalse(RocketPodState.completes(null, RocketPodState.Reload.idle()));
+    }
+
+    @Test
+    void progressAndTransferAmountsAreClamped() {
+        assertEquals(0.0F, new RocketPodState.Reload(40).fraction(40), 1.0E-6F);
+        assertEquals(0.5F, new RocketPodState.Reload(20).fraction(40), 1.0E-6F);
+        assertEquals(1.0F, RocketPodState.Reload.idle().fraction(40), 1.0E-6F);
+        assertEquals(0.0F, RocketPodState.Reload.idle().fraction(0), 1.0E-6F);
+        assertEquals(1.0F, new RocketPodState.Reload(-3).fraction(40), 1.0E-6F,
+                "a clock that has already run out reads as finished");
+        // Only what the pods are missing, and only what the reserve actually holds.
+        assertEquals(3, RocketPodState.transferAmount(4, 42));
+        // The pods never take more than they are missing, however deep the reserve is.
+        assertEquals(RocketPodState.READY_CAPACITY, RocketPodState.transferAmount(0, 10));
+        assertEquals(RocketPodState.READY_CAPACITY, RocketPodState.transferAmount(0, 42));
+        assertEquals(0, RocketPodState.transferAmount(RocketPodState.READY_CAPACITY, 42));
+        assertEquals(RocketPodState.READY_CAPACITY, RocketPodState.transferAmount(-5, 42),
+                "a nonsense negative count reads as empty pods, which then take a full load");
+        assertEquals(0, RocketPodState.transferAmount(0, -1));
+    }
 }

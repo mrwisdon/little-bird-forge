@@ -31,6 +31,13 @@ public final class LittleBirdConfig {
     private static final ForgeConfigSpec.DoubleValue CAMERA_ROLL_FACTOR;
     private static final ForgeConfigSpec.DoubleValue THIRD_PERSON_FOV;
     private static final ForgeConfigSpec.DoubleValue APACHE_THIRD_PERSON_DISTANCE;
+    private static final ForgeConfigSpec.DoubleValue JET_THIRD_PERSON_DISTANCE;
+    private static final ForgeConfigSpec.DoubleValue B2_THIRD_PERSON_DISTANCE;
+    private static final ForgeConfigSpec.DoubleValue B2_THIRD_PERSON_FOV;
+    private static final ForgeConfigSpec.IntValue JET_FLARE_COUNT;
+    private static final ForgeConfigSpec.DoubleValue JET_LOCK_RANGE;
+    private static final ForgeConfigSpec.BooleanValue JET_INVERT_PITCH;
+    private static final ForgeConfigSpec.BooleanValue JET_MOUSE_YAW;
     private static final ForgeConfigSpec.DoubleValue COCKPIT_FOV;
 
     private static final ForgeConfigSpec.DoubleValue COCKPIT_EYE_LIFT;
@@ -42,6 +49,13 @@ public final class LittleBirdConfig {
     private static final ForgeConfigSpec.BooleanValue SHOULDER_VIEW;
     private static final ForgeConfigSpec.DoubleValue SHOULDER_OFFSET;
     private static final ForgeConfigSpec.DoubleValue SHOULDER_HEIGHT;
+    // CLIENT - B-2 pod optics and the rigid cockpit view
+    private static final ForgeConfigSpec.DoubleValue POD_ZOOM_TIGHT_FOV;
+    private static final ForgeConfigSpec.DoubleValue POD_ZOOM_WIDE_FOV;
+    private static final ForgeConfigSpec.DoubleValue POD_GIMBAL_YAW_LIMIT;
+    private static final ForgeConfigSpec.DoubleValue POD_SIGHT_DOWN_DEG;
+    private static final ForgeConfigSpec.DoubleValue POD_SIGHT_UP_DEG;
+    private static final ForgeConfigSpec.BooleanValue COCKPIT_RIGID_VIEW;
 
     // CLIENT - ground vehicles
     private static final ForgeConfigSpec.DoubleValue TANK_MAX_SPEED;
@@ -49,26 +63,52 @@ public final class LittleBirdConfig {
     private static final ForgeConfigSpec.DoubleValue TANK_BRAKING;
     private static final ForgeConfigSpec.DoubleValue TANK_TURN_RATE;
     private static final ForgeConfigSpec.DoubleValue TANK_TURN_STANDSTILL;
+    private static final ForgeConfigSpec.DoubleValue TANK_STEP_HEIGHT;
+    private static final ForgeConfigSpec.DoubleValue TANK_MAX_GRADE;
     private static final ForgeConfigSpec.DoubleValue IFV_MAX_SPEED;
     private static final ForgeConfigSpec.DoubleValue IFV_ACCELERATION;
     private static final ForgeConfigSpec.DoubleValue IFV_BRAKING;
     private static final ForgeConfigSpec.DoubleValue IFV_TURN_RATE;
     private static final ForgeConfigSpec.DoubleValue IFV_TURN_STANDSTILL;
+    private static final ForgeConfigSpec.DoubleValue IFV_STEP_HEIGHT;
+    private static final ForgeConfigSpec.DoubleValue IFV_MAX_GRADE;
+    private static final ForgeConfigSpec.DoubleValue GROUND_SIGHT_FOV;
+    private static final ForgeConfigSpec.DoubleValue MAIN_GUN_TRACER_LENGTH;
+    private static final ForgeConfigSpec.DoubleValue MAIN_GUN_IMPACT_SHAKE;
+    private static final ForgeConfigSpec.DoubleValue MAIN_GUN_SHELL_VISIBLE_DISTANCE;
+    private static final ForgeConfigSpec.DoubleValue MAIN_GUN_TRACER_MIN_PIXEL_WIDTH;
+    private static final ForgeConfigSpec.DoubleValue MAIN_GUN_TRACER_MIN_PIXEL_LENGTH;
+    private static final ForgeConfigSpec.DoubleValue MAIN_GUN_IMPACT_VISIBLE_DISTANCE;
+    private static final ForgeConfigSpec.DoubleValue AUTOCANNON_SHELL_VISIBLE_DISTANCE;
+    private static final ForgeConfigSpec.DoubleValue AUTOCANNON_IMPACT_VISIBLE_DISTANCE;
 
     // COMMON
+    private static final ForgeConfigSpec.IntValue TOW_LAUNCH_TICKS;
+    private static final ForgeConfigSpec.DoubleValue TOW_TURN_RATE;
+    private static final ForgeConfigSpec.DoubleValue TOW_SIGHT_RANGE;
     private static final ForgeConfigSpec.DoubleValue GUN_DAMAGE;
     private static final ForgeConfigSpec.DoubleValue ROCKET_DIRECT_DAMAGE;
     private static final ForgeConfigSpec.DoubleValue GUN_DAMAGE_AIRCRAFT;
     private static final ForgeConfigSpec.DoubleValue ROCKET_DAMAGE_AIRCRAFT;
     private static final ForgeConfigSpec.DoubleValue GUN_DAMAGE_APACHE;
     private static final ForgeConfigSpec.DoubleValue ROCKET_DAMAGE_APACHE;
+    private static final ForgeConfigSpec.DoubleValue ROCKET_HEAVY_DAMAGE;
     private static final ForgeConfigSpec.IntValue ROCKET_REARM_SECONDS;
     private static final ForgeConfigSpec.IntValue ROCKET_REARM_BATCH;
+    private static final ForgeConfigSpec.IntValue LITTLE_BIRD_ROCKET_RELOAD_SECONDS;
     private static final ForgeConfigSpec.BooleanValue ROCKETS_BREAK_BLOCKS;
     private static final ForgeConfigSpec.DoubleValue APACHE_ROCKET_DAMAGE_SCALE;
     private static final ForgeConfigSpec.DoubleValue APACHE_GUN_DAMAGE;
     private static final ForgeConfigSpec.DoubleValue APACHE_GUN_AIRFRAME_DAMAGE;
     private static final ForgeConfigSpec.DoubleValue APACHE_GUN_SPLASH_RADIUS;
+    private static final ForgeConfigSpec.DoubleValue APACHE_GUN_HEAVY_DAMAGE;
+    private static final ForgeConfigSpec.DoubleValue APACHE_MISSILE_HEAVY_DAMAGE;
+    private static final ForgeConfigSpec.DoubleValue TANK_MAIN_GUN_HEAVY_DAMAGE;
+    private static final ForgeConfigSpec.DoubleValue TANK_MAIN_GUN_HE_HEAVY_DAMAGE;
+    private static final ForgeConfigSpec.DoubleValue IFV_AUTOCANNON_HEAVY_DAMAGE;
+    private static final ForgeConfigSpec.DoubleValue IFV_ATGM_HEAVY_DAMAGE;
+    private static final ForgeConfigSpec.DoubleValue BRADLEY_AUTOCANNON_HEAVY_DAMAGE;
+    private static final ForgeConfigSpec.DoubleValue BRADLEY_TOW_HEAVY_DAMAGE;
     private static final ForgeConfigSpec.DoubleValue APACHE_MISSILE_DAMAGE;
     private static final ForgeConfigSpec.DoubleValue APACHE_MISSILE_AIRFRAME_DAMAGE;
     private static final ForgeConfigSpec.DoubleValue APACHE_MISSILE_SPLASH_RADIUS;
@@ -81,6 +121,14 @@ public final class LittleBirdConfig {
     private static final ForgeConfigSpec.IntValue APACHE_ROCKET_RESUPPLY_SECONDS;
     private static final ForgeConfigSpec.IntValue APACHE_MISSILE_RELOAD_SECONDS;
     private static final ForgeConfigSpec.IntValue APACHE_MISSILE_RESUPPLY_SECONDS;
+    // COMMON - B-2 bomb bay
+    private static final ForgeConfigSpec.DoubleValue JDAM_DAMAGE;
+    private static final ForgeConfigSpec.DoubleValue INCENDIARY_DAMAGE;
+    private static final ForgeConfigSpec.DoubleValue JDAM_BLAST_RADIUS;
+    private static final ForgeConfigSpec.DoubleValue INCENDIARY_BLAST_RADIUS;
+    private static final ForgeConfigSpec.IntValue INCENDIARY_FIRE_TICKS;
+    private static final ForgeConfigSpec.IntValue BOMB_BAY_CAPACITY_JDAM;
+    private static final ForgeConfigSpec.IntValue BOMB_BAY_CAPACITY_INCENDIARY;
 
     // COMMON - ground vehicles
     private static final ForgeConfigSpec.DoubleValue TANK_MAIN_GUN_DAMAGE;
@@ -96,12 +144,20 @@ public final class LittleBirdConfig {
     private static final ForgeConfigSpec.DoubleValue TANK_MAIN_GUN_HE_DAMAGE;
     private static final ForgeConfigSpec.DoubleValue TANK_MAIN_GUN_HE_VEHICLE_DAMAGE;
     private static final ForgeConfigSpec.DoubleValue TANK_MAIN_GUN_HE_SPLASH_RADIUS;
+    private static final ForgeConfigSpec.IntValue TANK_MAIN_GUN_CANISTER_PELLETS;
+    private static final ForgeConfigSpec.DoubleValue TANK_MAIN_GUN_CANISTER_PELLET_DAMAGE;
+    private static final ForgeConfigSpec.DoubleValue TANK_MAIN_GUN_CANISTER_PELLET_VEHICLE_DAMAGE;
+    private static final ForgeConfigSpec.DoubleValue TANK_MAIN_GUN_CANISTER_SPREAD_HORIZONTAL_DEGREES;
+    private static final ForgeConfigSpec.DoubleValue TANK_MAIN_GUN_CANISTER_SPREAD_VERTICAL_DEGREES;
+    private static final ForgeConfigSpec.DoubleValue TANK_MAIN_GUN_CANISTER_RANGE;
     private static final ForgeConfigSpec.BooleanValue TANK_MAIN_GUN_BREAKS_BLOCKS;
     private static final ForgeConfigSpec.DoubleValue TANK_MAIN_GUN_PARTICLE_SCALE;
     private static final ForgeConfigSpec.DoubleValue TANK_COAX_DAMAGE;
     private static final ForgeConfigSpec.DoubleValue TANK_COAX_VEHICLE_DAMAGE;
     private static final ForgeConfigSpec.IntValue TANK_COAX_CAPACITY;
     private static final ForgeConfigSpec.IntValue TANK_COAX_FIRE_INTERVAL;
+    private static final ForgeConfigSpec.IntValue TANK_CUPOLA_CAPACITY;
+    private static final ForgeConfigSpec.IntValue TANK_CUPOLA_FIRE_INTERVAL;
     private static final ForgeConfigSpec.IntValue TANK_SMOKE_CHARGES;
     private static final ForgeConfigSpec.IntValue TANK_SMOKE_COOLDOWN_SECONDS;
     private static final ForgeConfigSpec.IntValue TANK_SMOKE_DURATION_SECONDS;
@@ -116,6 +172,44 @@ public final class LittleBirdConfig {
     private static final ForgeConfigSpec.IntValue IFV_ATGM_RESERVE;
     private static final ForgeConfigSpec.IntValue IFV_ATGM_RELOAD;
     private static final ForgeConfigSpec.IntValue IFV_ATGM_FIRE_INTERVAL;
+
+    // M2A2 Bradley: a tracked six seat IFV with a 25mm chain gun, a TOW rail and a smoke wall.
+    private static final ForgeConfigSpec.DoubleValue BRADLEY_MAX_SPEED;
+    private static final ForgeConfigSpec.DoubleValue BRADLEY_ACCELERATION;
+    private static final ForgeConfigSpec.DoubleValue BRADLEY_BRAKING;
+    private static final ForgeConfigSpec.DoubleValue BRADLEY_TURN_RATE;
+    private static final ForgeConfigSpec.DoubleValue BRADLEY_TURN_STANDSTILL;
+    private static final ForgeConfigSpec.DoubleValue BRADLEY_STEP_HEIGHT;
+    private static final ForgeConfigSpec.DoubleValue BRADLEY_MAX_GRADE;
+    private static final ForgeConfigSpec.IntValue BRADLEY_AUTOCANNON_ROUNDS_PER_MINUTE;
+    private static final ForgeConfigSpec.BooleanValue BRADLEY_AUTOCANNON_BREAKS_BLOCKS;
+    private static final ForgeConfigSpec.DoubleValue BRADLEY_AUTOCANNON_SPLASH_RADIUS;
+    private static final ForgeConfigSpec.DoubleValue BRADLEY_AUTOCANNON_SHELL_SPEED;
+    private static final ForgeConfigSpec.IntValue BRADLEY_AUTOCANNON_SHELL_LIFETIME;
+    private static final ForgeConfigSpec.DoubleValue BRADLEY_AUTOCANNON_DAMAGE;
+    private static final ForgeConfigSpec.DoubleValue BRADLEY_AUTOCANNON_VEHICLE_DAMAGE;
+    private static final ForgeConfigSpec.IntValue BRADLEY_AUTOCANNON_READY;
+    private static final ForgeConfigSpec.IntValue BRADLEY_AUTOCANNON_RESERVE;
+    private static final ForgeConfigSpec.IntValue BRADLEY_AUTOCANNON_RELOAD;
+    private static final ForgeConfigSpec.DoubleValue BRADLEY_TOW_DAMAGE;
+    private static final ForgeConfigSpec.DoubleValue BRADLEY_TOW_VEHICLE_DAMAGE;
+    private static final ForgeConfigSpec.DoubleValue BRADLEY_TOW_SPLASH_RADIUS;
+    private static final ForgeConfigSpec.IntValue BRADLEY_TOW_READY;
+    private static final ForgeConfigSpec.IntValue BRADLEY_TOW_RESERVE;
+    private static final ForgeConfigSpec.IntValue BRADLEY_TOW_RELOAD;
+    private static final ForgeConfigSpec.IntValue BRADLEY_TOW_FIRE_INTERVAL;
+    private static final ForgeConfigSpec.DoubleValue BRADLEY_TOW_LAUNCHER_LATERAL;
+    private static final ForgeConfigSpec.DoubleValue BRADLEY_M2_DAMAGE;
+    private static final ForgeConfigSpec.DoubleValue BRADLEY_M2_VEHICLE_DAMAGE;
+    private static final ForgeConfigSpec.IntValue BRADLEY_M2_CAPACITY;
+    private static final ForgeConfigSpec.IntValue BRADLEY_M2_FIRE_INTERVAL;
+    private static final ForgeConfigSpec.DoubleValue BRADLEY_M2_SPREAD;
+    private static final ForgeConfigSpec.IntValue BRADLEY_SMOKE_CANISTERS;
+    private static final ForgeConfigSpec.DoubleValue BRADLEY_SMOKE_SPACING;
+    private static final ForgeConfigSpec.DoubleValue BRADLEY_SMOKE_AHEAD;
+    private static final ForgeConfigSpec.IntValue BRADLEY_SMOKE_COOLDOWN;
+    private static final ForgeConfigSpec.IntValue BRADLEY_SMOKE_DURATION;
+    private static final ForgeConfigSpec.IntValue BRADLEY_SMOKE_CHARGES;
 
     static {
         ForgeConfigSpec.Builder client = new ForgeConfigSpec.Builder();
@@ -189,6 +283,34 @@ public final class LittleBirdConfig {
                         "blocks behind the seat, which is inside a nine block airframe, so the",
                         "aircraft filled the screen; this is how far back the crew camera goes.")
                 .defineInRange("apache_third_person_distance", 9.0D, 4.0D, 24.0D);
+        JET_THIRD_PERSON_DISTANCE = client
+                .comment("Exterior camera distance for the F-35E, in blocks. The jet is eleven",
+                        "blocks long, so it needs more room behind the seat than the helicopters.")
+                .defineInRange("jet_third_person_distance", 11.0D, 4.0D, 32.0D);
+        B2_THIRD_PERSON_DISTANCE = client
+                .comment("Exterior camera distance for the B-2, in blocks. The flying wing is 38",
+                        "blocks across: the camera has to pull right back or the lens ends up",
+                        "inside the wing and the whole span never fits on screen.")
+                .defineInRange("b2_third_person_distance", 52.0D, 12.0D, 120.0D);
+        B2_THIRD_PERSON_FOV = client
+                .comment("Field of view multiplier for the B-2's exterior camera. Wider than the",
+                        "fighter's so a 38 block span still reads as one aeroplane.")
+                .defineInRange("b2_third_person_fov_multiplier", 1.60D, 0.5D, 3.0D);
+        JET_FLARE_COUNT = client
+                .comment("Flare bundles the F-35E carries before it has to rearm.")
+                .defineInRange("jet_flare_count", 8, 0, 64);
+        JET_LOCK_RANGE = client
+                .comment("IR seeker lock range against airframes, in blocks.")
+                .defineInRange("jet_lock_range_blocks", 96.0D, 16.0D, 256.0D);
+        JET_INVERT_PITCH = client
+                .comment("Invert the jet's pitch axis so mouse up pushes the nose down. The",
+                        "same flag is on a key binding (default I) that saves it back here.")
+                .define("jet_invert_pitch", false);
+        JET_MOUSE_YAW = client
+                .comment("Fly the jet with the helicopters' scheme: mouse X yaws and A/D rolls.",
+                        "Off is the Battlefield preset (mouse X rolls, A/D yaws). The same flag",
+                        "is on a key binding (default Y) that saves it back here.")
+                .define("jet_mouse_yaw", false);
         COCKPIT_EYE_LIFT = client
                 .comment("How far the cockpit camera is lifted out of the airframe, in blocks.",
                         "The cabin shell and roof are hidden in this view, so lifting it only",
@@ -221,46 +343,175 @@ public final class LittleBirdConfig {
         HUD_SCALE = client
                 .comment("HUD scale multiplier applied on top of the GUI scale.")
                 .defineInRange("hud_scale", 2, 1, 4);
+        client.comment("Weapon fire effects. All of these are presentation only: the server",
+                        "never reads them, so two clients can tune the same shot differently.")
+                .push("effects");
+        GROUND_SIGHT_FOV = client
+                .comment("Field of view multiplier for the ground vehicles' gun sight camera.",
+                        "Below 1.0 zooms the optic in: the tank's sight is a magnifying",
+                        "telescope, and the reticle is drawn against this same zoom.")
+                .defineInRange("ground_sight_fov_multiplier", 0.55D, 0.20D, 1.50D);
+        MAIN_GUN_TRACER_LENGTH = client
+                .comment("Length of the rigid tracer streak drawn behind a flying 120mm round,",
+                        "in blocks. A longer streak reads as a harder, faster dart; 0 draws",
+                        "the round without a streak.")
+                .defineInRange("main_gun_tracer_length_blocks", 6.0D, 0.0D, 24.0D);
+        MAIN_GUN_IMPACT_SHAKE = client
+                .comment("Camera shock from a 120mm impact, 0 disables it. 1.0 is the nominal",
+                        "punch at the point of impact; it falls off with distance and is",
+                        "deliberately allowed past 1.0 for a heavier feel.")
+                .defineInRange("main_gun_impact_shake", 1.0D, 0.0D, 2.0D);
+        MAIN_GUN_SHELL_VISIBLE_DISTANCE = client
+                .comment("How far away a flying 120mm round is still drawn, in blocks.",
+                        "Vanilla culls an entity once it is about 64 AABB sizes away, which",
+                        "for a 0.3 block shell is under twenty blocks; a tracer meant to be",
+                        "watched across a valley has to say otherwise. The world's own",
+                        "render distance is still the hard upper bound.")
+                .defineInRange("main_gun_shell_visible_distance_blocks", 512.0D, 64.0D, 2048.0D);
+        MAIN_GUN_TRACER_MIN_PIXEL_WIDTH = client
+                .comment("Minimum on-screen thickness of the tracer streak, in framebuffer",
+                        "pixels. A fixed world-space bar shrinks below a pixel past a hundred",
+                        "blocks and starts to flicker out, so the streak widens with range",
+                        "until it is at least this thick. 0 keeps the strict world size.")
+                .defineInRange("main_gun_tracer_min_pixel_width", 2.0D, 0.0D, 8.0D);
+        MAIN_GUN_TRACER_MIN_PIXEL_LENGTH = client
+                .comment("Minimum on-screen length of the tracer streak, in framebuffer pixels.",
+                        "Same reasoning as the width: a six block streak is a quarter of a",
+                        "degree at eight hundred blocks, which is a speck. 0 keeps the",
+                        "strict world length.")
+                .defineInRange("main_gun_tracer_min_pixel_length", 24.0D, 0.0D, 160.0D);
+        AUTOCANNON_SHELL_VISIBLE_DISTANCE = client
+                .comment("How far away a flying 25mm round is still drawn, in blocks. Vanilla",
+                        "culls an entity 64 bounding box sizes out, which is sixteen blocks",
+                        "for this round - the Bradley's tracer used to vanish almost at the",
+                        "muzzle. Default covers the round's whole 360 block flight.")
+                .defineInRange("autocannon_shell_visible_distance_blocks", 384.0D, 64.0D, 2048.0D);
+        AUTOCANNON_IMPACT_VISIBLE_DISTANCE = client
+                .comment("How far away a 25mm impact is still reported to a client, in blocks.",
+                        "Shorter than the 120mm's: this gun lands five rounds a second, so",
+                        "the hit has to read without shipping a packet to the whole map.")
+                .defineInRange("autocannon_impact_visible_distance_blocks", 192.0D, 64.0D, 1024.0D);
+        MAIN_GUN_IMPACT_VISIBLE_DISTANCE = client
+                .comment("How far away a 120mm impact is still reported to a client that",
+                        "cannot see the server's own particles, in blocks. Vanilla only",
+                        "ships particles and sounds within about 32 blocks, so a long shot",
+                        "needs its hit sent separately or the round simply vanishes.")
+                .defineInRange("main_gun_impact_visible_distance_blocks", 512.0D, 64.0D, 1024.0D);
+        client.pop();
         client.comment("Ground vehicle handling. Motion is client authoritative, so this is a",
                         "client side feel setting just like the flight block above. Speeds are",
-                        "blocks per tick: 0.30 is six blocks a second.").push("ground");
+                        "blocks per tick: 0.45 is nine blocks a second.").push("ground");
         client.comment("M1A5 main battle tank: heavy, slow, but it pivots on its tracks.").push("tank");
         TANK_MAX_SPEED = client
-                .comment("Top speed in blocks per tick.")
-                .defineInRange("max_speed", 0.30D, 0.05D, 1.0D);
+                .comment("Top speed in blocks per tick. 0.45 is nine blocks a second.")
+                .defineInRange("max_speed", 0.45D, 0.05D, 1.0D);
         TANK_ACCELERATION = client
                 .comment("Speed gained per tick while the throttle is held.")
-                .defineInRange("acceleration", 0.02D, 0.001D, 0.2D);
+                .defineInRange("acceleration", 0.05D, 0.001D, 0.2D);
         TANK_BRAKING = client
                 .comment("Speed lost per tick when braking or coasting.")
-                .defineInRange("braking", 0.04D, 0.001D, 0.3D);
+                .defineInRange("braking", 0.05D, 0.001D, 0.3D);
         TANK_TURN_RATE = client
                 .comment("Degrees of heading change per tick at full speed.")
-                .defineInRange("turn_rate_degrees_per_tick", 2.0D, 0.2D, 15.0D);
+                .defineInRange("turn_rate_degrees_per_tick", 2.4D, 0.2D, 15.0D);
         TANK_TURN_STANDSTILL = client
                 .comment("Fraction of the turn rate available stopped, so a tracked hull can",
                         "pivot on the spot.")
-                .defineInRange("turn_at_standstill", 0.35D, 0.0D, 1.0D);
+                .defineInRange("turn_at_standstill", 0.5D, 0.0D, 1.0D);
+        TANK_STEP_HEIGHT = client
+                .comment("Tallest lip the tracks climb, in blocks. Vanilla only gives a",
+                        "LivingEntity step height, so GroundMover climbs for this hull.")
+                .defineInRange("step_height", 1.5D, 0.0D, 3.0D);
+        TANK_MAX_GRADE = client
+                .comment("Grade at which the hull is down to its crawl speed, in degrees: about a",
+                        "third of top speed here, and slower still past it. Ground under an eighth",
+                        "of this is treated as flat, and steep ground always crawls instead of",
+                        "stalling in place.")
+                .defineInRange("max_grade_degrees", 50.0D, 5.0D, 60.0D);
         client.pop();
         client.comment("EBAA Wildcat IFV: faster and nimbler, but it cannot pivot in place.")
                 .push("ifv");
         IFV_MAX_SPEED = client
-                .comment("Top speed in blocks per tick.")
-                .defineInRange("max_speed", 0.45D, 0.05D, 1.0D);
+                .comment("Top speed in blocks per tick. 0.62 is about twelve blocks a second.")
+                .defineInRange("max_speed", 0.62D, 0.05D, 1.0D);
         IFV_ACCELERATION = client
                 .comment("Speed gained per tick while the throttle is held.")
-                .defineInRange("acceleration", 0.03D, 0.001D, 0.2D);
+                .defineInRange("acceleration", 0.07D, 0.001D, 0.2D);
         IFV_BRAKING = client
                 .comment("Speed lost per tick when braking or coasting.")
-                .defineInRange("braking", 0.05D, 0.001D, 0.3D);
+                .defineInRange("braking", 0.065D, 0.001D, 0.3D);
         IFV_TURN_RATE = client
                 .comment("Degrees of heading change per tick at full speed.")
-                .defineInRange("turn_rate_degrees_per_tick", 3.5D, 0.2D, 15.0D);
+                .defineInRange("turn_rate_degrees_per_tick", 4.0D, 0.2D, 15.0D);
         IFV_TURN_STANDSTILL = client
                 .comment("Fraction of the turn rate available stopped. Wheels barely steer",
                         "standing still.")
-                .defineInRange("turn_at_standstill", 0.20D, 0.0D, 1.0D);
+                .defineInRange("turn_at_standstill", 0.25D, 0.0D, 1.0D);
+        IFV_STEP_HEIGHT = client
+                .comment("Tallest lip the wheels climb, in blocks. Lower than the tank's.")
+                .defineInRange("step_height", 1.0D, 0.0D, 3.0D);
+        IFV_MAX_GRADE = client
+                .comment("Grade at which the hull is down to its crawl speed, in degrees: about a",
+                        "third of top speed here, and slower still past it. Ground under an eighth",
+                        "of this is treated as flat, and steep ground always crawls instead of",
+                        "stalling in place. 50 is the design target the wheels must hold.")
+                .defineInRange("max_grade_degrees", 50.0D, 5.0D, 60.0D);
         client.pop();
+        client.comment("M2A2 Bradley: a tracked IFV. It pivots on the spot, which the wheeled",
+                        "Wildcat cannot, but it tops out lower and turns more slowly at speed.")
+                .push("bradley");
+        BRADLEY_MAX_SPEED = client
+                .comment("Top speed in blocks per tick. 0.52 is about ten blocks a second.")
+                .defineInRange("max_speed", 0.52D, 0.05D, 1.0D);
+        BRADLEY_ACCELERATION = client
+                .comment("Speed gained per tick while the throttle is held.")
+                .defineInRange("acceleration", 0.05D, 0.001D, 0.2D);
+        BRADLEY_BRAKING = client
+                .comment("Speed lost per tick when braking or coasting.")
+                .defineInRange("braking", 0.07D, 0.001D, 0.3D);
+        BRADLEY_TURN_RATE = client
+                .comment("Degrees of heading change per tick at full speed.")
+                .defineInRange("turn_rate_degrees_per_tick", 5.5D, 0.2D, 15.0D);
+        BRADLEY_TURN_STANDSTILL = client
+                .comment("Fraction of the turn rate available stopped. Tracks pivot, so this is",
+                        "much higher than the wheeled IFV's.")
+                .defineInRange("turn_at_standstill", 0.55D, 0.0D, 1.0D);
+        BRADLEY_STEP_HEIGHT = client
+                .comment("Tallest lip the tracks climb, in blocks.")
+                .defineInRange("step_height", 1.0D, 0.0D, 3.0D);
+        BRADLEY_MAX_GRADE = client
+                .comment("Grade at which the hull is down to its crawl speed, in degrees. Ground",
+                        "under an eighth of this is flat, and steep ground crawls rather than",
+                        "stalling.")
+                .defineInRange("max_grade_degrees", 50.0D, 5.0D, 60.0D);
+        client.pop();
+        client.pop();
+        client.comment("B-2 Spirit: the electro-optical pod and the rigid cockpit view.",
+                        "Client side only - the server never reads these.").push("b2");
+        POD_ZOOM_TIGHT_FOV = client
+                .comment("Tightest sight picture, in degrees of field of view (smaller is more",
+                        "magnified; 6 degrees is about a 12x sight).")
+                .defineInRange("pod_zoom_tight_fov", 6.0D, 2.0D, 60.0D);
+        POD_ZOOM_WIDE_FOV = client
+                .comment("Widest sight picture, in degrees. 70 matches a normal Minecraft lens, so",
+                        "the pod starts with the ground and the horizon both in frame.")
+                .defineInRange("pod_zoom_wide_fov", 70.0D, 20.0D, 110.0D);
+        POD_GIMBAL_YAW_LIMIT = client
+                .comment("How far the pod gimbal may swing off the nose, in degrees.")
+                .defineInRange("pod_gimbal_yaw_limit", 110.0D, 0.0D, 180.0D);
+        POD_SIGHT_DOWN_DEG = client
+                .comment("How far the sight may tilt DOWN from the horizon, in degrees. This is the",
+                        "number that decides whether the pod can see the ground at all: 85 is",
+                        "nearly straight down. Values under 45 are raised to 45 in code.")
+                .defineInRange("pod_sight_down_deg", 85.0D, 10.0D, 90.0D);
+        POD_SIGHT_UP_DEG = client
+                .comment("How far the sight may tilt UP from the horizon, in degrees. 12 is enough",
+                        "to frame a target ahead and above while keeping the ground in shot.")
+                .defineInRange("pod_sight_up_deg", 12.0D, 0.0D, 90.0D);
+        COCKPIT_RIGID_VIEW = client
+                .comment("Lock the cockpit camera rigidly to the airframe: no smoothing and no",
+                        "head lag. Off leaves the vanilla softening in place.")
+                .define("cockpit_rigid_view", true);
         client.pop();
         CLIENT_SPEC = client.build();
 
@@ -286,6 +537,23 @@ public final class LittleBirdConfig {
                 .defineInRange("missile_particle_range", 96.0D, 64.0D, 256.0D);
         common.comment("Weapon and airframe balance. Values must match on client and server.")
                 .push("balance");
+        common.comment("The command line-of-sight missile both the Apache and the Bradley carry.",
+                        "The round is steered onto the sight line the operator is holding, so the",
+                        "turn rate is what decides how sharply moving the crosshair drags it.")
+                .push("tow");
+        TOW_LAUNCH_TICKS = common
+                .comment("Ticks the round flies straight out of the tube before the guidance",
+                        "starts steering it. 0 makes it start turning on the launch tick.")
+                .defineInRange("launch_ticks", 6, 0, 40);
+        TOW_TURN_RATE = common
+                .comment("Degrees per tick the missile may turn towards the sight line.",
+                        "7 was the old fixed value and reads as barely steering; 12 makes a",
+                        "swing of the crosshair visibly whip the round.")
+                .defineInRange("turn_rate_degrees_per_tick", 12.0D, 1.0D, 45.0D);
+        TOW_SIGHT_RANGE = common
+                .comment("How far along the sight line the aim point is looked for, in blocks.")
+                .defineInRange("sight_range_blocks", 64.0D, 8.0D, 160.0D);
+        common.pop();
         GUN_DAMAGE = common
                 .comment("Damage per machine gun round (14 kills an unarmoured player in two hits).")
                 .defineInRange("gun_damage", 14.0D, 0.5D, 60.0D);
@@ -309,12 +577,19 @@ public final class LittleBirdConfig {
                         "launcher fired it: the Apache's own rocket_damage_scale is a per launcher",
                         "price and must not change what a hit on a hull is worth.")
                 .defineInRange("rocket_damage_apache", 7.0D, 0.0D, 200.0D);
+        ROCKET_HEAVY_DAMAGE = common
+                .comment("70mm rockets barely scratch heavy armour: they are an anti-personnel round.")
+                .defineInRange("rocket_heavy_damage", 8.0D, 0.0D, 200.0D);
         ROCKET_REARM_SECONDS = common
                 .comment("Seconds between rocket resupply ticks (0 disables resupply).")
                 .defineInRange("rocket_rearm_seconds", 10, 0, 600);
         ROCKET_REARM_BATCH = common
                 .comment("Rockets added per resupply tick, split between the two pods.")
                 .defineInRange("rocket_rearm_batch", 7, 1, 14);
+        LITTLE_BIRD_ROCKET_RELOAD_SECONDS = common
+                .comment("Little Bird reload cooldown: seconds between pressing the reload key and",
+                        "the reserve rounds appearing in the pods (0 = instant, as it used to be).")
+                .defineInRange("little_bird_rocket_reload_seconds", 2, 0, 60);
         ROCKETS_BREAK_BLOCKS = common
                 .comment("Whether 70mm rockets destroy terrain. Off by default.")
                 .define("rockets_break_blocks", false);
@@ -335,6 +610,9 @@ public final class LittleBirdConfig {
         APACHE_GUN_AIRFRAME_DAMAGE = common
                 .comment("Damage a 30mm round deals to an airframe.")
                 .defineInRange("chain_gun_airframe_damage", 3.0D, 0.0D, 60.0D);
+        APACHE_GUN_HEAVY_DAMAGE = common
+                .comment("The Apache's 30mm is a light cannon: sustained fire, not a tank killer.")
+                .defineInRange("chain_gun_heavy_damage", 2.0D, 0.0D, 60.0D);
         APACHE_GUN_SPLASH_RADIUS = common
                 .comment("Splash radius of a 30mm round, in blocks (0 disables splash).")
                 .defineInRange("chain_gun_splash_radius", 1.0D, 0.0D, 6.0D);
@@ -344,6 +622,9 @@ public final class LittleBirdConfig {
         APACHE_MISSILE_AIRFRAME_DAMAGE = common
                 .comment("Damage a TOW missile deals to an airframe.")
                 .defineInRange("missile_airframe_damage", 20.0D, 0.0D, 300.0D);
+        APACHE_MISSILE_HEAVY_DAMAGE = common
+                .comment("The TOW is the pack's anti-armour answer.")
+                .defineInRange("missile_heavy_damage", 45.0D, 0.0D, 400.0D);
         APACHE_MISSILE_SPLASH_RADIUS = common
                 .comment("Splash radius of a TOW warhead, in blocks.")
                 .defineInRange("missile_splash_radius", 2.0D, 0.0D, 12.0D);
@@ -370,6 +651,9 @@ public final class LittleBirdConfig {
         TANK_MAIN_GUN_VEHICLE_DAMAGE = common
                 .comment("Damage the 120mm round deals to a vehicle (airframe or ground hull).")
                 .defineInRange("main_gun_vehicle_damage", 40.0D, 0.0D, 400.0D);
+        TANK_MAIN_GUN_HEAVY_DAMAGE = common
+                .comment("The 120mm AP round: three hits take out a tank.")
+                .defineInRange("main_gun_heavy_damage", 40.0D, 0.0D, 400.0D);
         TANK_MAIN_GUN_SPLASH_RADIUS = common
                 .comment("Blast radius of the 120mm round, in blocks (0 disables splash).")
                 .defineInRange("main_gun_splash_radius", 3.0D, 0.0D, 12.0D);
@@ -408,9 +692,34 @@ public final class LittleBirdConfig {
         TANK_MAIN_GUN_HE_VEHICLE_DAMAGE = common
                 .comment("Damage the 120mm HE round deals to a vehicle (less than AP).")
                 .defineInRange("main_gun_he_vehicle_damage", 25.0D, 0.0D, 400.0D);
+        TANK_MAIN_GUN_HE_HEAVY_DAMAGE = common
+                .comment("HE is the worse anti-armour round, as it should be.")
+                .defineInRange("main_gun_he_heavy_damage", 30.0D, 0.0D, 400.0D);
         TANK_MAIN_GUN_HE_SPLASH_RADIUS = common
                 .comment("Blast radius of the 120mm HE round, in blocks (larger than AP).")
                 .defineInRange("main_gun_he_splash_radius", 4.0D, 0.0D, 12.0D);
+        // Canister round: a shotgun load of pellets instead of one shell. No splash; the damage
+        // is all in the pellets that hit.
+        TANK_MAIN_GUN_CANISTER_PELLETS = common
+                .comment("Pellets fired by one 120mm canister round.")
+                .defineInRange("main_gun_canister_pellets", 40, 1, 200);
+        TANK_MAIN_GUN_CANISTER_PELLET_DAMAGE = common
+                .comment("Damage each canister pellet deals to an unarmoured target.")
+                .defineInRange("main_gun_canister_pellet_damage", 40.0D, 0.0D, 100.0D);
+        TANK_MAIN_GUN_CANISTER_PELLET_VEHICLE_DAMAGE = common
+                .comment("Damage each canister pellet deals to a vehicle hull.")
+                .defineInRange("main_gun_canister_pellet_vehicle_damage", 40.0D, 0.0D, 100.0D);
+        TANK_MAIN_GUN_CANISTER_SPREAD_HORIZONTAL_DEGREES = common
+                .comment("Half-angle of the canister spread along the crosshair's horizontal line,",
+                        "in degrees. No pellet goes further than this to either side.")
+                .defineInRange("main_gun_canister_spread_horizontal_degrees", 5.0D, 0.0D, 45.0D);
+        TANK_MAIN_GUN_CANISTER_SPREAD_VERTICAL_DEGREES = common
+                .comment("Half-angle of the canister spread above and below the crosshair's",
+                        "horizontal line, in degrees. No pellet goes further than this up or down.")
+                .defineInRange("main_gun_canister_spread_vertical_degrees", 2.0D, 0.0D, 45.0D);
+        TANK_MAIN_GUN_CANISTER_RANGE = common
+                .comment("Maximum distance one canister pellet can travel, in blocks.")
+                .defineInRange("main_gun_canister_range", 40.0D, 1.0D, 128.0D);
         TANK_MAIN_GUN_BREAKS_BLOCKS = common
                 .comment("Whether the 120mm shell destroys blocks where it lands.")
                 .define("main_gun_breaks_blocks", true);
@@ -424,11 +733,18 @@ public final class LittleBirdConfig {
                 .comment("Damage the coaxial machine gun deals to a vehicle.")
                 .defineInRange("coax_vehicle_damage", 3.0D, 0.0D, 60.0D);
         TANK_COAX_CAPACITY = common
-                .comment("Coaxial machine gun belt capacity.")
+                .comment("Driver's coaxial machine gun belt capacity.")
                 .defineInRange("coax_capacity", 300, 10, 4000);
         TANK_COAX_FIRE_INTERVAL = common
-                .comment("Ticks between coaxial rounds.")
+                .comment("Ticks between the driver's coaxial rounds.")
                 .defineInRange("coax_fire_interval_ticks", 2, 1, 40);
+        TANK_CUPOLA_CAPACITY = common
+                .comment("Seat two's cupola machine gun belt capacity. The two seats have their",
+                        "own belts, so one does not drain the other.")
+                .defineInRange("cupola_capacity", 200, 10, 4000);
+        TANK_CUPOLA_FIRE_INTERVAL = common
+                .comment("Ticks between seat two's cupola rounds.")
+                .defineInRange("cupola_fire_interval_ticks", 3, 1, 40);
         // Placeholder balance for the smoke discharger: the BF2042 numbers are not published, so
         // these are a starting point to be confirmed rather than a claim of parity.
         TANK_SMOKE_CHARGES = common
@@ -453,6 +769,12 @@ public final class LittleBirdConfig {
                 .comment("Damage one 30mm round deals to a vehicle. Low on purpose: an IFV",
                         "cannot chew through a tank with its cannon, it needs the missile.")
                 .defineInRange("autocannon_vehicle_damage", 3.0D, 0.0D, 60.0D);
+        BRADLEY_AUTOCANNON_HEAVY_DAMAGE = common
+                .comment("The Bradley's 25mm M242: three hits on a tank, forty on the belt.")
+                .defineInRange("autocannon_heavy_damage", 3.0D, 0.0D, 60.0D);
+        IFV_AUTOCANNON_HEAVY_DAMAGE = common
+                .comment("The Wildcat's twin 30mm is anti-air and anti-infantry; a tank needs its whole belt.")
+                .defineInRange("autocannon_heavy_damage", 1.0D, 0.0D, 60.0D);
         IFV_AUTOCANNON_CAPACITY = common
                 .comment("Twin 30mm belt capacity.")
                 .defineInRange("autocannon_capacity", 600, 10, 4000);
@@ -462,6 +784,9 @@ public final class LittleBirdConfig {
         IFV_ATGM_VEHICLE_DAMAGE = common
                 .comment("Damage an ATGM deals to a vehicle.")
                 .defineInRange("atgm_vehicle_damage", 20.0D, 0.0D, 300.0D);
+        IFV_ATGM_HEAVY_DAMAGE = common
+                .comment("The IFV's anti-tank missile, priced with the TOW.")
+                .defineInRange("atgm_heavy_damage", 45.0D, 0.0D, 400.0D);
         IFV_ATGM_SPLASH_RADIUS = common
                 .comment("Blast radius of an ATGM warhead, in blocks.")
                 .defineInRange("atgm_splash_radius", 2.0D, 0.0D, 12.0D);
@@ -478,7 +803,138 @@ public final class LittleBirdConfig {
                 .comment("Minimum ticks between ATGM launches.")
                 .defineInRange("atgm_fire_interval_ticks", 20, 1, 200);
         common.pop();
+        common.comment("M2A2 Bradley: a 25mm M242 chain gun fed from a 300 round ready box over",
+                        "a 600 round reserve, a twin TOW rail that fires the pack's guided",
+                        "missile, and a smoke wall laid ahead of the nose.")
+                .push("bradley");
+        BRADLEY_AUTOCANNON_ROUNDS_PER_MINUTE = common
+                .comment("25mm rate of fire in rounds per minute. Twenty ticks a second, so 180 is",
+                        "one round every six and two thirds; the cadence is carried as a fraction",
+                        "rather than rounded to a whole tick, so the gun really does fire 180 and",
+                        "not 171. The turret refuses to fire faster than one round every two",
+                        "ticks, which is the 600 ceiling here.")
+                .defineInRange("autocannon_rounds_per_minute", 180, 30, 600);
+        BRADLEY_AUTOCANNON_SPLASH_RADIUS = common
+                .comment("Blast radius of one 25mm shell, in blocks.")
+                .defineInRange("autocannon_splash_radius", 2.0D, 0.0D, 8.0D);
+        BRADLEY_AUTOCANNON_BREAKS_BLOCKS = common
+                .comment("Whether a 25mm shell breaks terrain. Off by default: at five rounds a",
+                        "second an autocannon that craters the map is unusable.")
+                .define("autocannon_breaks_blocks", false);
+        BRADLEY_AUTOCANNON_SHELL_SPEED = common
+                .comment("Muzzle speed of the 25mm shell, in blocks per tick. 6.0 is a flat,",
+                        "hard round that crosses a hundred blocks in under three blocks of",
+                        "drop; 2.0 is a lobbed tracer arc. The round is watched across the",
+                        "whole flight, so this is both the feel and the effective range",
+                        "(speed x lifetime ticks, 360 blocks at the default).")
+                .defineInRange("autocannon_shell_speed", 6.0D, 0.5D, 12.0D);
+        BRADLEY_AUTOCANNON_SHELL_LIFETIME = common
+                .comment("Ticks a 25mm shell flies before it gives up and despawns.")
+                .defineInRange("autocannon_shell_lifetime_ticks", 60, 5, 400);
+        BRADLEY_AUTOCANNON_DAMAGE = common
+                .comment("Damage one 25mm round deals to an unarmoured target.")
+                .defineInRange("autocannon_damage", 6.0D, 0.5D, 60.0D);
+        BRADLEY_AUTOCANNON_VEHICLE_DAMAGE = common
+                .comment("Damage one 25mm round deals to a vehicle. The Bradley wins the",
+                        "infantry fight with the chain gun and the armour fight with the TOW.")
+                .defineInRange("autocannon_vehicle_damage", 4.0D, 0.0D, 60.0D);
+        BRADLEY_AUTOCANNON_READY = common
+                .comment("25mm rounds in the ready box. The real vehicle carries 300 ready.")
+                .defineInRange("autocannon_ready_rounds", 300, 1, 2000);
+        BRADLEY_AUTOCANNON_RESERVE = common
+                .comment("25mm rounds held in reserve. The real vehicle carries 600 stowed.")
+                .defineInRange("autocannon_reserve_rounds", 600, 0, 4000);
+        BRADLEY_AUTOCANNON_RELOAD = common
+                .comment("Ticks to top the ready box up from the reserve.")
+                .defineInRange("autocannon_reload_ticks", 80, 0, 600);
+        BRADLEY_TOW_DAMAGE = common
+                .comment("Damage a TOW deals to an unarmoured target.")
+                .defineInRange("tow_damage", 90.0D, 0.0D, 400.0D);
+        BRADLEY_TOW_VEHICLE_DAMAGE = common
+                .comment("Damage a TOW deals to a vehicle. The heavy punch of the hull.")
+                .defineInRange("tow_vehicle_damage", 40.0D, 0.0D, 400.0D);
+        BRADLEY_TOW_HEAVY_DAMAGE = common
+                .comment("The Bradley's TOW, same warhead class as the Apache's.")
+                .defineInRange("tow_heavy_damage", 45.0D, 0.0D, 400.0D);
+        BRADLEY_TOW_SPLASH_RADIUS = common
+                .comment("Blast radius of the TOW warhead, in blocks.")
+                .defineInRange("tow_splash_radius", 2.0D, 0.0D, 12.0D);
+        BRADLEY_TOW_READY = common
+                .comment("TOWs ready on the launcher.")
+                .defineInRange("tow_ready_rounds", 2, 1, 8);
+        BRADLEY_TOW_RESERVE = common
+                .comment("TOWs held in reserve.")
+                .defineInRange("tow_reserve_rounds", 5, 0, 40);
+        BRADLEY_TOW_RELOAD = common
+                .comment("Ticks to load one TOW from the reserve onto the launcher.")
+                .defineInRange("tow_reload_ticks", 120, 0, 600);
+        BRADLEY_TOW_FIRE_INTERVAL = common
+                .comment("Minimum ticks between TOW launches.")
+                .defineInRange("tow_fire_interval_ticks", 40, 1, 200);
+        BRADLEY_TOW_LAUNCHER_LATERAL = common
+                .comment("Lateral offset of the TOW launcher from the turret centre line, in",
+                        "blocks. Positive is the vehicle's left, where the real launcher sits.")
+                .defineInRange("tow_launcher_lateral_blocks", 0.55D, 0.0D, 3.0D);
+        BRADLEY_M2_DAMAGE = common
+                .comment("Damage one .50 round deals to an unarmoured target.")
+                .defineInRange("m2_damage", 6.0D, 0.5D, 60.0D);
+        BRADLEY_M2_VEHICLE_DAMAGE = common
+                .comment("Damage one .50 round deals to a vehicle.")
+                .defineInRange("m2_vehicle_damage", 1.5D, 0.0D, 60.0D);
+        BRADLEY_M2_CAPACITY = common
+                .comment("Roof .50 belt capacity.")
+                .defineInRange("m2_capacity", 400, 10, 4000);
+        BRADLEY_M2_FIRE_INTERVAL = common
+                .comment("Ticks between roof machine gun rounds.")
+                .defineInRange("m2_fire_interval_ticks", 3, 1, 40);
+        BRADLEY_M2_SPREAD = common
+                .comment("Dispersion of the roof machine gun, in degrees.")
+                .defineInRange("m2_spread_degrees", 0.6D, 0.0D, 6.0D);
+        BRADLEY_SMOKE_CANISTERS = common
+                .comment("Charges in one wall. They are laid abreast on the hull's centre line.")
+                .defineInRange("smoke_canisters", 6, 1, 16);
+        BRADLEY_SMOKE_SPACING = common
+                .comment("Gap between adjacent charges in the wall, in blocks.")
+                .defineInRange("smoke_spacing_blocks", 1.3D, 0.1D, 8.0D);
+        BRADLEY_SMOKE_AHEAD = common
+                .comment("How far in front of the hull's nose the wall is laid, in blocks.")
+                .defineInRange("smoke_ahead_of_nose_blocks", 5.0D, 0.5D, 24.0D);
+        BRADLEY_SMOKE_COOLDOWN = common
+                .comment("Ticks between smoke walls.")
+                .defineInRange("smoke_cooldown_ticks", 200, 0, 2400);
+        BRADLEY_SMOKE_DURATION = common
+                .comment("How long one wall's cloud lasts, in ticks.")
+                .defineInRange("smoke_duration_ticks", 240, 1, 2400);
+        BRADLEY_SMOKE_CHARGES = common
+                .comment("Walls per load of the discharger.")
+                .defineInRange("smoke_charges", 2, 1, 12);
         common.pop();
+        common.pop();
+        common.pop();
+        common.comment("B-2 Spirit ordnance: the JDAM and the incendiary canister. Values must",
+                        "match on client and server.").push("b2");
+        JDAM_DAMAGE = common
+                .comment("Damage a JDAM deals to the entity it directly hits.")
+                .defineInRange("jdam_damage", 120.0D, 0.0D, 400.0D);
+        INCENDIARY_DAMAGE = common
+                .comment("Damage an incendiary canister deals to the entity it directly hits.")
+                .defineInRange("incendiary_damage", 45.0D, 0.0D, 400.0D);
+        JDAM_BLAST_RADIUS = common
+                .comment("Splash radius of a JDAM warhead, in blocks.")
+                .defineInRange("jdam_blast_radius", 6.0D, 0.0D, 24.0D);
+        INCENDIARY_BLAST_RADIUS = common
+                .comment("Splash radius of an incendiary canister, in blocks. Also the radius of",
+                        "the burning ground it leaves behind.")
+                .defineInRange("incendiary_blast_radius", 4.0D, 0.0D, 24.0D);
+        INCENDIARY_FIRE_TICKS = common
+                .comment("how long the impact area burns, in ticks (0 disables the fire).")
+                .defineInRange("incendiary_fire_ticks", 600, 0, 24000);
+        BOMB_BAY_CAPACITY_JDAM = common
+                .comment("JDAM stores in a full B-2 bay.")
+                .defineInRange("bomb_bay_capacity_jdam", 16, 0, 64);
+        BOMB_BAY_CAPACITY_INCENDIARY = common
+                .comment("Incendiary canisters in a full B-2 bay.")
+                .defineInRange("bomb_bay_capacity_incendiary", 24, 0, 64);
         common.pop();
         COMMON_SPEC = common.build();
     }
@@ -525,6 +981,53 @@ public final class LittleBirdConfig {
         return APACHE_THIRD_PERSON_DISTANCE.get();
     }
 
+    public static double jetThirdPersonDistance() {
+        return JET_THIRD_PERSON_DISTANCE.get();
+    }
+
+    /** Exterior camera distance for the B-2 flying wing, in blocks. */
+    public static double b2ThirdPersonDistance() {
+        return B2_THIRD_PERSON_DISTANCE.get();
+    }
+
+    /** Exterior camera field of view multiplier for the B-2. */
+    public static double b2ThirdPersonFovMultiplier() {
+        return B2_THIRD_PERSON_FOV.get();
+    }
+
+    public static int jetFlareCount() {
+        return JET_FLARE_COUNT.get();
+    }
+
+    public static double jetLockRangeBlocks() {
+        return JET_LOCK_RANGE.get();
+    }
+
+    public static boolean jetInvertPitch() {
+        return JET_INVERT_PITCH.get();
+    }
+
+    /** Flips the pitch-inversion setting and writes it back to the config file. */
+    public static boolean toggleJetInvertPitch() {
+        boolean inverted = !JET_INVERT_PITCH.get();
+        JET_INVERT_PITCH.set(inverted);
+        CLIENT_SPEC.save();
+        return inverted;
+    }
+
+    /** True when the mouse yaws and A/D rolls instead of the other way round. */
+    public static boolean jetMouseYaw() {
+        return JET_MOUSE_YAW.get();
+    }
+
+    /** Flips the mouse-yaw setting and writes it back to the config file. */
+    public static boolean toggleJetMouseYaw() {
+        boolean mouseYaw = !JET_MOUSE_YAW.get();
+        JET_MOUSE_YAW.set(mouseYaw);
+        CLIENT_SPEC.save();
+        return mouseYaw;
+    }
+
     public static double cockpitEyeLiftBlocks() {
         return COCKPIT_EYE_LIFT.get();
     }
@@ -561,6 +1064,21 @@ public final class LittleBirdConfig {
         return HUD_SCALE.get();
     }
 
+    /** Ticks the guided missile flies straight before its guidance takes over. */
+    public static int towLaunchTicks() {
+        return TOW_LAUNCH_TICKS.get();
+    }
+
+    /** How hard the guided missile may turn towards the aim point. */
+    public static double towTurnRateDegreesPerTick() {
+        return TOW_TURN_RATE.get();
+    }
+
+    /** How far along the sight line a guided missile looks for its aim point. */
+    public static double towSightRangeBlocks() {
+        return TOW_SIGHT_RANGE.get();
+    }
+
     public static float gunDamage() {
         return GUN_DAMAGE.get().floatValue();
     }
@@ -591,6 +1109,15 @@ public final class LittleBirdConfig {
 
     public static int rocketRearmBatch() {
         return ROCKET_REARM_BATCH.get();
+    }
+
+    /** Reload cooldown for the Little Bird's rocket pods, in ticks. */
+    public static int littleBirdRocketReloadTicks() {
+        return LITTLE_BIRD_ROCKET_RELOAD_SECONDS.get() * 20;
+    }
+
+    public static int littleBirdRocketReloadSeconds() {
+        return LITTLE_BIRD_ROCKET_RELOAD_SECONDS.get();
     }
 
     public static boolean rocketsBreakBlocks() {
@@ -647,6 +1174,71 @@ public final class LittleBirdConfig {
         return APACHE_MISSILE_SPLASH_RADIUS.get().floatValue();
     }
 
+    // ------------------------------------------------------------------
+    // B-2 Spirit: ordnance (COMMON) and pod optics (CLIENT).
+    // ------------------------------------------------------------------
+    /** JDAM stores in a full bay. */
+    public static int bombBayCapacityJdam() {
+        return BOMB_BAY_CAPACITY_JDAM.get();
+    }
+
+    /** Incendiary canisters in a full bay. */
+    public static int bombBayCapacityIncendiary() {
+        return BOMB_BAY_CAPACITY_INCENDIARY.get();
+    }
+
+    public static double jdamDamage() {
+        return JDAM_DAMAGE.get();
+    }
+
+    public static double incendiaryDamage() {
+        return INCENDIARY_DAMAGE.get();
+    }
+
+    public static double jdamBlastRadius() {
+        return JDAM_BLAST_RADIUS.get();
+    }
+
+    public static double incendiaryBlastRadius() {
+        return INCENDIARY_BLAST_RADIUS.get();
+    }
+
+    /** Ticks the incendiary impact area burns; 0 disables the fire. */
+    public static int incendiaryFireTicks() {
+        return INCENDIARY_FIRE_TICKS.get();
+    }
+
+    /** Tightest pod field of view multiplier. */
+    /** How far off the nose the sight may swing, in degrees. */
+    public static double podGimbalYawLimit() {
+        return POD_GIMBAL_YAW_LIMIT.get();
+    }
+
+    /** Tightest sight field of view, in degrees. */
+    public static double podZoomTightFov() {
+        return POD_ZOOM_TIGHT_FOV.get();
+    }
+
+    /** Widest sight field of view, in degrees. */
+    public static double podZoomWideFov() {
+        return POD_ZOOM_WIDE_FOV.get();
+    }
+
+    /** How far down from the horizon the sight may tilt, in degrees. */
+    public static double podSightDownDeg() {
+        return POD_SIGHT_DOWN_DEG.get();
+    }
+
+    /** How far up from the horizon the sight may tilt, in degrees. */
+    public static double podSightUpDeg() {
+        return POD_SIGHT_UP_DEG.get();
+    }
+
+    /** True when the cockpit camera is locked rigidly to the airframe. */
+    public static boolean cockpitRigidView() {
+        return COCKPIT_RIGID_VIEW.get();
+    }
+
     public static int apacheRocketReloadTicks() {
         return APACHE_ROCKET_RELOAD_SECONDS.get() * 20;
     }
@@ -670,13 +1262,25 @@ public final class LittleBirdConfig {
     /** Handling of the main battle tank, from the CLIENT ground section. */
     public static GroundDrive.Spec tankDriveSpec() {
         return new GroundDrive.Spec(TANK_MAX_SPEED.get(), TANK_ACCELERATION.get(),
-                TANK_BRAKING.get(), TANK_TURN_RATE.get(), TANK_TURN_STANDSTILL.get());
+                TANK_BRAKING.get(), TANK_TURN_RATE.get(), TANK_TURN_STANDSTILL.get(),
+                TANK_MAX_GRADE.get());
     }
 
     /** Handling of the infantry fighting vehicle, from the CLIENT ground section. */
     public static GroundDrive.Spec ifvDriveSpec() {
         return new GroundDrive.Spec(IFV_MAX_SPEED.get(), IFV_ACCELERATION.get(),
-                IFV_BRAKING.get(), IFV_TURN_RATE.get(), IFV_TURN_STANDSTILL.get());
+                IFV_BRAKING.get(), IFV_TURN_RATE.get(), IFV_TURN_STANDSTILL.get(),
+                IFV_MAX_GRADE.get());
+    }
+
+    /** Tallest lip the tank climbs, in blocks; consumed by GroundMover. */
+    public static double tankStepHeightBlocks() {
+        return TANK_STEP_HEIGHT.get();
+    }
+
+    /** Tallest lip the IFV climbs, in blocks; consumed by GroundMover. */
+    public static double ifvStepHeightBlocks() {
+        return IFV_STEP_HEIGHT.get();
     }
 
     /**
@@ -685,23 +1289,57 @@ public final class LittleBirdConfig {
      */
     public static float tankMainGunDamage(
             io.github.littlebird.entity.weapon.MainGunAmmoType type) {
-        return type == io.github.littlebird.entity.weapon.MainGunAmmoType.HE
-                ? TANK_MAIN_GUN_HE_DAMAGE.get().floatValue()
-                : TANK_MAIN_GUN_DAMAGE.get().floatValue();
+        return switch (type) {
+            case HE -> TANK_MAIN_GUN_HE_DAMAGE.get().floatValue();
+            case CANISTER -> TANK_MAIN_GUN_CANISTER_PELLET_DAMAGE.get().floatValue();
+            default -> TANK_MAIN_GUN_DAMAGE.get().floatValue();
+        };
     }
 
     public static float tankMainGunVehicleDamage(
             io.github.littlebird.entity.weapon.MainGunAmmoType type) {
-        return type == io.github.littlebird.entity.weapon.MainGunAmmoType.HE
-                ? TANK_MAIN_GUN_HE_VEHICLE_DAMAGE.get().floatValue()
-                : TANK_MAIN_GUN_VEHICLE_DAMAGE.get().floatValue();
+        return switch (type) {
+            case HE -> TANK_MAIN_GUN_HE_VEHICLE_DAMAGE.get().floatValue();
+            case CANISTER -> TANK_MAIN_GUN_CANISTER_PELLET_VEHICLE_DAMAGE.get().floatValue();
+            default -> TANK_MAIN_GUN_VEHICLE_DAMAGE.get().floatValue();
+        };
     }
 
     public static double tankMainGunSplashRadius(
             io.github.littlebird.entity.weapon.MainGunAmmoType type) {
-        return type == io.github.littlebird.entity.weapon.MainGunAmmoType.HE
-                ? TANK_MAIN_GUN_HE_SPLASH_RADIUS.get()
-                : TANK_MAIN_GUN_SPLASH_RADIUS.get();
+        return switch (type) {
+            case HE -> TANK_MAIN_GUN_HE_SPLASH_RADIUS.get();
+            case CANISTER -> 0.0D;
+            default -> TANK_MAIN_GUN_SPLASH_RADIUS.get();
+        };
+    }
+
+    /** Pellets one 120mm canister round fires. */
+    public static int tankCanisterPellets() {
+        return TANK_MAIN_GUN_CANISTER_PELLETS.get();
+    }
+
+    public static float tankCanisterPelletDamage() {
+        return TANK_MAIN_GUN_CANISTER_PELLET_DAMAGE.get().floatValue();
+    }
+
+    public static float tankCanisterPelletVehicleDamage() {
+        return TANK_MAIN_GUN_CANISTER_PELLET_VEHICLE_DAMAGE.get().floatValue();
+    }
+
+    /** Half-angle of the canister spread along the crosshair's horizontal line, in degrees. */
+    public static double tankCanisterSpreadHorizontalDegrees() {
+        return TANK_MAIN_GUN_CANISTER_SPREAD_HORIZONTAL_DEGREES.get();
+    }
+
+    /** Half-angle of the canister spread above and below the crosshair line, in degrees. */
+    public static double tankCanisterSpreadVerticalDegrees() {
+        return TANK_MAIN_GUN_CANISTER_SPREAD_VERTICAL_DEGREES.get();
+    }
+
+    /** Range of one canister pellet, in blocks. */
+    public static double tankCanisterRange() {
+        return TANK_MAIN_GUN_CANISTER_RANGE.get();
     }
 
     /** The 120mm shell destroys terrain by default; a server can turn that off. */
@@ -712,6 +1350,51 @@ public final class LittleBirdConfig {
     /** Scale on the 120mm muzzle flash, fireball and impact dust particle counts. */
     public static double mainGunParticleScale() {
         return TANK_MAIN_GUN_PARTICLE_SCALE.get();
+    }
+
+    /** Field of view multiplier for a ground vehicle's magnifying gun sight. */
+    public static double groundSightFovMultiplier() {
+        return GROUND_SIGHT_FOV.get();
+    }
+
+    /** Length of the rigid tracer streak every shell draws behind it, in blocks. */
+    public static double shellTracerLengthBlocks() {
+        return MAIN_GUN_TRACER_LENGTH.get();
+    }
+
+    /** Scale on the camera shock a 120mm impact gives the viewer. */
+    public static double mainGunImpactShake() {
+        return MAIN_GUN_IMPACT_SHAKE.get();
+    }
+
+    /** How far away a flying 120mm round is still drawn, in blocks. */
+    public static double mainGunShellVisibleDistanceBlocks() {
+        return MAIN_GUN_SHELL_VISIBLE_DISTANCE.get();
+    }
+
+    /** Minimum on-screen thickness of a shell tracer streak, in framebuffer pixels. */
+    public static double shellTracerMinPixelWidth() {
+        return MAIN_GUN_TRACER_MIN_PIXEL_WIDTH.get();
+    }
+
+    /** Minimum on-screen length of a shell tracer streak, in framebuffer pixels. */
+    public static double shellTracerMinPixelLength() {
+        return MAIN_GUN_TRACER_MIN_PIXEL_LENGTH.get();
+    }
+
+    /** How far away a 120mm impact is still reported to a client, in blocks. */
+    public static double mainGunImpactVisibleDistanceBlocks() {
+        return MAIN_GUN_IMPACT_VISIBLE_DISTANCE.get();
+    }
+
+    /** How far away a flying 25mm autocannon round is still drawn, in blocks. */
+    public static double autocannonShellVisibleDistanceBlocks() {
+        return AUTOCANNON_SHELL_VISIBLE_DISTANCE.get();
+    }
+
+    /** How far away a 25mm impact is still reported to a client, in blocks. */
+    public static double autocannonImpactVisibleDistanceBlocks() {
+        return AUTOCANNON_IMPACT_VISIBLE_DISTANCE.get();
     }
 
     /** 120mm cadence in ticks: the minimum time between two rounds that really left the barrel. */
@@ -748,6 +1431,16 @@ public final class LittleBirdConfig {
 
     public static int tankCoaxFireIntervalTicks() {
         return TANK_COAX_FIRE_INTERVAL.get();
+    }
+
+    /** Seat two's cupola machine gun belt capacity. */
+    public static int tankCupolaCapacity() {
+        return TANK_CUPOLA_CAPACITY.get();
+    }
+
+    /** Ticks between seat two's cupola rounds. */
+    public static int tankCupolaFireIntervalTicks() {
+        return TANK_CUPOLA_FIRE_INTERVAL.get();
     }
 
     /** Smoke discharger balance: charges, cooldown and cloud duration (placeholder values). */
@@ -794,5 +1487,158 @@ public final class LittleBirdConfig {
     public static io.github.littlebird.entity.weapon.TwoStageMagazine.Spec ifvAtgmMagazine() {
         return new io.github.littlebird.entity.weapon.TwoStageMagazine.Spec(
                 IFV_ATGM_READY.get(), IFV_ATGM_RESERVE.get(), IFV_ATGM_RELOAD.get(), 0, 1);
+    }
+    /** Handling of the Bradley, from the CLIENT ground section. */
+    public static GroundDrive.Spec bradleyDriveSpec() {
+        return new GroundDrive.Spec(BRADLEY_MAX_SPEED.get(), BRADLEY_ACCELERATION.get(),
+                BRADLEY_BRAKING.get(), BRADLEY_TURN_RATE.get(), BRADLEY_TURN_STANDSTILL.get(),
+                BRADLEY_MAX_GRADE.get());
+    }
+
+    /** Tallest lip the Bradley climbs, in blocks; consumed by GroundMover. */
+    public static double bradleyStepHeightBlocks() {
+        return BRADLEY_STEP_HEIGHT.get();
+    }
+
+    public static float bradleyAutocannonDamage() {
+        return BRADLEY_AUTOCANNON_DAMAGE.get().floatValue();
+    }
+
+    public static float bradleyAutocannonVehicleDamage() {
+        return BRADLEY_AUTOCANNON_VEHICLE_DAMAGE.get().floatValue();
+    }
+
+    /** 25mm rate of fire, in rounds per minute. */
+    public static int bradleyAutocannonRoundsPerMinute() {
+        return BRADLEY_AUTOCANNON_ROUNDS_PER_MINUTE.get();
+    }
+
+    /**
+     * The same rate expressed as ticks between rounds, which is what the turret rules take.
+     *
+     * <p>Deliberately fractional: 180 rounds a minute is one round every six and two thirds ticks,
+     * and the turret carries the remainder between shots, so this is the honest figure rather than
+     * a rounded one that would fire at a rate nobody configured.
+     */
+    public static double bradleyAutocannonFireIntervalTicks() {
+        int roundsPerMinute = Math.max(30, bradleyAutocannonRoundsPerMinute());
+        return 1200.0D / roundsPerMinute;
+    }
+
+    public static double bradleyAutocannonSplashRadius() {
+        return BRADLEY_AUTOCANNON_SPLASH_RADIUS.get();
+    }
+
+    public static boolean bradleyAutocannonBreaksBlocks() {
+        return BRADLEY_AUTOCANNON_BREAKS_BLOCKS.get();
+    }
+
+    public static double bradleyAutocannonShellSpeed() {
+        return BRADLEY_AUTOCANNON_SHELL_SPEED.get();
+    }
+
+    public static int bradleyAutocannonShellLifetimeTicks() {
+        return BRADLEY_AUTOCANNON_SHELL_LIFETIME.get();
+    }
+
+    /** The 25mm ready box over its reserve, loaded with the reload key. */
+    public static io.github.littlebird.entity.weapon.TwoStageMagazine.Spec bradleyAutocannonMagazine() {
+        return new io.github.littlebird.entity.weapon.TwoStageMagazine.Spec(
+                BRADLEY_AUTOCANNON_READY.get(), BRADLEY_AUTOCANNON_RESERVE.get(),
+                BRADLEY_AUTOCANNON_RELOAD.get(), 0, 1);
+    }
+
+    public static float bradleyTowDamage() {
+        return BRADLEY_TOW_DAMAGE.get().floatValue();
+    }
+
+    public static float bradleyTowVehicleDamage() {
+        return BRADLEY_TOW_VEHICLE_DAMAGE.get().floatValue();
+    }
+
+    public static double bradleyTowSplashRadius() {
+        return BRADLEY_TOW_SPLASH_RADIUS.get();
+    }
+
+    public static int bradleyTowFireIntervalTicks() {
+        return BRADLEY_TOW_FIRE_INTERVAL.get();
+    }
+
+    public static double bradleyTowLauncherLateralBlocks() {
+        return BRADLEY_TOW_LAUNCHER_LATERAL.get();
+    }
+
+    /** The TOW rail and its reserve, loaded with the reload key. */
+    public static io.github.littlebird.entity.weapon.TwoStageMagazine.Spec bradleyTowMagazine() {
+        return new io.github.littlebird.entity.weapon.TwoStageMagazine.Spec(
+                BRADLEY_TOW_READY.get(), BRADLEY_TOW_RESERVE.get(), BRADLEY_TOW_RELOAD.get(), 0, 1);
+    }
+
+    public static float bradleyM2Damage() {
+        return BRADLEY_M2_DAMAGE.get().floatValue();
+    }
+
+    public static float bradleyM2VehicleDamage() {
+        return BRADLEY_M2_VEHICLE_DAMAGE.get().floatValue();
+    }
+
+    public static int bradleyM2Capacity() {
+        return BRADLEY_M2_CAPACITY.get();
+    }
+
+    public static int bradleyM2FireIntervalTicks() {
+        return BRADLEY_M2_FIRE_INTERVAL.get();
+    }
+
+    public static double bradleyM2SpreadDegrees() {
+        return BRADLEY_M2_SPREAD.get();
+    }
+
+    /** The wall the discharger lays: layout, clocks and salvos. */
+    public static io.github.littlebird.entity.weapon.SmokeWall.Spec bradleySmokeWall() {
+        return new io.github.littlebird.entity.weapon.SmokeWall.Spec(
+                BRADLEY_SMOKE_CANISTERS.get(), BRADLEY_SMOKE_SPACING.get(),
+                BRADLEY_SMOKE_AHEAD.get(), BRADLEY_SMOKE_COOLDOWN.get(),
+                BRADLEY_SMOKE_DURATION.get(), BRADLEY_SMOKE_CHARGES.get());
+    }
+
+    /** Heavy-armour column of the shared 70mm rocket. */
+    public static float rocketHeavyDamage() {
+        return ROCKET_HEAVY_DAMAGE.get().floatValue();
+    }
+
+    /** Heavy-armour column of the Apache's 30mm. */
+    public static float apacheGunHeavyDamage() {
+        return APACHE_GUN_HEAVY_DAMAGE.get().floatValue();
+    }
+
+    /** Heavy-armour column of the TOW. */
+    public static float apacheMissileHeavyDamage() {
+        return APACHE_MISSILE_HEAVY_DAMAGE.get().floatValue();
+    }
+
+    /** Heavy-armour column of the 120mm, priced per shell type. */
+    public static float tankMainGunHeavyDamage(
+            io.github.littlebird.entity.weapon.MainGunAmmoType type) {
+        return switch (type) {
+            case HE -> TANK_MAIN_GUN_HE_HEAVY_DAMAGE.get().floatValue();
+            default -> TANK_MAIN_GUN_HEAVY_DAMAGE.get().floatValue();
+        };
+    }
+
+    public static float ifvAutocannonHeavyDamage() {
+        return IFV_AUTOCANNON_HEAVY_DAMAGE.get().floatValue();
+    }
+
+    public static float ifvAtgmHeavyDamage() {
+        return IFV_ATGM_HEAVY_DAMAGE.get().floatValue();
+    }
+
+    public static float bradleyAutocannonHeavyDamage() {
+        return BRADLEY_AUTOCANNON_HEAVY_DAMAGE.get().floatValue();
+    }
+
+    public static float bradleyTowHeavyDamage() {
+        return BRADLEY_TOW_HEAVY_DAMAGE.get().floatValue();
     }
 }

@@ -23,6 +23,10 @@ public class ModItemModelProvider extends ItemModelProvider {
         basicItem(ModItems.TARGETING_COMPUTER.get());
         basicItem(ModItems.APACHE_AIRFRAME.get());
         basicItem(ModItems.APACHE_WEAPONS.get());
+        basicItem(ModItems.F35_AIRFRAME.get());
+        basicItem(ModItems.F35_WEAPONS.get());
+        basicItem(ModItems.SU57_AIRFRAME.get());
+        basicItem(ModItems.SU57_WEAPONS.get());
         basicItem(ModItems.ARMOR_PLATE.get());
         basicItem(ModItems.TRACK_ASSEMBLY.get());
         basicItem(ModItems.WHEEL_ASSEMBLY.get());

@@ -2,6 +2,7 @@ package io.github.littlebird.entity;
 
 import io.github.littlebird.LittleBirdConfig;
 import io.github.littlebird.entity.ground.GroundWeapons;
+import io.github.littlebird.entity.ground.MainGunImpactFx;
 import io.github.littlebird.entity.weapon.LittleBirdBallistics;
 import io.github.littlebird.entity.weapon.LittleBirdBallistics.Vector3;
 import io.github.littlebird.entity.weapon.MainGunAmmoType;
@@ -13,6 +14,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -32,21 +34,20 @@ import net.minecraftforge.network.NetworkHooks;
  *
  * <p>Server authoritative, like the 70mm rocket: it is spawned, stepped and detonated on the
  * server, and ordinary entity tracking carries its position out to the clients. The round itself is
- * not drawn as a model - the fireball is, so the muzzle flash reads as a shell leaving the barrel
- * rather than as a bullet streak. On impact it damages what it hit, throws dust and, when the
- * server allows it, breaks the blocks it lands on.
+ * drawn client side as a dart with its own rigid tracer streak (see the client renderer); the
+ * server owns the round's thin wake, the hard impact package at the point it lands and the damage
+ * it deals. The muzzle flash is deliberately not centred on this entity, so a round leaving the
+ * barrel reads as a shell rather than as a bullet streak. On impact it damages what it hit and, when
+ * the server allows it, breaks the blocks it lands on.
  */
 public class MainGunShellEntity extends Entity {
-    /** The impact boom is deeper than a rocket's. */
-    private static final float IMPACT_VOLUME = 1.6F;
-    private static final float IMPACT_PITCH = 0.7F;
-
     private Vec3 velocity = Vec3.ZERO;
     private Vec3 heading = new Vec3(0.0D, 0.0D, 1.0D);
     private UUID ownerUuid;
     private MainGunAmmoType shellType = MainGunAmmoType.AP;
     private float directDamage;
     private float armoredDamage;
+    private float heavyDamage;
     private double splashRadius = 3.0D;
 
     public MainGunShellEntity(EntityType<? extends MainGunShellEntity> type, Level level) {
@@ -67,10 +68,12 @@ public class MainGunShellEntity extends Entity {
     }
 
     /** Prices this round: the shell type only chooses which config pair was read. */
-    public void configure(MainGunAmmoType type, float direct, float armored, double splash) {
+    public void configure(MainGunAmmoType type, float direct, float armored, float heavy,
+                          double splash) {
         this.shellType = type == null ? MainGunAmmoType.AP : type;
         this.directDamage = direct;
         this.armoredDamage = armored;
+        this.heavyDamage = heavy;
         this.splashRadius = splash;
     }
 
@@ -113,20 +116,20 @@ public class MainGunShellEntity extends Entity {
                                 <= start.distanceToSqr(directHit.getLocation()));
         if (blockIsNearer) {
             setPos(blockHit.getLocation());
-            detonate(null);
+            detonate(null, Vec3.atLowerCornerOf(blockHit.getDirection().getNormal()));
             return;
         }
         if (directHit != null) {
             setPos(directHit.getLocation());
-            detonate(directHit.getEntity());
+            detonate(directHit.getEntity(), null);
             return;
         }
         move(MoverType.SELF, velocity);
         if (horizontalCollision || verticalCollision || onGround()) {
-            detonate(null);
+            detonate(null, collisionNormal());
             return;
         }
-        spawnFireball();
+        spawnTracerFume();
         if (tickCount % 3 == 0 && level() instanceof ServerLevel server) {
             // The passing crack: pitched up so it reads as a shell rather than a launch.
             server.playSound(null, getX(), getY(), getZ(), ModSounds.ROCKET_LAUNCH.get(),
@@ -154,15 +157,22 @@ public class MainGunShellEntity extends Entity {
         return server.getPlayerByUUID(ownerUuid);
     }
 
-    /** The moving fireball: flame core plus a smoke sleeve. */
-    private void spawnFireball() {
-        if (level() instanceof ServerLevel server) {
-            double scale = LittleBirdConfig.mainGunParticleScale();
-            server.sendParticles(ParticleTypes.FLAME, getX(), getY(), getZ(),
-                    count(4, scale), 0.08D, 0.08D, 0.08D, 0.01D);
-            server.sendParticles(ParticleTypes.SMOKE, getX(), getY(), getZ(),
-                    count(3, scale), 0.12D, 0.12D, 0.12D, 0.01D);
+    /**
+     * The round's own wake: a thin, tight thread of fume instead of a fireball.
+     *
+     * <p>A flame blob travelling with the shell reads as a slow rocket, which is exactly what a
+     * 120mm dart must not look like. The wake is emitted every other tick with almost no spread and
+     * no drift, so it stays behind the round as a straight scratch in the air, and the bright
+     * streak that carries the eye is drawn client side by the shell renderer - that way the read
+     * does not depend on the server tick rate or on a packet arriving.
+     */
+    private void spawnTracerFume() {
+        if (!(level() instanceof ServerLevel server) || tickCount % 2 != 0) {
+            return;
         }
+        double scale = LittleBirdConfig.mainGunParticleScale();
+        server.sendParticles(ParticleTypes.SMOKE, getX(), getY(), getZ(),
+                count(2, scale), 0.02D, 0.02D, 0.02D, 0.0D);
     }
 
     /**
@@ -178,38 +188,83 @@ public class MainGunShellEntity extends Entity {
                 count(10, scale), 0.4D, 0.4D, 0.4D, 0.01D);
     }
 
-    /** Direct hit, dust, terrain damage when the server allows it, and the boom. */
-    private void detonate(Entity directHit) {
+    /**
+     * Direct hit, then the hard impact package and the damage. Damage is resolved here so it is
+     * applied exactly once, whichever of the three ways the round ended; everything the player can
+     * see and hear is handed to {@link MainGunImpactFx}, which also carries the camera shock to
+     * nearby clients.
+     *
+     * @param directHit the entity that was hit, or null for a block or a swept collision
+     * @param normal    surface normal at the impact, or null for a hit with no face (an entity, or
+     *                  a collision the sweep reported without a face)
+     */
+    private void detonate(Entity directHit, Vec3 normal) {
         if (level() instanceof ServerLevel server) {
             Entity owner = owner();
             if (directHit != null && directHit != owner) {
-                boolean armored = GroundWeapons.isArmored(directHit);
-                float damage = LittleBirdBallistics.damageTo(armored, directDamage, armoredDamage);
+                float damage = LittleBirdBallistics.damageTo(io.github.littlebird.entity.weapon.DamageType.SHELL,
+                        io.github.littlebird.entity.AirframeTargets.armorClass(directHit),
+                        new LittleBirdBallistics.WeaponDamage(
+                                directDamage, armoredDamage, heavyDamage));
                 if (damage > 0.0F) {
                     // Credited to the gunner's player, the same way the rocket credits its pilot.
-                    directHit.hurt(server.damageSources().explosion(this, owner), damage);
+                    boolean applied = directHit.hurt(
+                            server.damageSources().explosion(this, owner), damage);
+                    if (applied && owner instanceof ServerPlayer serverPlayer) {
+                        // The shell used to skip this, so a hit moved the target's bar and told
+                        // the gunner nothing at all.
+                        HitFeedback.report(serverPlayer, directHit);
+                    }
                 }
             }
-            double scale = LittleBirdConfig.mainGunParticleScale();
-            server.sendParticles(ParticleTypes.EXPLOSION_EMITTER, getX(), getY(), getZ(), 1,
-                    0.0D, 0.0D, 0.0D, 0.0D);
-            server.sendParticles(ParticleTypes.EXPLOSION, getX(), getY(), getZ(),
-                    count(6, scale), 0.6D, 0.6D, 0.6D, 0.02D);
-            server.sendParticles(ParticleTypes.LARGE_SMOKE, getX(), getY(), getZ(),
-                    count(24, scale), 1.4D, 0.7D, 1.4D, 0.03D);
-            // Entity damage always applies; terrain damage is opt-in, exactly like the rocket.
-            Level.ExplosionInteraction interaction = LittleBirdConfig.mainGunBreaksBlocks()
-                    ? Level.ExplosionInteraction.TNT
-                    : Level.ExplosionInteraction.NONE;
-            server.explode(this, getX(), getY(), getZ(), (float) splashRadius, false, interaction);
-            server.playSound(null, getX(), getY(), getZ(), ModSounds.EXPLOSION.get(),
-                    SoundSource.PLAYERS, IMPACT_VOLUME, IMPACT_PITCH);
+            // Shrapnel along the face that was hit, a dust column, the shock ring lying in the
+            // impact plane, the crater and the layered report: one package, so a 120mm hit cannot
+            // read as a firecracker. Entity damage always applies; terrain damage stays opt-in,
+            // exactly like the rocket.
+            MainGunImpactFx.detonate(server, this, position(), normal,
+                    LittleBirdConfig.mainGunParticleScale(), splashRadius,
+                    LittleBirdConfig.mainGunBreaksBlocks());
         }
         discard();
     }
 
+    /**
+     * The face a swept collision ran into, for the impact package. Minecraft reports the collision
+     * as a flag, not as a plane, so it is rebuilt from the motion: a floor hit throws its ejecta
+     * straight up, a wall hit throws it back along the wall's own outward normal.
+     */
+    private Vec3 collisionNormal() {
+        if (onGround() || verticalCollision) {
+            return new Vec3(0.0D, 1.0D, 0.0D);
+        }
+        Vec3 flat = new Vec3(-velocity.x, 0.0D, -velocity.z);
+        return flat.lengthSqr() < 1.0E-6D ? null : flat.normalize();
+    }
+
     private static int count(int base, double scale) {
         return Math.max(1, (int) Math.round(base * scale));
+    }
+
+    /**
+     * Keeps the round drawn far past vanilla's own cull.
+     *
+     * <p>{@code Entity.shouldRenderAtSqrDistance} scales its limit by the entity's own bounding box -
+     * 64 times the box's largest side - and this round is deliberately a 0.3 block dart, so the
+     * vanilla rule stops drawing it about nineteen blocks out. That is exactly the distance at which
+     * a tank crew wants to watch its tracer cross a valley, so the limit comes from the client config
+     * instead and the world's render distance becomes the honest upper bound: nothing in an unloaded
+     * chunk can be drawn at all, however far this allows.
+     *
+     * <p>Only the render dispatcher asks this, so reading a client config value here is safe on a
+     * dedicated server, which never calls it.
+     */
+    @Override
+    public boolean shouldRenderAtSqrDistance(double distance) {
+        double limit = LittleBirdConfig.mainGunShellVisibleDistanceBlocks();
+        if (!Double.isFinite(limit) || limit <= 0.0D) {
+            return super.shouldRenderAtSqrDistance(distance);
+        }
+        return distance < limit * limit;
     }
 
     @Override

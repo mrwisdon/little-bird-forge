@@ -57,6 +57,8 @@ class MainGunAmmoTest {
         ammo.fire();
         assertEquals(MainGunAmmoType.HE, ammo.cycleType());
         assertEquals(5, ammo.ready(), "the fresh type has its own full rack");
+        assertEquals(MainGunAmmoType.CANISTER, ammo.cycleType());
+        assertEquals(5, ammo.ready(), "the canister rack is full too");
         assertEquals(MainGunAmmoType.AP, ammo.cycleType(), "carousel wraps");
     }
 

@@ -62,11 +62,21 @@ public final class ModNetwork {
                 .decoder(LittleBirdCrashPacket::decode)
                 .consumerMainThread(LittleBirdCrashPacket::handle)
                 .add();
+        CHANNEL.messageBuilder(JetControlPacket.class, 11, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(JetControlPacket::encode)
+                .decoder(JetControlPacket::decode)
+                .consumerMainThread(JetControlPacket::handle)
+                .add();
         CHANNEL.messageBuilder(GroundWeaponInputPacket.class, 10,
                         NetworkDirection.PLAY_TO_SERVER)
                 .encoder(GroundWeaponInputPacket::encode)
                 .decoder(GroundWeaponInputPacket::decode)
                 .consumerMainThread(GroundWeaponInputPacket::handle)
+                .add();
+        CHANNEL.messageBuilder(JetFlarePacket.class, 12, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(JetFlarePacket::encode)
+                .decoder(JetFlarePacket::decode)
+                .consumerMainThread(JetFlarePacket::handle)
                 .add();
         CHANNEL.messageBuilder(LittleBirdTracerPacket.class, 5, NetworkDirection.PLAY_TO_CLIENT)
                 .encoder(LittleBirdTracerPacket::encode)
@@ -79,6 +89,38 @@ public final class ModNetwork {
                 .decoder(LittleBirdHitFeedbackPacket::decode)
                 .consumerMainThread(LittleBirdHitFeedbackPacket::handle)
                 .add();
+        CHANNEL.messageBuilder(MainGunImpactPacket.class, 13, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(MainGunImpactPacket::encode)
+                .decoder(MainGunImpactPacket::decode)
+                .consumerMainThread(MainGunImpactPacket::handle)
+                .add();
+        CHANNEL.messageBuilder(B2BombReleasePacket.class, 14, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(B2BombReleasePacket::encode)
+                .decoder(B2BombReleasePacket::decode)
+                .consumerMainThread(B2BombReleasePacket::handle)
+                .add();
+        CHANNEL.messageBuilder(B2PodDesignatePacket.class, 15, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(B2PodDesignatePacket::encode)
+                .decoder(B2PodDesignatePacket::decode)
+                .consumerMainThread(B2PodDesignatePacket::handle)
+                .add();
+        CHANNEL.messageBuilder(B2WeaponSelectPacket.class, 16, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(B2WeaponSelectPacket::encode)
+                .decoder(B2WeaponSelectPacket::decode)
+                .consumerMainThread(B2WeaponSelectPacket::handle)
+                .add();
+
+        CHANNEL.messageBuilder(B2BombSpawnPacket.class, 17, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(B2BombSpawnPacket::encode)
+                .decoder(B2BombSpawnPacket::decode)
+                .consumerMainThread(B2BombSpawnPacket::handle)
+                .add();
+
+        CHANNEL.messageBuilder(B2BombKillPacket.class, 18, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(B2BombKillPacket::encode)
+                .decoder(B2BombKillPacket::decode)
+                .consumerMainThread(B2BombKillPacket::handle)
+                .add();
     }
 
     /** Bullet traces go to everyone tracking the aircraft, shooter included. */
@@ -88,13 +130,13 @@ public final class ModNetwork {
     }
 
     /**
-     * Hit marker feedback for the pilot who is shooting, carrying the target's remaining
-     * health so an airframe hit can also refresh the target readout.
+     * Hit marker feedback for the shooter, carrying the target's remaining health so a hull hit
+     * can also refresh the target readout.
      */
     public static void sendHitFeedback(
-            net.minecraft.server.level.ServerPlayer player, boolean kill, boolean aircraft,
+            net.minecraft.server.level.ServerPlayer player, boolean kill, boolean vehicle,
             float healthFraction) {
         CHANNEL.send(net.minecraftforge.network.PacketDistributor.PLAYER.with(() -> player),
-                new LittleBirdHitFeedbackPacket(kill, aircraft, healthFraction));
+                new LittleBirdHitFeedbackPacket(kill, vehicle, healthFraction));
     }
 }

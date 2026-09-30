@@ -26,6 +26,9 @@ public record LittleBirdImpactPacket(float speed) {
         } else if (player != null
                 && player.getVehicle() instanceof io.github.littlebird.entity.ApacheEntity apache) {
             apache.applyImpact(player, packet.speed());
+        } else if (player != null
+                && player.getVehicle() instanceof io.github.littlebird.entity.JetEntity jet) {
+            jet.applyImpact(player, packet.speed());
         }
         context.setPacketHandled(true);
     }

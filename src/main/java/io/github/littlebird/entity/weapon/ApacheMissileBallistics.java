@@ -110,6 +110,25 @@ public final class ApacheMissileBallistics {
      * follows the spin-up ramp, and a small drop is applied for the guidance to correct.
      */
     public static Vector3 guide(Vector3 velocity, Vector3 sightLine, int ageTicks) {
+        return guide(velocity, sightLine, ageTicks, MAX_TURN_DEGREES_PER_TICK);
+    }
+
+    /**
+     * Same, with the turn rate owned by the caller. 7 degrees a tick is the pack's default; the
+     * TOW guidance config raises it, because how sharply a swing of the sight whips the round is
+     * the whole feel of a command line-of-sight weapon.
+     */
+    public static Vector3 guide(Vector3 velocity, Vector3 sightLine, int ageTicks,
+                                double maxTurnDegreesPerTick) {
+        return guide(velocity, sightLine, ageTicks, maxTurnDegreesPerTick, 0);
+    }
+
+    /**
+     * Same, with a launch phase. The round leaves the tube straight and only then starts steering,
+     * so a shot does not visibly whip sideways off the rail.
+     */
+    public static Vector3 guide(Vector3 velocity, Vector3 sightLine, int ageTicks,
+                                double maxTurnDegreesPerTick, int launchTicks) {
         double length = velocity.length();
         if (length < 1.0E-9D) {
             return launchVelocity(sightLine);
@@ -120,12 +139,16 @@ public final class ApacheMissileBallistics {
         }
 
         Vector3 heading = velocity.scale(1.0D / length);
+        if (ageTicks <= Math.max(0, launchTicks)) {
+            // Launch phase: no steering and no drop, just the swim out of the tube.
+            return heading.scale(speedAt(ageTicks));
+        }
         Vector3 perturbed = heading.add(new Vector3(0.0D, -GRAVITY, 0.0D));
         if (perturbed.length() < 1.0E-9D) {
             perturbed = heading;
         }
         Vector3 steered = turnTowards(perturbed.normalize(), sightLine.scale(1.0D / sightLength),
-                MAX_TURN_DEGREES_PER_TICK);
+                finitePositive(maxTurnDegreesPerTick, MAX_TURN_DEGREES_PER_TICK));
         return steered.scale(speedAt(ageTicks));
     }
 

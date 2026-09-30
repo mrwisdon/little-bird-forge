@@ -1,0 +1,35 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "battlefield:f35_weapons"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_weapon_pylon": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "battlefield:weapon_pylon"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_weapon_pylon",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "battlefield:f35_weapons"
+    ]
+  },
+  "sends_telemetry_event": false
+}

@@ -34,8 +34,8 @@ public class LittleBirdRocketEntity extends Entity {
     public static final int LIFETIME_TICKS = LittleBirdRocketBallistics.LIFETIME_TICKS;
     public static final float EXPLOSION_RADIUS = 3.0F;
 
-    private Vec3 velocity = Vec3.ZERO;
-    private Vec3 heading = new Vec3(0.0D, 0.0D, 1.0D);
+    protected Vec3 velocity = Vec3.ZERO;
+    protected Vec3 heading = new Vec3(0.0D, 0.0D, 1.0D);
     private UUID ownerUuid;
     /**
      * Multiplier on both damage prices. The Little Bird's pods carry 14 rounds, the Apache's 38,
@@ -78,7 +78,7 @@ public class LittleBirdRocketEntity extends Entity {
             return;
         }
         Vec3 start = position();
-        velocity = vec(LittleBirdRocketBallistics.advance(vector(velocity), vector(heading)));
+        velocity = steer(start);
         setDeltaMovement(velocity);
         Vec3 end = start.add(velocity);
 
@@ -113,6 +113,14 @@ public class LittleBirdRocketEntity extends Entity {
         }
     }
 
+    /**
+     * The velocity this tick's flight uses. The unguided 70mm follows its own drag model; a guided
+     * subclass overrides this to steer while keeping the same hit, trail and blast plumbing.
+     */
+    protected Vec3 steer(Vec3 start) {
+        return vec(LittleBirdRocketBallistics.advance(vector(velocity), vector(heading)));
+    }
+
     /** Nearest living entity along this tick's flight segment. */
     private EntityHitResult findEntityHit(Vec3 start, Vec3 end) {
         Entity owner = owner();
@@ -140,20 +148,22 @@ public class LittleBirdRocketEntity extends Entity {
     }
 
     /** Direct hit damage plus the warhead, credited to the pilot who fired it. */
-    private void explode(Entity directHit) {
+    protected void explode(Entity directHit) {
         if (level() instanceof ServerLevel server) {
             Entity owner = owner();
             if (directHit != null) {
                 // The direct hit is credited to the pilot rather than to this rocket, which is
                 // also how an airframe tells a real hit from this warhead's own blast.
                 LittleBirdBallistics.Airframe airframe = AirframeTargets.classify(directHit);
-                float damage = rocketDamageTo(airframe);
+                // Rockets are an anti-personnel round: against a tracked or wheeled hull they only
+            // scratch, and the launcher's damage scale does not change that.
+            float damage = io.github.littlebird.entity.AirframeTargets.armorClass(directHit)
+                    == io.github.littlebird.entity.weapon.ArmorClass.HEAVY_ARMOR
+                            ? LittleBirdConfig.rocketHeavyDamage() : rocketDamageTo(airframe);
                 boolean applied = directHit.hurt(
                         server.damageSources().explosion(owner, owner), damage);
                 if (applied && owner instanceof ServerPlayer serverPlayer) {
-                    ModNetwork.sendHitFeedback(serverPlayer, !directHit.isAlive(),
-                            airframe != LittleBirdBallistics.Airframe.NONE,
-                            LittleBirdEntity.healthFractionOf(directHit));
+                    HitFeedback.report(serverPlayer, directHit);
                 }
             }
             // Entity damage always applies; terrain damage is opt-in through config.
@@ -173,12 +183,12 @@ public class LittleBirdRocketEntity extends Entity {
      * fired the rocket - the Apache's own pods carry a per launcher scale, and that price must
      * not change what a hit on a hull is worth - while a Little Bird keeps the scaled price.
      */
-    private float rocketDamageTo(LittleBirdBallistics.Airframe airframe) {
+    protected float rocketDamageTo(LittleBirdBallistics.Airframe airframe) {
         if (airframe == LittleBirdBallistics.Airframe.APACHE) {
             return LittleBirdConfig.rocketDamageApache();
         }
         return LittleBirdBallistics.damageTo(
-                airframe == LittleBirdBallistics.Airframe.LITTLE_BIRD,
+                airframe != LittleBirdBallistics.Airframe.NONE,
                 LittleBirdConfig.rocketDirectHitDamage() * damageScale,
                 LittleBirdConfig.rocketDamageAircraft() * damageScale);
     }

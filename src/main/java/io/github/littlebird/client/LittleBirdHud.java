@@ -103,13 +103,27 @@ public final class LittleBirdHud implements IGuiOverlay {
 
         int barWidth = panelWidth - 8;
         graphics.fill(x + 4, y + 16, x + 4 + barWidth, y + 20, 0x60000000);
-        int heat = helicopter.getGunHeat();
-        double heatFraction = heat / (double) LittleBirdGunCycle.MAX_HEAT;
-        int heatColour = heatFraction >= 0.9D ? DANGER
-                : heatFraction >= 0.6D ? WARNING : NOMINAL;
-        int filled = (int) Math.round(barWidth * Math.min(1.0D, heatFraction));
+        int filled;
+        int barColour;
+        if (gunSelected) {
+            double heatFraction = helicopter.getGunHeat() / (double) LittleBirdGunCycle.MAX_HEAT;
+            barColour = heatFraction >= 0.9D ? DANGER
+                    : heatFraction >= 0.6D ? WARNING : NOMINAL;
+            filled = (int) Math.round(barWidth * Math.min(1.0D, heatFraction));
+        } else if (helicopter.getRocketReloadTicks() > 0) {
+            // The rocket line turns into the reload cooldown while the reserve is moving up.
+            barColour = YELLOW;
+            filled = (int) Math.round(barWidth * helicopter.getRocketReloadFraction());
+            graphics.drawString(font, Component.translatable("hud.battlefield.reloading"),
+                    x + 4 + font.width(name) + 6, y + 4, YELLOW, false);
+        } else {
+            double readyFraction = helicopter.getRocketsRemaining()
+                    / (double) io.github.littlebird.entity.weapon.RocketPodState.READY_CAPACITY;
+            barColour = NOMINAL;
+            filled = (int) Math.round(barWidth * Math.min(1.0D, Math.max(0.0D, readyFraction)));
+        }
         if (filled > 0) {
-            graphics.fill(x + 4, y + 16, x + 4 + filled, y + 20, heatColour);
+            graphics.fill(x + 4, y + 16, x + 4 + filled, y + 20, barColour);
         }
 
         int slotY = y + 26;

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "P": {
+      "item": "battlefield:weapon_pylon"
+    },
+    "T": {
+      "item": "battlefield:targeting_computer"
+    }
+  },
+  "pattern": [
+    "PTP"
+  ],
+  "result": {
+    "item": "battlefield:su57_weapons"
+  },
+  "show_notification": true
+}

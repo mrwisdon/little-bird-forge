@@ -5,7 +5,8 @@
   "refmap": "battlefield.refmap.json",
   "mixins": [],
   "client": [
-    "CameraDistanceMixin"
+    "CameraDistanceMixin",
+    "B2PodCameraMixin"
   ],
   "injectors": {
     "defaultRequire": 0

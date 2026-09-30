@@ -40,6 +40,11 @@ import net.minecraftforge.network.NetworkHooks;
 public class ApacheMissileEntity extends Entity {
     private Vec3 velocity = Vec3.ZERO;
     private UUID ownerUuid;
+    /** Warhead overrides; negative means "use the shared TOW figures from the config". */
+    private float warheadDamage = -1.0F;
+    private float warheadAirframeDamage = -1.0F;
+    private double warheadSplashRadius = -1.0D;
+    private float warheadHeavyDamage = -1.0F;
     private int ageTicks;
     /**
      * How far along the sight line the aim point sits. Fixed at launch: the first block the
@@ -79,6 +84,17 @@ public class ApacheMissileEntity extends Entity {
         return ApacheMissileBallistics.SIGHT_RANGE_BLOCKS;
     }
 
+    /**
+     * Prices this round for the hull that fired it, so a Bradley TOW and an Apache TOW can carry
+     * different warheads instead of silently sharing one number.
+     */
+    public void configureWarhead(float direct, float airframe, float heavy, double splash) {
+        this.warheadDamage = direct;
+        this.warheadAirframeDamage = airframe;
+        this.warheadHeavyDamage = heavy;
+        this.warheadSplashRadius = splash;
+    }
+
     /** Points and launches the missile down the given unit direction. */
     public void launch(Vec3 sightLine, Entity owner) {
         launch(sightLine, owner, ApacheMissileBallistics.SIGHT_RANGE_BLOCKS);
@@ -105,7 +121,9 @@ public class ApacheMissileEntity extends Entity {
         Vec3 sight = sightLine();
         Vec3 aimPoint = aimPoint(sight);
         velocity = vec(ApacheMissileBallistics.guide(
-                vector(velocity), vector(sight), ageTicks));
+                vector(velocity), vector(steerDirection(sight, aimPoint)), ageTicks,
+                LittleBirdConfig.towTurnRateDegreesPerTick(),
+                LittleBirdConfig.towLaunchTicks()));
         setDeltaMovement(velocity);
         Vec3 start = position();
         Vec3 end = start.add(velocity);
@@ -149,12 +167,36 @@ public class ApacheMissileEntity extends Entity {
         }
     }
 
-    /** The operator's sight line, or straight ahead with nobody left to guide it. */
-    private Vec3 sightLine() {
+    /**
+     * The direction the round is steered along: straight at the aim point, not merely parallel to
+     * the sight line. Steering at the point is what makes the crosshair drag the missile onto the
+     * spot it is holding - a beam ride only lines the round up and then flies it past. Falls back
+     * to the sight line when the aim point sits on top of the round.
+     */
+    private Vec3 steerDirection(Vec3 sight, Vec3 aimPoint) {
+        Vec3 toAim = aimPoint.subtract(position());
+        return toAim.lengthSqr() < 1.0E-6D ? sight : toAim.normalize();
+    }
+
+    /**
+     * The hull still guiding this round, or null once the crew is gone. Any hull implementing
+     * MissileSight can steer a TOW - the missile must never name a vehicle type again, because
+     * that is exactly what left the Bradley's TOW flying dead straight.
+     */
+    private MissileSight guidingHull() {
         Entity owner = owner();
         Entity vehicle = owner == null ? null : owner.getVehicle();
-        if (vehicle instanceof ApacheEntity apache) {
-            return Vec3.directionFromRotation(apache.getXRot(), apache.getYRot());
+        return vehicle instanceof MissileSight sight ? sight : null;
+    }
+
+    /** The operator's sight line, or straight ahead with nobody left to guide it. */
+    private Vec3 sightLine() {
+        MissileSight hull = guidingHull();
+        if (hull != null) {
+            Vec3 direction = hull.missileSightDirection();
+            if (direction != null && direction.lengthSqr() > 1.0E-12D) {
+                return direction.normalize();
+            }
         }
         return velocity.length() < 1.0E-9D
                 ? new Vec3(0.0D, 0.0D, 1.0D) : velocity.normalize();
@@ -168,12 +210,19 @@ public class ApacheMissileEntity extends Entity {
      * moves because the operator moved the sight.
      */
     private Vec3 aimPoint(Vec3 sight) {
-        Vec3 eye = seekPoint();
-        Vec3 end = eye.add(sight.scale(sightDistance));
+        Vec3 origin = seekPoint();
+        // A guided round re-measures every tick: aiming at a near wall pulls the fuse in, sweeping
+        // up to open sky pushes it out to the sight range. Only an unguided round keeps the depth
+        // it was launched with. Re-raycasting is safe because the origin is the launcher, not the
+        // missile - it cannot walk in as the missile sinks.
+        double range = guidingHull() != null
+                ? LittleBirdConfig.towSightRangeBlocks() : sightDistance;
+        Vec3 end = origin.add(sight.scale(range));
         BlockHitResult hit = level().clip(new ClipContext(
-                eye, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
+                origin, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
         if (hit.getType() != HitResult.Type.MISS
-                && eye.distanceToSqr(hit.getLocation()) <= sightDistance * sightDistance) {
+                && origin.distanceToSqr(hit.getLocation()) <= range * range
+                && origin.distanceTo(hit.getLocation()) > 0.5D) {
             return hit.getLocation();
         }
         return end;
@@ -181,9 +230,8 @@ public class ApacheMissileEntity extends Entity {
 
     /** The operator's eye while they are aboard; the missile itself once they are not. */
     private Vec3 seekPoint() {
-        Entity owner = owner();
-        Entity vehicle = owner == null ? null : owner.getVehicle();
-        return vehicle instanceof ApacheEntity ? owner.getEyePosition() : position();
+        MissileSight hull = guidingHull();
+        return hull != null ? hull.missileSightOrigin() : position();
     }
 
     /** Nearest entity along this tick's flight segment, ignoring the crew that fired it. */
@@ -266,14 +314,13 @@ public class ApacheMissileEntity extends Entity {
                 boolean applied = directHit.hurt(
                         server.damageSources().explosion(owner, owner), damage);
                 if (applied && owner instanceof ServerPlayer serverPlayer) {
-                    ModNetwork.sendHitFeedback(serverPlayer, !directHit.isAlive(),
-                            airframe != LittleBirdBallistics.Airframe.NONE,
-                            LittleBirdEntity.healthFractionOf(directHit));
+                    HitFeedback.report(serverPlayer, directHit);
                 }
             }
             server.explode(this, getX(), getY(), getZ(),
-                    LittleBirdConfig.apacheMissileSplashRadius(), false,
-                    Level.ExplosionInteraction.NONE);
+                    (float) (warheadSplashRadius >= 0.0D
+                            ? warheadSplashRadius : LittleBirdConfig.apacheMissileSplashRadius()),
+                    false, Level.ExplosionInteraction.NONE);
             server.playSound(null, getX(), getY(), getZ(),
                     io.github.littlebird.registry.ModSounds.EXPLOSION.get(),
                     net.minecraft.sounds.SoundSource.PLAYERS, 1.2F, 1.0F);
@@ -287,14 +334,20 @@ public class ApacheMissileEntity extends Entity {
      * everything else takes the ordinary warhead.
      */
     private float damageFor(Entity target, LittleBirdBallistics.Airframe airframe) {
-        if (airframe != LittleBirdBallistics.Airframe.NONE
+        if ((airframe == LittleBirdBallistics.Airframe.LITTLE_BIRD
+                || airframe == LittleBirdBallistics.Airframe.APACHE)
                 && LittleBirdConfig.apacheMissileDirectHitKills()) {
             return ApacheMissileBallistics.directHitDamage(healthOf(target));
         }
-        return LittleBirdBallistics.damageTo(
-                airframe != LittleBirdBallistics.Airframe.NONE,
-                LittleBirdConfig.apacheMissileDamage(),
-                LittleBirdConfig.apacheMissileAirframeDamage());
+        return LittleBirdBallistics.damageTo(io.github.littlebird.entity.weapon.DamageType.SHELL,
+                io.github.littlebird.entity.AirframeTargets.armorClass(target),
+                new LittleBirdBallistics.WeaponDamage(
+                        warheadDamage >= 0.0F ? warheadDamage : LittleBirdConfig.apacheMissileDamage(),
+                        warheadAirframeDamage >= 0.0F
+                                ? warheadAirframeDamage
+                                : LittleBirdConfig.apacheMissileAirframeDamage(),
+                        warheadHeavyDamage >= 0.0F
+                                ? warheadHeavyDamage : LittleBirdConfig.apacheMissileHeavyDamage()));
     }
 
     /** Remaining airframe health, so the killing blow clears it on any aircraft. */

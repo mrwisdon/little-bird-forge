@@ -28,6 +28,9 @@ public record LittleBirdCrashPacket() {
         } else if (player != null
                 && player.getVehicle() instanceof io.github.littlebird.entity.ApacheEntity apache) {
             apache.applyCrash(player);
+        } else if (player != null
+                && player.getVehicle() instanceof io.github.littlebird.entity.JetEntity jet) {
+            jet.applyCrash(player);
         }
         context.setPacketHandled(true);
     }

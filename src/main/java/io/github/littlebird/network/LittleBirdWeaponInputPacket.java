@@ -33,6 +33,10 @@ public record LittleBirdWeaponInputPacket(int weapon, boolean salvoMode, boolean
         } else if (player != null
                 && player.getVehicle() instanceof io.github.littlebird.entity.ApacheEntity apache) {
             apache.applyWeaponInput(player, packet.weapon(), packet.triggerHeld());
+        } else if (player != null
+                && player.getVehicle() instanceof io.github.littlebird.entity.JetEntity jet) {
+            jet.applyWeaponInput(
+                    player, packet.weapon(), packet.salvoMode(), packet.triggerHeld());
         }
         context.setPacketHandled(true);
     }

@@ -28,7 +28,8 @@ public final class GroundRiderRender {
     @SubscribeEvent
     public static void onRenderPlayer(RenderPlayerEvent.Pre event) {
         if (event.getEntity().getVehicle() instanceof MainBattleTankEntity
-                || event.getEntity().getVehicle() instanceof InfantryFightingVehicleEntity) {
+                || event.getEntity().getVehicle() instanceof InfantryFightingVehicleEntity
+                || event.getEntity().getVehicle() instanceof io.github.littlebird.entity.BradleyEntity) {
             event.setCanceled(true);
         }
     }

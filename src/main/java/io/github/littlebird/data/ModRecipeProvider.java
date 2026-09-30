@@ -191,12 +191,78 @@ public class ModRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_ifv_hull", has(ModItems.IFV_HULL.get()))
                 .save(writer);
 
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ModItems.BRADLEY.get())
+                .requires(ModItems.IFV_HULL.get())
+                .requires(ModItems.CANNON_BARREL.get())
+                .requires(ModItems.ARMOR_PLATE.get())
+                .requires(ModItems.AVIONICS_UNIT.get())
+                .requires(ModItems.TARGETING_COMPUTER.get())
+                .unlockedBy("has_ifv_hull", has(ModItems.IFV_HULL.get()))
+                .save(writer);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ModItems.APACHE.get())
                 .define('A', ModItems.APACHE_AIRFRAME.get())
                 .define('W', ModItems.APACHE_WEAPONS.get())
                 .define('C', ModItems.CANOPY_GLASS.get())
                 .pattern("A  ").pattern(" W ").pattern(" C ")
                 .unlockedBy("has_apache_airframe", has(ModItems.APACHE_AIRFRAME.get()))
+                .save(writer);
+
+        // The two jets are eleven parts - four airframe sections, two engines, avionics, canopy,
+        // two pylons and the fire control computer - which a 3x3 grid cannot hold. They assemble
+        // in three stages like the Apache, and the two airframes use different layouts so the
+        // crafting table can tell an F-35 from a Su-57.
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ModItems.F35_AIRFRAME.get())
+                .define('A', ModItems.AIRFRAME_SECTION.get())
+                .define('C', ModItems.CANOPY_GLASS.get())
+                .define('V', ModItems.AVIONICS_UNIT.get())
+                .pattern("A A").pattern("ACA").pattern(" V ")
+                .unlockedBy("has_airframe_section", has(ModItems.AIRFRAME_SECTION.get()))
+                .save(writer);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ModItems.SU57_AIRFRAME.get())
+                .define('A', ModItems.AIRFRAME_SECTION.get())
+                .define('C', ModItems.CANOPY_GLASS.get())
+                .define('V', ModItems.AVIONICS_UNIT.get())
+                .pattern("A A").pattern("AVA").pattern(" C ")
+                .unlockedBy("has_airframe_section", has(ModItems.AIRFRAME_SECTION.get()))
+                .save(writer);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ModItems.F35_WEAPONS.get())
+                .define('P', ModItems.WEAPON_PYLON.get())
+                .define('T', ModItems.TARGETING_COMPUTER.get())
+                .pattern("P P").pattern(" T ")
+                .unlockedBy("has_weapon_pylon", has(ModItems.WEAPON_PYLON.get()))
+                .save(writer);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ModItems.SU57_WEAPONS.get())
+                .define('P', ModItems.WEAPON_PYLON.get())
+                .define('T', ModItems.TARGETING_COMPUTER.get())
+                .pattern("PTP")
+                .unlockedBy("has_weapon_pylon", has(ModItems.WEAPON_PYLON.get()))
+                .save(writer);
+
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ModItems.F35.get())
+                .requires(ModItems.F35_AIRFRAME.get())
+                .requires(ModItems.AIRCRAFT_ENGINE.get(), 2)
+                .requires(ModItems.F35_WEAPONS.get())
+                .unlockedBy("has_f35_airframe", has(ModItems.F35_AIRFRAME.get()))
+                .save(writer);
+
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ModItems.SU57.get())
+                .requires(ModItems.SU57_AIRFRAME.get())
+                .requires(ModItems.AIRCRAFT_ENGINE.get(), 2)
+                .requires(ModItems.SU57_WEAPONS.get())
+                .unlockedBy("has_su57_airframe", has(ModItems.SU57_AIRFRAME.get()))
+                .save(writer);
+
+        // The factory itself: an iron and redstone frame around a crafting table.
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ModItems.VEHICLE_FACTORY.get())
+                .define('I', Items.IRON_BLOCK)
+                .define('R', Items.REDSTONE)
+                .define('C', Items.CRAFTING_TABLE)
+                .pattern("IRI").pattern("RCR").pattern("IRI")
+                .unlockedBy("has_iron_block", has(Items.IRON_BLOCK))
                 .save(writer);
     }
 }

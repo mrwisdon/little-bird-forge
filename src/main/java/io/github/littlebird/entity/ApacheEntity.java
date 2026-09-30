@@ -67,7 +67,7 @@ import net.minecraftforge.network.NetworkHooks;
  * Weapons land in the next slices; this class carries the seats, the flight model, the hull and
  * the turret aim plumbing.
  */
-public class ApacheEntity extends Entity implements GunshipRider {
+public class ApacheEntity extends Entity implements GunshipRider, MissileSight {
     public static final float MAX_HEALTH = 100.0F;
     /** Rear seat weapons. */
     public static final int WEAPON_ROCKETS = 0;
@@ -749,10 +749,13 @@ public class ApacheEntity extends Entity implements GunshipRider {
                         && candidate.isAlive() && !candidate.isSpectator())) {
             double distance = nearby.position().distanceTo(impact);
             double falloff = Math.max(0.0D, 1.0D - distance / radius);
-            boolean airframe = isAirframe(nearby);
-            float damage = LittleBirdBallistics.damageTo(airframe,
-                    LittleBirdConfig.apacheChainGunDamage(),
-                    LittleBirdConfig.apacheChainGunAirframeDamage())
+            float damage = LittleBirdBallistics.damageTo(
+                    io.github.littlebird.entity.weapon.DamageType.SHELL,
+                    AirframeTargets.armorClass(nearby),
+                    new LittleBirdBallistics.WeaponDamage(
+                            LittleBirdConfig.apacheChainGunDamage(),
+                            LittleBirdConfig.apacheChainGunAirframeDamage(),
+                            LittleBirdConfig.apacheGunHeavyDamage()))
                     * (float) (ChainGunTurret.SPLASH_DAMAGE_FRACTION * falloff);
             if (damage > 0.0F) {
                 applyChainGunDamage(server, gunner, nearby, damage, damage);
@@ -762,15 +765,17 @@ public class ApacheEntity extends Entity implements GunshipRider {
 
     private void applyChainGunDamage(
             ServerLevel server, Player gunner, Entity target, float normal, float airframe) {
-        boolean isAirframe = isAirframe(target);
-        float damage = LittleBirdBallistics.damageTo(isAirframe, normal, airframe);
+        float damage = LittleBirdBallistics.damageTo(
+                io.github.littlebird.entity.weapon.DamageType.SHELL,
+                AirframeTargets.armorClass(target),
+                new LittleBirdBallistics.WeaponDamage(normal, airframe,
+                        LittleBirdConfig.apacheGunHeavyDamage()));
         if (damage <= 0.0F) {
             return;
         }
         boolean applied = target.hurt(server.damageSources().playerAttack(gunner), damage);
         if (applied && gunner instanceof ServerPlayer serverPlayer) {
-            ModNetwork.sendHitFeedback(serverPlayer, !target.isAlive(), isAirframe,
-                    LittleBirdEntity.healthFractionOf(target));
+            HitFeedback.report(serverPlayer, target);
         }
     }
 
@@ -898,6 +903,18 @@ public class ApacheEntity extends Entity implements GunshipRider {
                 net.minecraft.sounds.SoundSource.PLAYERS, 1.2F, 0.8F);
     }
 
+    /** The hull's sight line, handed to any missile it fires. */
+    @Override
+    public Vec3 missileSightDirection() {
+        return Vec3.directionFromRotation(getXRot(), getYRot());
+    }
+
+    @Override
+    public Vec3 missileSightOrigin() {
+        Player pilot = pilot();
+        return pilot != null ? pilot.getEyePosition() : position();
+    }
+
     /** Server: validated weapon intent from the rear seat. */
     public void applyWeaponInput(Player sender, int weapon, boolean triggerHeld) {
         if (level().isClientSide || isRemoved() || getControllingPassenger() != sender) {
@@ -965,7 +982,7 @@ public class ApacheEntity extends Entity implements GunshipRider {
 
     /** Remaining health of a hit target as a 0..1 fraction (shared with the Little Bird). */
     public static float healthFractionOf(Entity target) {
-        return LittleBirdEntity.healthFractionOf(target);
+        return HitFeedback.healthFractionOf(target);
     }
 
     // ------------------------------------------------------------------
@@ -1039,6 +1056,11 @@ public class ApacheEntity extends Entity implements GunshipRider {
 
     public void setHealth(float health) {
         entityData.set(DATA_HEALTH, Math.max(0.0F, Math.min(MAX_HEALTH, health)));
+    }
+
+    @Override
+    public float healthFraction() {
+        return getHealth() / MAX_HEALTH;
     }
 
     public boolean isEngineOn() {

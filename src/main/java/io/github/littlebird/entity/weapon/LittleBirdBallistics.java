@@ -72,11 +72,92 @@ public final class LittleBirdBallistics {
                 .normalize();
     }
 
+    /**
+     * Damage a landed hit deals, after the round has been matched against what it hit.
+     *
+     * <p>This is the rule the pack's weapons are built on: a bullet cannot defeat a tracked hull
+     * at all, so it is absorbed and does <em>nothing</em>; a shell is priced as normal everywhere,
+     * heavy armour included; and a helicopter is neither, so bullets chew it up like any other
+     * unarmoured target.
+     */
+    public static float damageTo(DamageType type, ArmorClass armor,
+                                 float unarmoredDamage, float armoredDamage) {
+        if (type == DamageType.BULLET && armor == ArmorClass.HEAVY_ARMOR) {
+            return 0.0F;
+        }
+        float chosen = armor == ArmorClass.UNARMORED ? unarmoredDamage : armoredDamage;
+        return Float.isFinite(chosen) ? Math.max(0.0F, chosen) : 0.0F;
+    }
+
+    /**
+     * The same rule for weapons that also price each aircraft hull separately: the Little Bird's
+     * gun and the Apache's chain gun carry three numbers (flesh, generic aircraft, Apache). The
+     * armour rule is applied first - so no amount of machine gun fire ever reaches a tracked hull -
+     * and the per-aircraft pricing is then left exactly as it was.
+     */
+    public static float damageTo(DamageType type, ArmorClass armor, Airframe airframe,
+                                 float unarmoredDamage, float aircraftDamage,
+                                 float apacheDamage) {
+        if (type == DamageType.BULLET && armor == ArmorClass.HEAVY_ARMOR) {
+            return 0.0F;
+        }
+        return damageTo(airframe, unarmoredDamage, aircraftDamage, apacheDamage);
+    }
+
+    /**
+     * One weapon's damage row: what a single round does to unarmoured flesh, to an aircraft hull,
+     * and to heavy armour. Three columns rather than two, because the pack's cannons do not share
+     * one "armoured" price: a Bradley's 25mm does 3 to a tracked hull and 4 to a helicopter, a
+     * Wildcat's twin 30mm does 1, and a jet's 25mm does nothing at all.
+     *
+     * <p>Heavy armour is its own column so a weapon can be anti-personnel without being anti-tank.
+     */
+    public record WeaponDamage(float unarmored, float airframe, float heavy) {
+        public WeaponDamage {
+            unarmored = safe(unarmored);
+            airframe = safe(airframe);
+            heavy = safe(heavy);
+        }
+
+        private static float safe(float value) {
+            return Float.isFinite(value) ? Math.max(0.0F, value) : 0.0F;
+        }
+
+        /** One number everywhere: for weapons that genuinely have a single price. */
+        public static WeaponDamage flat(float value) {
+            return new WeaponDamage(value, value, value);
+        }
+    }
+
+    /**
+     * Damage a landed hit deals, resolved against what it hit.
+     *
+     * <p>A {@code BULLET} is absorbed by armour of any kind: it cannot defeat heavy armour and it
+     * is wasted on light armour, so both columns read zero and only flesh and aircraft take
+     * damage. Everything else uses its own row, and a zero heavy figure is legal - the jet's 25mm
+     * carries one.
+     */
+    public static float damageTo(DamageType type, ArmorClass armor, WeaponDamage row) {
+        if (row == null) {
+            return 0.0F;
+        }
+        if (type == DamageType.BULLET
+                && (armor == ArmorClass.HEAVY_ARMOR || armor == ArmorClass.LIGHT_ARMOR)) {
+            return 0.0F;
+        }
+        return switch (armor) {
+            case UNARMORED -> row.unarmored();
+            case AIRFRAME -> row.airframe();
+            default -> row.heavy();
+        };
+    }
+
     /** Which airframe a hit landed on, so each aircraft can be priced on its own hull. */
     public enum Airframe {
         NONE,
         LITTLE_BIRD,
-        APACHE
+        APACHE,
+        FIGHTER_JET
     }
 
     /**
@@ -85,9 +166,10 @@ public final class LittleBirdBallistics {
      * non-airframe keeps the anti-personnel price. Negative and non-finite prices are 0.
      */
     public static float damageTo(Airframe airframe, float normalDamage,
-                                 float littleBirdDamage, float apacheDamage) {
+                                 float aircraftDamage, float apacheDamage) {
         float chosen = switch (airframe) {
-            case LITTLE_BIRD -> littleBirdDamage;
+            // The jets share the Little Bird's aircraft price until they get their own tuning.
+            case LITTLE_BIRD, FIGHTER_JET -> aircraftDamage;
             case APACHE -> apacheDamage;
             case NONE -> normalDamage;
         };

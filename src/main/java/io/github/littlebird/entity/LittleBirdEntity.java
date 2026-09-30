@@ -110,6 +110,9 @@ public class LittleBirdEntity extends Entity implements GunshipRider {
             SynchedEntityData.defineId(LittleBirdEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_ROCKETS_RIGHT =
             SynchedEntityData.defineId(LittleBirdEntity.class, EntityDataSerializers.INT);
+    /** Ticks left on the reload cooldown, zero when idle. Read by the HUD. */
+    private static final EntityDataAccessor<Integer> DATA_ROCKET_RELOAD =
+            SynchedEntityData.defineId(LittleBirdEntity.class, EntityDataSerializers.INT);
 
     public static final int WEAPON_GUN = 0;
     public static final int WEAPON_ROCKETS = 1;
@@ -145,6 +148,8 @@ public class LittleBirdEntity extends Entity implements GunshipRider {
     private int lerpSteps;
     private LittleBirdGunCycle.Snapshot gunCycle = LittleBirdGunCycle.Snapshot.initial();
     private RocketPodState.Snapshot podState = RocketPodState.Snapshot.initial();
+    /** Reload cooldown: the key starts it, the pods fill when it lands. */
+    private RocketPodState.Reload rocketReload = RocketPodState.Reload.idle();
     private boolean triggerHeld;
     private int gunRoundsFired;
     private int supplyTick;
@@ -171,6 +176,7 @@ public class LittleBirdEntity extends Entity implements GunshipRider {
         entityData.define(DATA_GUN_AMMO, GUN_AMMO_CAPACITY);
         entityData.define(DATA_ROCKET_RESERVE, RocketPodState.RESERVE_CAPACITY);
         entityData.define(DATA_ROCKETS_LEFT, ready.left());
+        entityData.define(DATA_ROCKET_RELOAD, 0);
         entityData.define(DATA_ROCKETS_RIGHT, ready.right());
     }
 
@@ -482,6 +488,7 @@ public class LittleBirdEntity extends Entity implements GunshipRider {
         podState = podStep.snapshot();
         entityData.set(DATA_ROCKETS_LEFT, podState.leftRemaining());
         entityData.set(DATA_ROCKETS_RIGHT, podState.rightRemaining());
+        advanceRocketReload(server);
         if (podStep.launch()) {
             launchRocket(server, pilot, podStep.pod(), podStep.tube());
         }
@@ -513,12 +520,54 @@ public class LittleBirdEntity extends Entity implements GunshipRider {
     }
 
     /** Server: the reload key. Moves reserve rounds into the pods, if there are any. */
+    /**
+     * Server: the reload key. Starts the reserve-to-pod transfer; the cooldown then owns it, so a
+     * second press while the clock runs does nothing and the rounds only appear when it lands.
+     */
     public void applyReload(Player sender) {
         if (level().isClientSide || getControllingPassenger() != sender) {
             return;
         }
+        if (rocketReload.running()) {
+            return;
+        }
         int missing = RocketPodState.READY_CAPACITY - getRocketsRemaining();
-        int moved = Math.min(missing, getRocketReserve());
+        int reserve = getRocketReserve();
+        if (missing <= 0 || reserve <= 0) {
+            return;
+        }
+        rocketReload = RocketPodState.begin(rocketReload,
+                LittleBirdConfig.littleBirdRocketReloadTicks(), missing, reserve);
+        if (rocketReload.running()) {
+            entityData.set(DATA_ROCKET_RELOAD, rocketReload.ticksLeft());
+            if (level() instanceof ServerLevel server) {
+                server.playSound(null, getX(), getY(), getZ(), SoundEvents.ITEM_PICKUP,
+                        SoundSource.PLAYERS, 0.4F, 0.7F);
+            }
+            return;
+        }
+        // Zero tick reload: the config asked for the old instant behaviour.
+        if (level() instanceof ServerLevel server) {
+            fillPodsFromReserve(server);
+        }
+    }
+
+    /** Advances the reload cooldown and fills the pods on the tick it lands. */
+    private void advanceRocketReload(ServerLevel server) {
+        if (!rocketReload.running()) {
+            return;
+        }
+        RocketPodState.Reload before = rocketReload;
+        rocketReload = RocketPodState.tick(rocketReload);
+        entityData.set(DATA_ROCKET_RELOAD, rocketReload.ticksLeft());
+        if (RocketPodState.completes(before, rocketReload)) {
+            fillPodsFromReserve(server);
+        }
+    }
+
+    /** Moves what the pods are missing out of the reserve and reports it to the pilot. */
+    private void fillPodsFromReserve(ServerLevel server) {
+        int moved = RocketPodState.transferAmount(podState.totalRemaining(), getRocketReserve());
         if (moved <= 0) {
             return;
         }
@@ -526,11 +575,11 @@ public class LittleBirdEntity extends Entity implements GunshipRider {
         entityData.set(DATA_ROCKETS_LEFT, podState.leftRemaining());
         entityData.set(DATA_ROCKETS_RIGHT, podState.rightRemaining());
         entityData.set(DATA_ROCKET_RESERVE, getRocketReserve() - moved);
-        if (level() instanceof ServerLevel server) {
-            server.playSound(null, getX(), getY(), getZ(), SoundEvents.ITEM_PICKUP,
-                    SoundSource.PLAYERS, 0.6F, 1.4F);
-        }
+        entityData.set(DATA_ROCKET_RELOAD, 0);
+        server.playSound(null, getX(), getY(), getZ(), SoundEvents.ITEM_PICKUP,
+                SoundSource.PLAYERS, 0.6F, 1.4F);
     }
+
 
     private void fireGun(ServerLevel server, Player pilot, int barrel) {
         Vec3 aim = Vec3.directionFromRotation(getXRot(), getYRot());
@@ -564,16 +613,18 @@ public class LittleBirdEntity extends Entity implements GunshipRider {
             // costs an aircraft a fraction of a point instead of the full anti-personnel round.
             LittleBirdBallistics.Airframe airframe =
                     AirframeTargets.classify(entityHit.getEntity());
-            float damage = LittleBirdBallistics.damageTo(airframe,
+            // These are machine gun rounds: they chew up aircraft and infantry, and a tracked hull
+            // absorbs them completely.
+            float damage = LittleBirdBallistics.damageTo(
+                    io.github.littlebird.entity.weapon.DamageType.BULLET,
+                    AirframeTargets.armorClass(entityHit.getEntity()), airframe,
                     LittleBirdConfig.gunDamage(),
                     LittleBirdConfig.gunDamageAircraft(),
                     LittleBirdConfig.gunDamageApache());
             boolean applied = entityHit.getEntity()
                     .hurt(pilot.damageSources().playerAttack(pilot), damage);
             if (applied && pilot instanceof ServerPlayer serverPlayer) {
-                ModNetwork.sendHitFeedback(serverPlayer, !entityHit.getEntity().isAlive(),
-                        airframe != LittleBirdBallistics.Airframe.NONE,
-                        healthFractionOf(entityHit.getEntity()));
+                HitFeedback.report(serverPlayer, entityHit.getEntity());
             }
         }
 
@@ -635,6 +686,11 @@ public class LittleBirdEntity extends Entity implements GunshipRider {
         entityData.set(DATA_HEALTH, Math.max(0.0F, Math.min(MAX_HEALTH, health)));
     }
 
+    @Override
+    public float healthFraction() {
+        return getHealth() / MAX_HEALTH;
+    }
+
     public boolean isEngineOn() {
         return entityData.get(DATA_ENGINE_ON);
     }
@@ -681,6 +737,20 @@ public class LittleBirdEntity extends Entity implements GunshipRider {
 
     public int getRocketReserve() {
         return entityData.get(DATA_ROCKET_RESERVE);
+    }
+
+    /** Ticks left on the rocket reload cooldown, zero when no reload is running. */
+    public int getRocketReloadTicks() {
+        return entityData.get(DATA_ROCKET_RELOAD);
+    }
+
+    /** 0..1 progress of the running reload, for the HUD bar. */
+    public float getRocketReloadFraction() {
+        int total = LittleBirdConfig.littleBirdRocketReloadTicks();
+        if (total <= 0) {
+            return 0.0F;
+        }
+        return 1.0F - Math.min(total, Math.max(0, getRocketReloadTicks())) / (float) total;
     }
 
     public float getRollDeg() {
@@ -752,16 +822,7 @@ public class LittleBirdEntity extends Entity implements GunshipRider {
      * Airframes are measured against their own maximum, so a fresh aircraft reads 100%.
      */
     public static float healthFractionOf(Entity target) {
-        if (target instanceof LittleBirdEntity bird) {
-            return Math.max(0.0F, Math.min(1.0F, bird.getHealth() / MAX_HEALTH));
-        }
-        if (target instanceof ApacheEntity apache) {
-            return Math.max(0.0F, Math.min(1.0F, apache.getHealth() / ApacheEntity.MAX_HEALTH));
-        }
-        if (target instanceof LivingEntity living && living.getMaxHealth() > 0.0F) {
-            return Math.max(0.0F, Math.min(1.0F, living.getHealth() / living.getMaxHealth()));
-        }
-        return 1.0F;
+        return HitFeedback.healthFractionOf(target);
     }
 
     /** Writes the airframe off: the crew is thrown clear, then the wreck goes up. Once only. */

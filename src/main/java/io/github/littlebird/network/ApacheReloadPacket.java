@@ -28,6 +28,9 @@ public record ApacheReloadPacket() {
             apache.applyReload(player);
         } else if (player != null && player.getVehicle() instanceof LittleBirdEntity bird) {
             bird.applyReload(player);
+        } else if (player != null
+                && player.getVehicle() instanceof io.github.littlebird.entity.JetEntity jet) {
+            jet.applyReload(player);
         }
         context.setPacketHandled(true);
     }

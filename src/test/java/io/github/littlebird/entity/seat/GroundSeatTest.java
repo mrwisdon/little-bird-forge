@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
-/** Seat plans of the two ground vehicles. */
+/** Seat plans of the ground vehicles. */
 class GroundSeatTest {
     @Test
     void seatsFollowBoardingOrder() {
@@ -30,5 +30,33 @@ class GroundSeatTest {
         assertTrue(GroundSeat.isIfvPassenger(2));
         assertTrue(GroundSeat.isIfvPassenger(3));
         assertFalse(GroundSeat.isIfvPassenger(1));
+    }
+
+    @Test
+    void bradleyCarriesSixWithTwoOperators() {
+        assertEquals(6, GroundSeat.BRADLEY_SEATS);
+        assertEquals(GroundSeat.BRADLEY_DRIVER, GroundSeat.seatOf(0, GroundSeat.BRADLEY_SEATS));
+        assertEquals(GroundSeat.BRADLEY_GUNNER, GroundSeat.seatOf(1, GroundSeat.BRADLEY_SEATS));
+        assertEquals(GroundSeat.BRADLEY_CREW_FRONT_LEFT,
+                GroundSeat.seatOf(2, GroundSeat.BRADLEY_SEATS));
+        assertEquals(GroundSeat.BRADLEY_CREW_REAR_RIGHT,
+                GroundSeat.seatOf(5, GroundSeat.BRADLEY_SEATS));
+        // An over-full vehicle clamps onto the last seat rather than inventing a seventh.
+        assertEquals(GroundSeat.BRADLEY_CREW_REAR_RIGHT,
+                GroundSeat.seatOf(11, GroundSeat.BRADLEY_SEATS));
+    }
+
+    @Test
+    void bradleyOperatorsAreTheDriverAndTheRoofGunner() {
+        assertTrue(GroundSeat.isBradleyDriver(0));
+        assertTrue(GroundSeat.isBradleyGunner(1));
+        assertFalse(GroundSeat.isBradleyDriver(1));
+        assertFalse(GroundSeat.isBradleyGunner(0));
+        for (int seat = 2; seat < GroundSeat.BRADLEY_SEATS; seat++) {
+            assertTrue(GroundSeat.isBradleyCrew(seat));
+            assertFalse(GroundSeat.isBradleyDriver(seat));
+            assertFalse(GroundSeat.isBradleyGunner(seat));
+        }
+        assertFalse(GroundSeat.isBradleyCrew(1));
     }
 }

@@ -65,6 +65,7 @@ public final class InfantryFightingVehicleModel extends EntityModel<InfantryFigh
         addArmourAndStowage(body);
         addFittings(body);
         addRoofStation(body);
+        addDetails(body);
 
         return LayerDefinition.create(mesh, TEXTURE_SIZE, TEXTURE_SIZE);
     }
@@ -296,6 +297,20 @@ public final class InfantryFightingVehicleModel extends EntityModel<InfantryFigh
         }
         turret.addOrReplaceChild("turret_cable", CubeListBuilder.create()
                 .texOffs(64, 192).addBox(12.0F, 10.0F, -6.0F, 1.0F, 1.0F, 10.0F),
+                PartPose.offset(0.0F, 0.0F, 0.0F));
+    }
+
+    /** Spare wheel on the rear door and a second whip antenna. */
+    private static void addDetails(PartDefinition body) {
+        body.addOrReplaceChild("spare_wheel", CubeListBuilder.create()
+                .texOffs(320, 0).addBox(-7.0F, 16.0F, 48.0F, 14.0F, 14.0F, 5.0F)
+                .texOffs(0, 192).addBox(-4.0F, 19.0F, 53.0F, 8.0F, 8.0F, 1.0F),
+                PartPose.offset(0.0F, 0.0F, 0.0F));
+        body.addOrReplaceChild("antenna_two_base", CubeListBuilder.create()
+                .texOffs(128, 192).addBox(8.0F, 36.0F, 16.0F, 3.0F, 3.0F, 3.0F),
+                PartPose.offset(0.0F, 0.0F, 0.0F));
+        body.addOrReplaceChild("antenna_two", CubeListBuilder.create()
+                .texOffs(128, 192).addBox(9.0F, 38.0F, 17.0F, 1.0F, 14.0F, 1.0F),
                 PartPose.offset(0.0F, 0.0F, 0.0F));
     }
 

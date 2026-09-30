@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "battlefield:ifv_hull"
+    },
+    {
+      "item": "battlefield:cannon_barrel"
+    },
+    {
+      "item": "battlefield:armor_plate"
+    },
+    {
+      "item": "battlefield:avionics_unit"
+    },
+    {
+      "item": "battlefield:targeting_computer"
+    }
+  ],
+  "result": {
+    "item": "battlefield:bradley"
+  }
+}

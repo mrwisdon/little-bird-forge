@@ -1,0 +1,35 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_airframe_section": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "battlefield:airframe_section"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "battlefield:f35_airframe"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_airframe_section",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "battlefield:f35_airframe"
+    ]
+  },
+  "sends_telemetry_event": false
+}

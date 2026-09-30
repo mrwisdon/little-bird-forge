@@ -2,7 +2,11 @@ package io.github.littlebird.entity;
 
 import io.github.littlebird.LittleBirdConfig;
 import io.github.littlebird.client.GroundViewMath;
+import io.github.littlebird.entity.ground.GroundContact;
 import io.github.littlebird.entity.ground.GroundDrive;
+import io.github.littlebird.entity.ground.GroundMover;
+import io.github.littlebird.entity.ground.HullPose;
+import io.github.littlebird.entity.ground.SlopeTracker;
 import io.github.littlebird.entity.ground.GroundVehicleControls;
 import io.github.littlebird.entity.ground.GroundWeapons;
 import io.github.littlebird.entity.ground.MainGun;
@@ -65,6 +69,12 @@ public class MainBattleTankEntity extends Entity
 
     private static final float FALL_GRAVITY = 0.08F;
     private static final double MAX_FALL_SPEED = 1.0D;
+    /**
+     * Grounded hulls keep a small downward request: Entity.move clears onGround on a strictly zero
+     * vertical move, and a flickering onGround then stalled the step assist and the grade probe on
+     * alternate ticks.
+     */
+    private static final double GROUND_CONTACT_PROBE = 0.05D;
     private static final float COAX_SPLASH_RADIUS = 1.0F;
     private static final float SPLASH_DAMAGE_FRACTION = 0.5F;
 
@@ -79,6 +89,8 @@ public class MainBattleTankEntity extends Entity
     private static final EntityDataAccessor<Integer> DATA_RESERVE_ROUNDS =
             SynchedEntityData.defineId(MainBattleTankEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_COAX_AMMO =
+            SynchedEntityData.defineId(MainBattleTankEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> DATA_CUPOLA_AMMO =
             SynchedEntityData.defineId(MainBattleTankEntity.class, EntityDataSerializers.INT);
     /** Ordinal of the loaded 120mm shell type, for the HUD. */
     private static final EntityDataAccessor<Integer> DATA_SHELL_TYPE =
@@ -106,6 +118,8 @@ public class MainBattleTankEntity extends Entity
     /** One ready rack and reserve per 120mm shell type. */
     private MainGunAmmo mainGunAmmo;
     private AmmoPool coax;
+    /** Seat two's cupola gun: a separate belt and heat clock from the driver's coax. */
+    private AmmoPool cupola;
     /** Smoke discharger state and the driver's weapon carousel (main gun / smoke). */
     private SmokeLauncher.Spec smokeSpec;
     private SmokeLauncher.State smoke;
@@ -113,14 +127,21 @@ public class MainBattleTankEntity extends Entity
     /** Client only: whether this hull is shown through its turret interior camera. */
     private boolean interiorView;
     private int coaxCooldown;
+    private int cupolaCooldown;
     private boolean driverTrigger;
     private boolean gunnerTrigger;
     private int supplyTick;
+    /** Smoothed hull pitch and roll fitted from the four-corner contact plane. */
+    private final HullPose hullPose = new HullPose(60.0D, 35.0D, 4.0D, 0.75D, 0.35D);
+    /** Travelled slope, kept as the fallback for when no contact plane can be fitted. */
+    private final SlopeTracker slopeTracker = new SlopeTracker();
+    /** Client-side hull roll for the renderer; positive when the right side is lower. */
+    private float hullRollDeg;
 
     public MainBattleTankEntity(EntityType<? extends MainBattleTankEntity> type, Level level) {
         super(type, level);
-        // A tank climbs a full block: one step up, no more.
-        setMaxUpStep(1.0F);
+        // Entity.move ignores maxUpStep (only LivingEntity reads it), so the climb is done by
+        // GroundMover.stepUp from tickClient, capped by LittleBirdConfig.tankStepHeightBlocks().
     }
 
     @Override
@@ -131,6 +152,7 @@ public class MainBattleTankEntity extends Entity
         entityData.define(DATA_READY_ROUNDS, 0);
         entityData.define(DATA_RESERVE_ROUNDS, 0);
         entityData.define(DATA_COAX_AMMO, 0);
+        entityData.define(DATA_CUPOLA_AMMO, 0);
         entityData.define(DATA_SHELL_TYPE, 0);
         entityData.define(DATA_SELECTED_WEAPON, WeaponSelection.MAIN_GUN);
         entityData.define(DATA_SMOKE_CHARGES, 0);
@@ -186,6 +208,9 @@ public class MainBattleTankEntity extends Entity
         if (coax == null) {
             coax = AmmoPool.full(LittleBirdConfig.tankCoaxCapacity());
         }
+        if (cupola == null) {
+            cupola = AmmoPool.full(LittleBirdConfig.tankCupolaCapacity());
+        }
         if (smokeSpec == null) {
             smokeSpec = LittleBirdConfig.tankSmokeSpec();
         }
@@ -200,6 +225,7 @@ public class MainBattleTankEntity extends Entity
         entityData.set(DATA_READY_ROUNDS, mainGunAmmo.ready());
         entityData.set(DATA_RESERVE_ROUNDS, mainGunAmmo.reserve());
         entityData.set(DATA_COAX_AMMO, coax.rounds());
+        entityData.set(DATA_CUPOLA_AMMO, cupola.rounds());
         entityData.set(DATA_SHELL_TYPE, mainGunAmmo.selected().ordinal());
         entityData.set(DATA_MAIN_GUN_RELOAD, mainGunAmmo.state().reloadTicks());
         entityData.set(DATA_MAIN_GUN_RESUPPLY, mainGunAmmo.state().resupplyTicks());
@@ -243,20 +269,22 @@ public class MainBattleTankEntity extends Entity
         if (coaxCooldown > 0) {
             coaxCooldown--;
         }
-        if (gunner != null && gunnerTrigger && coaxCooldown <= 0 && coax.fire(1)
-                && level() instanceof ServerLevel server) {
-            coaxCooldown = LittleBirdConfig.tankCoaxFireIntervalTicks();
-            publishAmmo();
-            fireCoax(server, gunner);
+        if (cupolaCooldown > 0) {
+            cupolaCooldown--;
         }
-
-        // The coax is a shared mount: the gunner has it as their only weapon and the driver can
-        // select it, both drawing on the same belt and the same heat clock.
+        // Seat two has the cupola gun; the driver's selectable coaxial gun is a separate mount with
+        // its own belt and heat clock, so one seat cannot drain or slow the other's gun.
+        if (gunner != null && gunnerTrigger && cupolaCooldown <= 0 && cupola.fire(1)
+                && level() instanceof ServerLevel server) {
+            cupolaCooldown = LittleBirdConfig.tankCupolaFireIntervalTicks();
+            publishAmmo();
+            fireCoax(server, gunner, true);
+        }
         if (driver != null && driverTrigger && driverWeapons.is(WeaponSelection.COAX)
                 && coaxCooldown <= 0 && coax.fire(1) && level() instanceof ServerLevel server) {
             coaxCooldown = LittleBirdConfig.tankCoaxFireIntervalTicks();
             publishAmmo();
-            fireCoax(server, driver);
+            fireCoax(server, driver, false);
         }
 
         // Smoke is the driver's other slot: one charge per trigger, gated by its own cooldown.
@@ -291,10 +319,29 @@ public class MainBattleTankEntity extends Entity
     private void fireMainGun(ServerLevel server, Player driver) {
         MainGunAmmoType shell = mainGunAmmo.selected();
         Vec3 muzzle = muzzle();
+        if (shell == MainGunAmmoType.CANISTER) {
+            // Canister is a muzzle burst, not a travelling shell: forty pellet hitscans down the
+            // turret's attitude. The same muzzle flash and report wrap it as a main gun round.
+            GroundWeapons.fireCanister(server, this, driver, muzzle, turretDirection(),
+                    LittleBirdConfig.tankCanisterPellets(),
+                    LittleBirdConfig.tankCanisterSpreadHorizontalDegrees(),
+                    LittleBirdConfig.tankCanisterSpreadVerticalDegrees(),
+                    LittleBirdConfig.tankCanisterPelletDamage(),
+                    LittleBirdConfig.tankCanisterPelletVehicleDamage(),
+                    0.0F,
+                    LittleBirdConfig.tankCanisterRange());
+            MainGunShellEntity.muzzleFlash(server, muzzle, LittleBirdConfig.mainGunParticleScale());
+            server.playSound(null, getX(), getY(), getZ(), ModSounds.GUN_SHOT.get(),
+                    SoundSource.PLAYERS, 1.6F, 0.5F);
+            server.playSound(null, getX(), getY(), getZ(), ModSounds.EXPLOSION.get(),
+                    SoundSource.PLAYERS, 1.3F, 0.45F);
+            return;
+        }
         MainGunShellEntity round = new MainGunShellEntity(ModEntities.MAIN_GUN_SHELL.get(), server);
         round.setPos(muzzle.x, muzzle.y, muzzle.z);
         round.configure(shell, LittleBirdConfig.tankMainGunDamage(shell),
                 LittleBirdConfig.tankMainGunVehicleDamage(shell),
+                LittleBirdConfig.tankMainGunHeavyDamage(shell),
                 LittleBirdConfig.tankMainGunSplashRadius(shell));
         round.launch(turretDirection(), MainGunShellBallistics.MUZZLE_SPEED, driver);
         server.addFreshEntity(round);
@@ -309,11 +356,31 @@ public class MainBattleTankEntity extends Entity
                 SoundSource.PLAYERS, 1.2F, pitch - 0.1F);
     }
 
-    /** One coaxial round: same turret line, far less damage and no real blast. */
-    private void fireCoax(ServerLevel server, Player gunner) {
-        GroundWeapons.fireHitscan(server, this, gunner, muzzle(), turretDirection(),
+    /** One machine gun round from the firing seat's own barrel, not the main gun's muzzle. */
+    private void fireCoax(ServerLevel server, Player shooter, boolean cupola) {
+        GroundWeapons.fireHitscan(server, this, shooter, machineGunMuzzle(cupola),
+                turretDirection(),
                 LittleBirdConfig.tankCoaxDamage(), LittleBirdConfig.tankCoaxVehicleDamage(),
-                COAX_SPLASH_RADIUS, SPLASH_DAMAGE_FRACTION, 0.9F);
+                0.0F, COAX_SPLASH_RADIUS, SPLASH_DAMAGE_FRACTION, 0.9F,
+                io.github.littlebird.entity.weapon.DamageType.BULLET);
+    }
+
+    /**
+     * Muzzle of the machine gun the given seat is firing. The driver's coaxial gun is the model's
+     * M240 beside the ring; seat two's is the cupola .50 on top. Both barrels are fixed to the
+     * turret, so the ring offset turns with the turret's aim. Two players crewing the tank must
+     * see two different muzzle points, not one shared hole at the main gun.
+     */
+    private Vec3 machineGunMuzzle(boolean cupola) {
+        MainBattleTankGeometry.MachineGunMuzzle mg =
+                MainBattleTankGeometry.machineGunMuzzle(cupola);
+        Vec3 ring = position().add(0.0D, MainBattleTankGeometry.turretPivotHeightBlocks(), 0.0D);
+        Vec3 aimRight = vec(MainGun.aimDirection(turret.aimYawDegrees() - 90.0D, 0.0D));
+        if (aimRight.lengthSqr() > 1.0E-9D) {
+            ring = ring.add(aimRight.normalize().scale(mg.lateralBlocks()));
+        }
+        ring = ring.add(0.0D, mg.heightBlocks(), 0.0D);
+        return ring.add(turretDirection().scale(mg.barrelBlocks()));
     }
 
     private Vec3 turretDirection() {
@@ -322,10 +389,15 @@ public class MainBattleTankEntity extends Entity
 
     private Vec3 muzzle() {
         Vec3 hullForward = Vec3.directionFromRotation(0.0F, getYRot());
-        return vec(MainGun.muzzleOrigin(vector(position()), vector(hullForward),
+        // The barrel pivots on its trunnion at the mantlet, so the muzzle is the trunnion plus the
+        // barrel reach along the gun line - not the ring plus the whole barrel. The trunnion turns
+        // with the turret, hence the turret's own forward rather than the hull's.
+        Vec3 turretForward = Vec3.directionFromRotation(0.0F, (float) turret.aimYawDegrees());
+        return vec(MainGun.muzzleOrigin(vector(position()), vector(turretForward),
                 new LittleBirdBallistics.Vector3(0.0D, 1.0D, 0.0D),
-                MainBattleTankGeometry.turretPivotHeightBlocks(), 0.0D,
-                MainBattleTankGeometry.barrelBlocks(),
+                MainBattleTankGeometry.gunTrunnionHeightBlocks(),
+                MainBattleTankGeometry.gunTrunnionForwardBlocks(),
+                MainBattleTankGeometry.barrelReachBlocks(),
                 turret.aimYawDegrees(), turret.aimPitchDegrees()));
     }
 
@@ -340,6 +412,7 @@ public class MainBattleTankEntity extends Entity
         }
         AmmoSupply supply = LittleBirdConfig.ammoSupply();
         coax.refill(supply.bullets(20));
+        cupola.refill(supply.bullets(20));
         mainGunAmmo.supply(supply.rockets(20));
         smoke = SmokeLauncher.supply(smoke, smokeSpec, 1);
         publishAmmo();
@@ -367,17 +440,35 @@ public class MainBattleTankEntity extends Entity
             clientDrive = null;
             return;
         }
+        // The contact plane only drives the render attitude. The drive's grade stays on the
+        // travelled slope, which cannot look at ground the hull has not reached, so the speed
+        // cannot lead the terrain. The probes sit inside the hull's own AABB footprint, so the
+        // sample is the surface it is standing on rather than the one ahead.
+        GroundContact.Sample surface = GroundMover.sampleSurface(this,
+                getBbWidth() * 0.5D, getBbWidth() * 0.5D);
+        hullPose.update(surface);
+        double grade = slopeTracker.gradeDegrees();
+
         GroundDrive.State prior = new GroundDrive.State(
                 clientDrive == null ? 0.0D : clientDrive.speedBlocksPerTick(), getYRot());
         GroundDrive.Step step = GroundDrive.advance(prior, GroundDrive.throttle(clientControls),
-                GroundDrive.steer(clientControls), LittleBirdConfig.tankDriveSpec());
+                GroundDrive.steer(clientControls), LittleBirdConfig.tankDriveSpec(), grade);
         clientDrive = step.state();
         setYRot((float) step.state().yawDegrees());
         setYHeadRot(getYRot());
-        double dy = onGround() ? 0.0D : Math.max(getDeltaMovement().y - FALL_GRAVITY,
-                -MAX_FALL_SPEED);
-        setDeltaMovement(step.dx(), dy, step.dz());
-        move(MoverType.SELF, getDeltaMovement());
+        double dy = onGround() ? -GROUND_CONTACT_PROBE
+                : Math.max(getDeltaMovement().y - FALL_GRAVITY, -MAX_FALL_SPEED);
+        double startY = getY();
+        double requestedDistance = Math.sqrt(step.dx() * step.dx() + step.dz() * step.dz());
+        Vec3 drive = new Vec3(step.dx(), dy, step.dz());
+        setDeltaMovement(drive);
+        move(MoverType.SELF, drive);
+        GroundMover.stepUp(this, drive, LittleBirdConfig.tankStepHeightBlocks());
+        // Travelled slope: the drive's grade, and the fallback for the pose when no plane fits.
+        slopeTracker.update(onGround() ? getY() - startY : 0.0D,
+                onGround() ? requestedDistance : 0.0D);
+        setXRot((float) -hullPose.pitchDegrees());
+        hullRollDeg = (float) hullPose.rollDegrees();
         // No local turret preview. The server slews and clamps the barrel with MainGun and
         // publishes it; a second writer here (the raw, unclamped look angles) fought that synced
         // value every tick, which is exactly what made the barrel twitch while driving. The
@@ -395,6 +486,14 @@ public class MainBattleTankEntity extends Entity
     public void resetClientPrediction() {
         this.clientDrive = null;
         this.clientControls = 0;
+        this.hullPose.reset();
+        this.slopeTracker.reset();
+        this.hullRollDeg = 0.0F;
+    }
+
+    /** Client only: hull roll from the contact plane, positive when the right side is lower. */
+    public float getHullRollDeg() {
+        return hullRollDeg;
     }
 
     /** Server: the driver or gunner reports the trigger (and the reload key). */
@@ -633,6 +732,11 @@ public class MainBattleTankEntity extends Entity
         entityData.set(DATA_HEALTH, Math.max(0.0F, Math.min(MAX_HEALTH, health)));
     }
 
+    @Override
+    public float healthFraction() {
+        return getHealth() / MAX_HEALTH;
+    }
+
     public float getTurretYawDeg() {
         return entityData.get(DATA_TURRET_YAW);
     }
@@ -651,6 +755,11 @@ public class MainBattleTankEntity extends Entity
 
     public int getCoaxAmmo() {
         return entityData.get(DATA_COAX_AMMO);
+    }
+
+    /** Seat two's cupola belt, for the gunner's HUD row. */
+    public int getCupolaAmmo() {
+        return entityData.get(DATA_CUPOLA_AMMO);
     }
 
     /** Ticks left on the 120mm reload cooldown, for the HUD. */

@@ -1,0 +1,37 @@
+{
+  "parent": "battlefield:first_little_bird",
+  "display": {
+    "icon": {
+      "item": "battlefield:bradley"
+    },
+    "title": {
+      "translate": "advancements.battlefield.bradley.title"
+    },
+    "description": {
+      "translate": "advancements.battlefield.bradley.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "crafted": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "battlefield:bradley"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "crafted"
+    ]
+  ]
+}

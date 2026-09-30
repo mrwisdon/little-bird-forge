@@ -1,4 +1,4 @@
-// 1.20.1	2026-09-12T13:27:21.320589951	Item Models: battlefield
+// 1.20.1	2026-09-14T10:55:27.446977687	Item Models: battlefield
 37ddbd9e6569608c8aec0ba26463951757409d2b assets/battlefield/models/item/aircraft_engine.json
 cedbcfd8e59cbc1570099a0cd22951126af385f0 assets/battlefield/models/item/airframe_section.json
 72c64234f90ec85d6d318263bac44671a6988014 assets/battlefield/models/item/apache_airframe.json
@@ -7,8 +7,12 @@ c1b99f798f9c2805573a885c1707af653aa9c4fd assets/battlefield/models/item/armor_pl
 4cd111a4262886e2cc026b9a9b5b94c1c64a2a2e assets/battlefield/models/item/avionics_unit.json
 4335889de44131e278a5aa34f177e639a4a73bca assets/battlefield/models/item/cannon_barrel.json
 b23577428c3db18d54fdbc1b7b94e8439921b377 assets/battlefield/models/item/canopy_glass.json
+41f42809b67d0707cb29fa99b8d8352c50a9c0fc assets/battlefield/models/item/f35_airframe.json
+23d0a3b6caf4264ebe13c40cafdadbcc6ffc7202 assets/battlefield/models/item/f35_weapons.json
 b93c5915890bdaa60e345a1fe949978bb588c617 assets/battlefield/models/item/ifv_hull.json
 c755ab4101ea1f0a0b093151b5e679f7e8d6447e assets/battlefield/models/item/rotor_assembly.json
+971deebebbb572024a536bf077727b3c15e249ed assets/battlefield/models/item/su57_airframe.json
+f87b19e1aefb3275ec8254b99e40296569c6c513 assets/battlefield/models/item/su57_weapons.json
 194ef307efc4801b390c5504ddfde192bf30e1d5 assets/battlefield/models/item/tank_hull.json
 be4e76b9fba79f4c78ac53e8711f2803d1850f0f assets/battlefield/models/item/targeting_computer.json
 131ad7f592070382dcb8d2a5c469c21626ac4d50 assets/battlefield/models/item/track_assembly.json

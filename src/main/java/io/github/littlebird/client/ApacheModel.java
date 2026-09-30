@@ -82,6 +82,7 @@ public final class ApacheModel extends EntityModel<ApacheEntity> {
         addGear(body);
         addTail(body);
         addRotorAndRadar(body);
+        addDetails(body);
 
         return LayerDefinition.create(mesh, TEXTURE_SIZE, TEXTURE_SIZE);
     }
@@ -261,6 +262,11 @@ public final class ApacheModel extends EntityModel<ApacheEntity> {
                     .texOffs(300, 208).addBox(6.0F, -1.0F, -2.5F, 74.0F, 2.0F, 5.0F),
                     PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F,
                             QUARTER_TURN * blade, 0.0F));
+            // Blade grip, so the blades read as bolted to the hub instead of floating.
+            rotor.addOrReplaceChild("grip_" + blade, CubeListBuilder.create()
+                    .texOffs(0, 208).addBox(4.0F, -2.0F, -3.0F, 3.0F, 4.0F, 6.0F),
+                    PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 0.0F,
+                            QUARTER_TURN * blade, 0.0F));
         }
         body.addOrReplaceChild("mast", CubeListBuilder.create()
                 .texOffs(0, 208).addBox(-2.5F, 36.0F, -2.0F, 5.0F, 10.0F, 5.0F),
@@ -276,6 +282,76 @@ public final class ApacheModel extends EntityModel<ApacheEntity> {
         PartDefinition blur = body.addOrReplaceChild("rotor_blur", CubeListBuilder.create()
                 .texOffs(0, 208).addBox(-80.0F, -0.5F, -3.0F, 160.0F, 1.0F, 6.0F),
                 PartPose.offset(0.0F, 46.0F, -2.0F));
+    }
+
+    /**
+     * Cosmetic detail the box layout lacks: probes, antennas, gear struts and end plates. Every
+     * part stays inside the established envelope and above y = 0, so the geometry constants and
+     * the "model rests on its feet" invariant are untouched.
+     */
+    private static void addDetails(PartDefinition body) {
+        // Air data probe ahead of the sensor turret.
+        body.addOrReplaceChild("nose_probe", CubeListBuilder.create()
+                .texOffs(160, 0).addBox(-0.5F, 20.0F,
+                        ApacheGeometry.NOSE_TIP_UNITS - 6.0F, 1.0F, 1.0F, 6.0F),
+                PartPose.offset(0.0F, 0.0F, 0.0F));
+        for (int sign = -1; sign <= 1; sign += 2) {
+            String side = sign < 0 ? "left" : "right";
+            // APR-39 warning antennas on the nose cheeks and the fin.
+            body.addOrReplaceChild("rwr_nose_" + side, CubeListBuilder.create()
+                    .texOffs(160, 0).addBox(sign < 0 ? -9.0F : 8.0F, 12.0F, -56.0F,
+                            1.0F, 5.0F, 6.0F),
+                    PartPose.offset(0.0F, 0.0F, 0.0F));
+            body.addOrReplaceChild("rwr_tail_" + side, CubeListBuilder.create()
+                    .texOffs(0, 208).addBox(sign < 0 ? -4.0F : 3.0F, 30.0F, 82.0F,
+                            1.0F, 4.0F, 6.0F),
+                    PartPose.offset(0.0F, 0.0F, 0.0F));
+            // Main gear struts from the belly down to the wheels.
+            body.addOrReplaceChild("strut_main_" + side, CubeListBuilder.create()
+                    .texOffs(400, 400).addBox(sign < 0 ? -13.0F : 11.0F, 6.0F, 4.0F,
+                            2.0F, 6.0F, 4.0F),
+                    PartPose.offset(0.0F, 0.0F, 0.0F));
+            // Stabilator end plates.
+            body.addOrReplaceChild("stabilator_plate_" + side, CubeListBuilder.create()
+                    .texOffs(160, 0).addBox(sign < 0 ? -16.0F : 14.0F, 14.0F,
+                            ApacheGeometry.TAIL_TIP_UNITS - 10.0F, 2.0F, 7.0F, 8.0F),
+                    PartPose.offset(0.0F, 0.0F, 0.0F));
+            // Wing tip fairing and its formation light.
+            body.addOrReplaceChild("wing_tip_" + side, CubeListBuilder.create()
+                    .texOffs(0, 0).addBox(sign < 0 ? -32.0F : 30.0F, 19.0F, -8.0F,
+                            2.0F, 6.0F, 12.0F),
+                    PartPose.offset(0.0F, 0.0F, 0.0F));
+            body.addOrReplaceChild("formation_light_" + side, CubeListBuilder.create()
+                    .texOffs(440, 208).addBox(sign < 0 ? -33.0F : 32.0F, 21.0F, -4.0F,
+                            1.0F, 2.0F, 2.0F),
+                    PartPose.offset(0.0F, 0.0F, 0.0F));
+            // Chaff dispenser on the boom.
+            body.addOrReplaceChild("dispenser_" + side, CubeListBuilder.create()
+                    .texOffs(0, 208).addBox(sign < 0 ? -6.0F : 5.0F, 18.0F, 22.0F,
+                            1.0F, 4.0F, 10.0F),
+                    PartPose.offset(0.0F, 0.0F, 0.0F));
+            // Dark exhaust sleeve behind the IR suppressed outlet.
+            body.addOrReplaceChild("exhaust_sleeve_" + side, CubeListBuilder.create()
+                    .texOffs(0, 400).addBox(sign < 0 ? -18.5F : 13.5F, 24.5F, 29.0F,
+                            4.0F, 4.0F, 2.0F),
+                    PartPose.offset(0.0F, 0.0F, 0.0F));
+            // Engine intake lip.
+            body.addOrReplaceChild("intake_lip_" + side, CubeListBuilder.create()
+                    .texOffs(0, 0).addBox(sign < 0 ? -21.0F : 11.0F, 17.0F, -10.0F,
+                            10.0F, 16.0F, 3.0F),
+                    PartPose.offset(0.0F, 0.0F, 0.0F));
+        }
+        // Nose gear strut and drag brace.
+        body.addOrReplaceChild("strut_nose", CubeListBuilder.create()
+                .texOffs(400, 400).addBox(-1.5F, 6.0F, -54.0F, 3.0F, 6.0F, 3.0F),
+                PartPose.offset(0.0F, 0.0F, 0.0F));
+        body.addOrReplaceChild("brace_nose", CubeListBuilder.create()
+                .texOffs(400, 400).addBox(-1.0F, 9.0F, -51.0F, 2.0F, 2.0F, 9.0F),
+                PartPose.offset(0.0F, 0.0F, 0.0F));
+        // Tail rotor gearbox fairing.
+        body.addOrReplaceChild("gearbox_fairing", CubeListBuilder.create()
+                .texOffs(0, 208).addBox(-7.0F, 37.0F, 84.0F, 4.0F, 6.0F, 8.0F),
+                PartPose.offset(0.0F, 0.0F, 0.0F));
     }
 
     @Override

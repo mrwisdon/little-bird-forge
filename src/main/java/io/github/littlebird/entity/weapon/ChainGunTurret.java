@@ -23,6 +23,16 @@ public final class ChainGunTurret {
     public static final double MAX_ELEVATION_DOWN_DEG = 60.0D;
     /** 600 rpm at 20 ticks per second. */
     public static final int FIRE_INTERVAL_TICKS = 2;
+
+    /** The gun cannot cycle faster than this: a caller asking for less gets the pack default. */
+    public static final int MIN_FIRE_INTERVAL_TICKS = 2;
+
+    /**
+     * A spent interval counts as spent this close to zero. A fractional cadence leaves fractions of a
+     * tick owing, and without this a remainder of 1e-15 would read as "still cooling" and slip the
+     * next round by a whole tick, which is the drift the carried remainder exists to prevent.
+     */
+    private static final double COOLDOWN_EPSILON = 1.0E-6D;
     /** One point of heat per round, so the barrel locks after 50 rounds = 5 seconds. */
     public static final int MAX_HEAT = 50;
     public static final int OVERHEAT_LOCK_TICKS = 80;
@@ -47,10 +57,10 @@ public final class ChainGunTurret {
      * The barrel's own attitude plus the trigger state. {@code aimYawDeg} and {@code aimPitchDeg}
      * are absolute world angles - they are the same numbers a player's look direction is made of.
      */
-    public record State(double aimYawDeg, double aimPitchDeg, int heat, int cooldown,
+    public record State(double aimYawDeg, double aimPitchDeg, int heat, double cooldown,
                         int lockTicks) {
         public static State initial() {
-            return new State(0.0D, 0.0D, 0, 0, 0);
+            return new State(0.0D, 0.0D, 0, 0.0D, 0);
         }
     }
 
@@ -73,15 +83,41 @@ public final class ChainGunTurret {
         return new Aim(normalize(airframeYawDeg), clampPitch(airframePitchDeg));
     }
 
-    /** Holds the turret on the requested aim, and fires if asked. */
+    /** Holds the turret on the requested aim, and fires if asked at the built-in cadence. */
     public static Step advance(State state, Aim desired, boolean trigger) {
+        return advance(state, desired, trigger, FIRE_INTERVAL_TICKS);
+    }
+
+    /**
+     * Same, with the cadence owned by the caller and counted in whole ticks: the built-in 2 ticks is
+     * 600 rounds a minute, which is what the Wildcat's 30mm runs.
+     */
+    public static Step advance(State state, Aim desired, boolean trigger, int intervalTicks) {
+        return advance(state, desired, trigger, (double) intervalTicks);
+    }
+
+    /**
+     * Same, with a cadence that does not have to be a whole number of ticks.
+     *
+     * <p>A real rate of fire rarely lands on whole ticks: 180 rounds a minute is one round every six
+     * and two thirds, and rounding that up to seven would quietly hand the crew 171. The remainder is
+     * therefore carried in {@code cooldown} - a shot adds the interval to what is left of the last
+     * one instead of resetting it - so the spacing alternates 7, 7, 6 and the average rate is exact
+     * over any window instead of drifting slower.
+     */
+    public static Step advance(State state, Aim desired, boolean trigger, double intervalTicks) {
+        double interval = Double.isFinite(intervalTicks)
+                ? Math.max(MIN_FIRE_INTERVAL_TICKS, intervalTicks)
+                : FIRE_INTERVAL_TICKS;
         // The barrel holds the gunner's own look directly: no slew delay, so a mouse move is on
         // the crosshair the same tick. Normalize keeps the held angle inside +/-180.
         double yaw = normalize(targetYaw(desired));
         double pitch = targetPitch(desired);
 
         int heat = Math.max(0, state.heat());
-        int cooldown = Math.max(0, state.cooldown());
+        // Not clamped up to zero: a spent interval can leave a fraction of a tick owing, and that
+        // fraction is the whole reason a fractional cadence keeps its rate.
+        double cooldown = Double.isFinite(state.cooldown()) ? state.cooldown() : 0.0D;
         int lock = Math.max(0, state.lockTicks());
         boolean fire = false;
 
@@ -90,22 +126,27 @@ public final class ChainGunTurret {
             lock--;
             heat = Math.max(0, heat - COOL_PER_TICK);
         } else if (trigger) {
-            if (cooldown <= 0) {
+            if (cooldown <= COOLDOWN_EPSILON) {
                 fire = true;
-                cooldown = FIRE_INTERVAL_TICKS;
+                cooldown += interval;
                 heat++;
                 if (heat >= MAX_HEAT) {
                     heat = MAX_HEAT;
                     lock = OVERHEAT_LOCK_TICKS;
                 }
             }
-            if (cooldown > 0) {
+            if (cooldown > 0.0D) {
                 // The tick that fires also spends one tick of the interval, so the cadence
-                // is exactly FIRE_INTERVAL_TICKS rather than that plus one.
+                // is exactly the interval rather than that plus one.
                 cooldown--;
             }
         } else {
-            cooldown = 0;
+            // Releasing the trigger must not rearm the gun. A chain gun's interval is the time it
+            // takes to cycle, not a property of the trigger, so clearing it here handed every fresh
+            // click a free shot and let click-spam fire far faster than the configured rate. The
+            // countdown therefore keeps running while the trigger is up - clamped at zero so a long
+            // idle cannot bank a burst - which is exactly how the tank's main gun has always worked.
+            cooldown = Math.max(0.0D, cooldown - 1.0D);
             heat = Math.max(0, heat - COOL_PER_TICK);
         }
 

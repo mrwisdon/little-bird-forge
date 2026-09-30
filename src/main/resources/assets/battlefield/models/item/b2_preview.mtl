@@ -1,0 +1,10 @@
+# Blender MTL for B-2 Spirit preview mesh
+newmtl B2Skin
+Ns 220.000000
+Ka 0.30 0.30 0.30
+Ks 0.35 0.35 0.35
+Ke 0.0 0.0 0.0
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd battlefield:item/b2_preview

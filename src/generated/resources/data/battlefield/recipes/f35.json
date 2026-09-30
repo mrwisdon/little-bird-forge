@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "battlefield:f35_airframe"
+    },
+    {
+      "item": "battlefield:aircraft_engine"
+    },
+    {
+      "item": "battlefield:aircraft_engine"
+    },
+    {
+      "item": "battlefield:f35_weapons"
+    }
+  ],
+  "result": {
+    "item": "battlefield:f35"
+  }
+}

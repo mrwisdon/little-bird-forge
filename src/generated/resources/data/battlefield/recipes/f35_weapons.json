@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "P": {
+      "item": "battlefield:weapon_pylon"
+    },
+    "T": {
+      "item": "battlefield:targeting_computer"
+    }
+  },
+  "pattern": [
+    "P P",
+    " T "
+  ],
+  "result": {
+    "item": "battlefield:f35_weapons"
+  },
+  "show_notification": true
+}

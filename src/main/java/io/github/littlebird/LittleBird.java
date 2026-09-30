@@ -1,6 +1,7 @@
 package io.github.littlebird;
 
 import io.github.littlebird.network.ModNetwork;
+import io.github.littlebird.registry.ModBlockEntities;
 import io.github.littlebird.registry.ModBlocks;
 import io.github.littlebird.registry.ModCreativeTabs;
 import io.github.littlebird.registry.ModEntities;
@@ -26,6 +27,7 @@ public final class LittleBird {
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
         ModEntities.register(modBus);
         ModBlocks.register(modBus);
+        ModBlockEntities.register(modBus);
         ModItems.register(modBus);
         ModCreativeTabs.register(modBus);
         ModSounds.register(modBus);
