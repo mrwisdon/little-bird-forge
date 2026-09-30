@@ -1,0 +1,3 @@
+36:[LWJGL] Platform/architecture mismatch detected for module: org.lwjgl
+48:java.lang.UnsatisfiedLinkError: Failed to locate library: liblwjgl.so
+67:Exception in thread "main" java.lang.UnsatisfiedLinkError: Failed to locate library: liblwjgl.so

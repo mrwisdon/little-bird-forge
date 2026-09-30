@@ -136,3 +136,142 @@
 证据：`c_ifv_side.png`、`c_ifv_threequarter.png`、`c_ifv_side_close.png`；
 同机位前后对比 `compare_ifv_detail_before_after.png`、`compare_ifv_detail_34_before_after.png`。
 编译：`./gradlew compileJava test` → BUILD SUCCESSFUL。
+
+---
+
+## 追加：用 Blender 源模型替换游戏内坦克建模（2026-09-14）
+
+目标：goal-f27dc563-76e3-41fc-b686-1965ecabe024。用户决策：表示方式 = **LayerDefinition 盒模型（F-35 同款）**；
+尺寸 = **采用真实 M1A2 尺度并同步 Geometry**；顺带**刷新 models/**。
+
+### 流水线（可重复）
+- blender_m1a5/export_mc.py：从 m1a5.blend 导出每个部件的 AABB（16 单位/格，Y 上、机头 -Z，米→单位），
+  含炮塔/车体分组、纹理分区、履带环参数、船体五边形剖面与炮塔放样截面 → tools/data/m1a5_boxes.json。
+- tools/generate_ground_unit_model.py：确定性生成 client/MainBattleTankModel.java（**173 盒**）：
+  船体/炮塔用旋转装甲板重建斜面，履带用空心环带（顶/底/前后端盖，长条切段以满足贴图跨度），
+  内置 texOffs 越界审计；并生成 models/src/ground_units_tank_data.py。
+- tools/generate_ground_unit_textures.py：坦克改用新的 TANK_ZONES（512×160 olive 容纳真实尺度车体盒），
+  新增 roller/hub 分区让 7 对负重轮与轮毂可辨；IFV 沿用原 IFV_ZONES，输出**逐字节不变**。
+
+### 几何（MainBattleTankGeometry，真实尺度）
+HULL_LENGTH 112→**126.88**、HULL_WIDTH 56→**58.56**、HULL_TOP/炮塔环 28→**26.24**、BARREL 96→**92.88**、
+TRACK_HEIGHT 8→**15.52**、AABB 3.4→**3.7**；驾驶员/炮手座位与两挺机枪炮口按 Blender 实测重标
+（TankMachineGunMuzzleTest 同步更新，容差 1e-9→1e-6，以容纳 float 常数与 double 期望的 ~2e-8 差）。
+
+### 验证
+- ./gradlew compileJava → BUILD SUCCESSFUL（仅既有 3 条 deprecation 警告）。
+- ./gradlew test → BUILD SUCCESSFUL，**413 tests / 0 failures**。
+- models/src/build_models.py + verify_models.py → **VERIFY PASSED**：tank 173 盒 / 2076 三角面，
+  bbox 3.66×4.34×9.77 格；IFV 仍 61 盒 / 732 三角面（未动）。
+- texOffs 越界审计：**0**。
+- 预览证据：docs/plan/evidence/ground-units-model/mc_lf.png、mc_side.png（Blender 重建的 MC 盒模型）、
+  models/build/main_battle_tank_side.png。
+
+### 回退点
+docs/plan/backups/2026-09-14_pre_blender/：MainBattleTankModel.java、MainBattleTankGeometry.java、
+generate_ground_unit_textures.py + SHA256SUMS。
+
+### 同步（2026-09-14 23:26，用户下令）
+- 已运行 `./gradlew build` → **BUILD SUCCESSFUL**，`:syncLocalMods` 已把 JAR 复制到 PCL2 实例
+  （`local_mods_dir=/mnt/c/Users/19818/AppData/Roaming/.minecraft/versions/1.20.1-Forge_47.4.20/mods`）。
+- 核对：`build/libs/battlefield-0.1.0.jar` 与实例副本 **sha256 一致**
+  `b3c1e9e9e8f50f38706417258e5c26b4209d2661d076bd28f2f5b483ae3c2e8a`，大小 773565 B；
+  实例 mods 内 battlefield/littlebird JAR **仅 1 份**（无重复 mod id）；
+  JAR 内 `main_battle_tank.png` 与源文件 sha256 一致（`a8dd69e7…`），并含新的
+  `MainBattleTankModel.class` / `MainBattleTankGeometry.class`。
+- `:test` 为 UP-TO-DATE（上一次 413 tests / 0 failures）。
+
+### 未做 / 待实机
+- **runClient 在本 WSL 环境无法启动**：./gradlew runClient 在 LWJGL 初始化阶段失败——
+  "Platform/architecture mismatch ... Platform available on classpath: windows/x86"，
+  java.lang.UnsatisfiedLinkError: Failed to locate library: liblwjgl.so。
+  这是**迁移遗留的环境问题**（Gradle 缓存里只有 Windows/x86 的 LWJGL natives），与本模型改动无关：
+  compileJava 与 413 条测试均通过。完整报错存于
+  docs/plan/evidence/ground-units-model/runclient_wsl_failure.txt。
+- **游戏内目视待做**：贴图 UV 对齐、炮塔与轮组比例、两挺机枪炮口位置需实机截图确认。
+  当前以 Blender 重建的 MC 盒模型渲染（mc_lf.png / mc_side.png）作为最接近的替代证据。
+
+---
+
+## 追加：rev2 造型修正（对比官方渲染后，2026-09-14）
+
+用户反馈"建模好肥、不够帅"，要求与网上参考图对比后调整。
+
+### 参考图（新增于 blender_m1a5/refs/）
+- BF2042 M1A5 官方 3/4 渲染：swiki（https://bf2042.swiki.jp/index.php?M1A5 → M1A5.jpg，1920x607）与
+  Fandom（File:BF2042-M1A5.png，1311x655）——游戏版权，**仅作造型参考，不随产物分发**。
+- 真实 M1A2 照片：Wikimedia Commons **Public Domain**（M1_Abrams_noBG.jpg 等）——可用于比对。
+
+### 对比后确认的"粗糙/偏肥"点（旧版）
+1. **车体太高、炮塔太小**——旧版车顶 1.64 m、炮塔只有 0.80 m 高，读起来像"大盒子顶小帽子"。
+2. 首上装甲偏陡偏短，没有 M1 的长浅斜面。
+3. 侧裙是等高等长的平板，前沿/后沿没有让出诱导轮与主动轮。
+4. 缺 BF2042 M1A5 的显著特征：炮塔前侧 6 管烟幕发射器、右侧遥控武器站。
+5. 炮盾偏小且位置靠里。
+
+### 本次改动（blender_m1a5/build.py）
+- 车体顶 1.64 → **1.52 m**；首上斜面向后延伸（NOSE_Y+0.50 → NOSE_Y+1.55），坡度变缓。
+- 炮塔放大加长：前缘 -1.90 → **-2.10**，后缘 1.10 → **1.30**，最宽 2.72 m，塔高 0.80 → **0.92 m**；
+  炮盾前移加宽（宽 1.10）。
+- 侧裙下缘分段阶梯（前 0.92、后 0.94，中间 0.66–0.76），让出诱导轮/主动轮。
+- 新增每侧 6 管烟幕发射器 + 右侧遥控武器站（RWS）。
+- 几何同步：TURRET_PIVOT/HULL_TOP/GUNNER_SEAT 26.24 → **24.32**；
+  COAX_MG_HEIGHT 16.32 → **18.24**；CUPOLA_MG_HEIGHT 18.24 → **20.16**（TankMachineGunMuzzleTest 同步）。
+- 修正一处失误：烟幕发射器一度放在炮塔宽度之外（bbox 曾涨到 4.81 m），已收回塔侧，bbox 恢复 3.66 m。
+
+### 验证与同步
+- ./gradlew test → BUILD SUCCESSFUL（413 tests / 0 failures）。
+- models：188 盒 / 2256 三角面，VERIFY PASSED；bbox 仍 3.66 x 4.34 x 9.77 格。
+- ./gradlew build → BUILD SUCCESSFUL，JAR 已同步，sha256
+  47d72a4e90a5389d47979c9e7fdb1aa749542606128f728193f5479e53ec22b8，774090 B，实例内仍单份。
+- 预览：docs/plan/evidence/ground-units-model/mc_lf.png、mc_side.png（新）；Blender 渲染
+  blender_m1a5/renders/rev3_lf.png、rev3_side.png。
+
+### 仍偏粗糙、下一轮可做
+- 炮塔前角缺斜切"颊板"（现在是台阶状，M1 的斜面颊甲读不出来）。
+- 炮塔顶面偏"平台化"，缺面板缝/舱盖细节。
+- 负重轮轮毂仍是方块，履带无单节板。
+- 裙板无面板线/螺栓；无 BF2042 的伪装网、编号涂装（无公开色值来源，未编造）。
+- 尾部动力舱格栅、排气管简化。
+
+---
+
+## 追加：细节强化轮 rev3（2026-09-14）
+
+依对比文档 docs/plan/ground-units-blender-compare.md 的建议 1→5 执行：
+
+- **炮塔**：生成器改为按放样截面逐段出盒（步进更细）+ 每侧 3 块 yaw 斜板**颊甲**，前部台阶改成斜面。
+- **侧裙**：新增 skirt 贴图分区（TUSK 式 **ERA 方块阵列** + 面板缝 + 螺栓），只改贴图，不加几何、不超 3.66 m 宽。
+- **烟幕发射器**移到炮盾两侧（各 6 管、朝前）；新增车长独立热像仪 **CITV**（左）与遥控武器站（右）。
+- 塔侧每侧 4 块**备用履带板** + 长**储物轨**；**尾舱加大**（宽 2.3→2.5 m、深 0.95→1.15 m、高 0.42→0.52 m）。
+- 车首**大灯改长条**并加中央**橡胶挡板**。
+
+结果：Blender 175 对象 / 4416 三角面 / 几何哈希 5ca932fe；MC 模型 208 盒；bbox 仍 3.66 x 9.77 x 4.34 m。
+
+验证与同步：
+- ./gradlew test -> BUILD SUCCESSFUL（413 tests / 0 failures）。
+- models：208 盒 / 2496 三角面，verify VERIFY PASSED。
+- ./gradlew build -> BUILD SUCCESSFUL，JAR 同步 sha256
+  342a8fcdefde5d5bdcb093662214edb61d2953aa164b42aea40a9ea343455a37，775643 B，实例内仍单份。
+- 预览：docs/plan/evidence/ground-units-model/mc_lf.png / mc_side.png / mc_front.png；
+  blender_m1a5/renders/rev4_lf.png / rev4_side.png。
+
+仍待下一轮：炮塔顶面舱盖/面板缝细节、负重轮毂方块化、单节履带板、涂装（迷彩/编号无公开色值来源，不做）。
+
+---
+
+## 追加：把精细化重建的 Blender 模型接进 MC（2026-09-15）
+
+- export_mc.py 升级：新增**尺寸/名称过滤**（min 0.03 m；跳过 Bolt/Rivet/TrackPin/Tooth/Hinge/Spring/
+  Peri/Strap/MRS/LiftEye/CamoNet/Shock）；炮塔前缀扩展；履带环判定改为 M1A5_Track_*；
+  车体剖面由 HullLower+HullUpper 合成（车体已改两段式），半宽走 profiles.hull_half。
+- generate_ground_unit_model.py：按 kind=complex 跳过；车体半宽取自导出。
+- 结果：Blender 727 对象 -> 过滤后 385 部件 -> MC **418 盒**（旧版 208 盒）。
+- 几何同步：炮塔环/车顶/炮手座 24.32 -> **23.04**（车顶 1.44 m）；两挺机枪口按新模型重标
+  （coax 侧 -15.68 / 高 18.88 / 管 8.80；cupola 侧 13.76 / 高 20.8 / 管 25.6），TankMachineGunMuzzleTest 同步。
+- 贴图按新分区重生成（IFV 不变）。
+- 验证：**413 tests / 0 failures**；build SUCCESSFUL。
+- 同步：JAR sha256 `aeec9fb85a17bc6d0414a395e30c5b1c08f2da68702ba1a7f2d64bbbbb8f606d`，782880 B，实例内单份。
+- 取舍：微件（螺栓/履带销/铆钉/铰链/潜望镜/鞭天线/伪装网）未进 MC 模型，MC 侧靠贴图与近似盒表达。
+- 未做：游戏内目视（WSL 起不了 runClient，LWJGL natives 只有 windows/x86）。
+

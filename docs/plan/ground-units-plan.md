@@ -74,6 +74,10 @@
 | 5 | 造价 | 沿用生存打造链 + 新增地面零件（IFV≈小鸟级、MBT 含钻石火控）；创造栏同时提供 |
 | 6 | 座位 | 坦克 2 座（驾驶员+炮手）；步战 2 座 + 2 载员 = 4 座 |
 | 7 | 资产 | 先程序化占位（盒模型 + 纯色纹理 + 复用音效），缺失清单单列 |
+| — | 通过性与速度（2026-09-14） | 完成 | implementation-status 第 64.24 节；新增 `GroundMover` 自研爬台阶（根因：`Entity.move` 不读 `maxUpStep`）；坦克极速 0.45 / 台阶 1.5、步战 0.62 / 台阶 1.0 |
+| — | 坡度物理 + 车身俯仰 + 手感返工（2026-09-14） | 完成 | implementation-status 第 64.25 / 64.26 / 64.30 节；坡度改用 `SlopeTracker` **实走坡度**（不再看前方地形），驱动上坡降到 70% 封顶、**取消回溜**；`HullTilt` 60° 上限限速平滑；坦克 max 35°、步战 25° |
+| — | 爬坡子系统重构：多点坡面拟合 + 俯仰侧倾 + 50°（2026-09-14） | 完成（待游戏内验收） | implementation-status 第 64.34 节、ground-climb-refactor.md；新增 `GroundContact`/`HullPose`，车身姿态与驱动坡度改由四角接触面驱动，`SlopeTracker` 降级为回退；两车 max 50° |
+| — | 视觉升级（2026-09-14） | 完成 | implementation-status 第 64.23 节；`tools/generate_ground_unit_textures.py` 重写为细节绘制（10 个分区矩形不变，坦克 564 色 / 步战车 555 色，两车不同涂装）；M1A5 补备用履带板与挡泥板、Wildcat 补后门备胎与第二根天线 |
 
 实现与证据见 ground-units-evidence.md。
 

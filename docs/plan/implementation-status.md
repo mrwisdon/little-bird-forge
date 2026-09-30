@@ -2241,10 +2241,573 @@ io.github.littlebird.entity.ApacheEntity.destroyAircraft(ApacheEntity.java:877)
 - 语言键文案取 **70mm 火箭巢**（与武直的「19 管火箭巢」对齐，未编造管数）；若想叫「7 管火箭巢」，
   只需改两个 lang 文件同一行。
 
+## 64. BF2042 喷气机（J0-J10）落地与待实测
+
+### 64.1 已落地
+- 纯规则层：`JetState/JetInput/JetConfig/JetFlightModel/F35Profile/Su57Profile` + 飞行单测；`JetType` 收敛机型差异。
+- 实体/网络：`JetEntity`（客户端权威姿态 + 服务端权威武器）、`JetGeometry`、`JetControlPacket`、`JetFlarePacket`、`GunshipRider` 乘员保护。
+- 武器：25mm/30mm 机炮状态机、Hydra-70、IR/AGM/RADAR 三种制导（`TargetLock`/`MissileGuidance`/`Countermeasures`/`MissileKind`）。
+- 客户端：`JetInput`/`JetCamera` 一三人称、`JetHud`、`JetModel+JetRenderer`（F-35E）、`Su57Model+Su57Renderer`。
+- 数据/配置：`f35`/`su57` 配方与成就、中英文案、物品图标、`jet_third_person_distance`/`jet_flare_count`/`jet_lock_range_blocks`。
+
+### 64.2 关键取舍
+- 喷气机第三人称距离独立于武直（机身 11 格 vs 武直 9 格），经 mixin 改 `Camera#getMaxZoom` 请求值。
+- Su-57 无 VTOL，`JetType.supportsVtol()` 在客户端与服务端同时门控；两机共用一套弹药/HUD/相机代码。
+- 导弹战斗部以 `MissileKind` 常量表达（不进 config），换取导弹实体无需携带配置引用；数值按 BF2042 手感标定。
+
+### 64.3 验证证据（构建层，非游戏内）
+- `./gradlew test` 全绿（`JetFlightModelTest` 19、`MissileKindTest` 4、`JetCannonTest` 5、`JetGeometryTest` 7）。
+- `./gradlew runData` + `build` 成功；`f35`/`su57` 配方、成就、贴图均在 JAR 内；sha256 `9477412c…dd02f` 与 PCL2 实例一致。
+
+### 64.4 待游戏内实测
+1. F-35E 起降/巡航/失速/俯冲坠毁手感，VTOL 切换与悬停；
+2. 两机第三人称取景、座舱视野、模型比例与外倾双垂尾；
+3. 机炮过热节奏、锁定获取、热诱饵摆脱 IR、雷达弹无锁定发射、AGM 对坦克 3 发击杀；
+4. HUD 锁定框/热量/挂点读数与换弹补给（AircraftRearm）。
+
+### 64.5 仍可调整项
+- `instanceof JetEntity` 硬编码仍散布在输入/相机/HUD；再加机型前可先抽象为 `JetType` 驱动；
+- AGM 对空 16、IR 30、RADAR 26 等数值可直接在 `MissileKind` 调整。
+
+### 64.6 起飞失速低头修复（2026-09-14）
+- 现象：喷气机在地面直接机头竖直朝下、无法起飞。
+- 根因：`JetFlightModel` 失速低头不看 `onGround` 且覆盖飞行员输入；阈值 0.63 格/刻，静止时 2°/刻顶到 90°，水平推力归零形成死锁。
+- 修复：失速低头加 `!onGround()` 门控；首次接管复位飞行员视线俯仰。新增 3 项单测，`JetFlightModelTest` 22 项全绿。
+- 验证：`build` 成功，JAR sha256 `2dab90c5…f4d9`；真实起飞手感仍待在游戏内复测。
+
+### 64.7 喷气机手感修复：俯仰-速度能量耦合（2026-09-14）
+- 缺陷：计划 §5.6 的能量耦合未实现，俯冲掉速、只有平飞能保速，飞机像在轨道上。
+- 修复：新增 `pitchSpeedCoupling`（0.7），重力沿机头分量作用于水平速度 + 速度上限随俯仰浮动；俯仰率 F-35E 3.0→5.0、Su-57 3.4→5.6；滚转满舵阈值 6°→10°。
+- 验证：`JetFlightModelTest` 23 项全绿，全量 `build` 成功，JAR sha256 `509ba42f…c061` 与实例一致；能量手感仍待游戏内实测。
+
+### 64.8 物品图标与语言键补全（2026-09-14）
+- 缺陷：9 个物品贴图是 16×16 纯色方块（armor_plate/cannon_barrel/ifv_hull/infantry_fighting_vehicle/main_battle_tank/tank_hull/track_assembly/turret_ring/wheel_assembly），在栏里等同没有图标；`item.battlefield.su57`、`entity.battlefield.su57`、`entity.battlefield.apache_missile`、`entity.battlefield.lock_on_missile`、`entity.battlefield.main_gun_shell` 缺键（Su-57 物品名显示原始 key）。
+- 修复：新增 WSL 原生 `tools/generate_item_icons.py`（纯 zlib，9 个 16×16 像素图标，含放大预览自查）；补齐 5 个键 × 2 语言。
+- 验证：en/zh 各 108 键且集合一致；物品贴图已无单色图；全量 `build` 成功，JAR sha256 `359e6bd2…602a` 与实例一致。
+
+### 64.9 喷气机机动改造：俯仰驱动转弯（2026-09-14）
+- 调研：`docs/plan/bf2042-jet-flight-reference.md`（BF2042 = 滚转→拉杆的街机高角速率模型；角点速度中速最快；失速为低速深层状态）。
+- 根因：旧转弯不看俯仰、按俯仰瞬时钳速度、拉杆抽干升力、速度矢量不跟机头 → 压坡度拉杆 2s 内失速。
+- 改造：俯仰按坡度分解 + 角点速度转弯率（拉杆放大）+ 拉杆补升力 + 诱导阻力替代钳制 + 速度矢量跟随机头。
+- 验证：`JetFlightModelTest` 24 项全绿，全量 `build` 成功，JAR sha256 `22e7234a…22c7` 与实例一致；手感待游戏内实测。
+
+### 64.10 喷气机跟随视角（2026-09-14）
+- 缺陷：第三人称相机偏航跟机头、俯仰跟鼠标，视点与机体脱节。
+- 修复：鼠标 Y 改为俯仰位移累加（`pitchCommandDeg`，±90°），步进后把 `pilot.setXRot` 锚回机体；相机 pitch/yaw 跟机头、roll 由 `JetCamera` 叠加。
+- 验证：全量 `build` 成功，JAR sha256 `46960311…f6f6` 与实例一致；跟随手感待游戏内实测。
+
+### 64.11 喷气机俯仰反转设置（2026-09-14）
+- 需求：俯仰反转，可在设置中开关。
+- 实现：CLIENT 布尔 `jet_invert_pitch`（默认 false，Forge 配置界面可勾选）+ 热键 `I`（`key.battlefield.invert_pitch`，全局、写回配置、动作栏提示）。
+- 生效：`JetEntity.applyLocalFlight` 对鼠标俯仰位移取反，飞行中切换不跳变。
+- 验证：全量 `build` 成功；en/zh 各 111 键且集合一致；JAR sha256 `fa0eb411…fedc` 与实例一致；反转手感待实测。
+
+### 64.12 喷气机跟随视角脱离修复（2026-09-14）
+- 根因：相机取自玩家视点，鼠标每帧写、mod 只每 tick 锚回一次 → 非 tick 帧相机跟原始鼠标、下一 tick 弹回（滚转=鼠标横轴最明显）。
+- 修复：`CameraDistanceMixin` 注入 `Camera.setup` HEAD，每帧把机体 `yRot/yRotO/xRot/xRotO` 拷到飞行员；鼠标位移改为按帧累加、按 tick 消费；roll 在 `JetRenderer`/`JetCamera` 按 partialTick 插值。
+- 验证：全量 `build` 成功，refmap 命中 `setup→m_90575_`，24 项单测全绿，JAR sha256 `02e724b2…5a30` 与实例一致；手感待实测。Apache/Little Bird 未套用。
+
+### 64.13 固定翼载具伤害显示修复（2026-09-14）
+- 缺陷：小鸟机枪/火箭、Apache 机炮/TOW、地面武器打喷气机时，目标血条恒显示 100%（实际有伤害）。
+- 根因：`JetEntity extends Entity`（非 `LivingEntity`），而这些武器都调用 `LittleBirdEntity.healthFractionOf`，该方法只认 `LittleBirdEntity`/`ApacheEntity`/`LivingEntity`，喷气机落到末尾 `return 1.0F`。伤害本身正常：`AirframeTargets.classify` 已识别 `FIGHTER_JET`，`JetEntity.hurt` 正常扣 `DATA_HEALTH`。
+- 修复：`LittleBirdEntity.healthFractionOf` 增加 `JetEntity` 分支（`jet.getHealth()/JetEntity.MAX_HEALTH`）；所有武器入口共用该方法，一处修复全部生效。`JetEntity.healthFractionOf` 原有分支保留。
+- 验证：全量 `build` 成功；JAR sha256 `f7c460f2…ddaf` 与实例一致；血条百分比待游戏内实测（`LittleBirdHudMath.healthPercentLabel` 已有纯规则测试）。
+
+### 64.14 载具伤害显示统一 + 新载具入口（2026-09-14）
+- 需求：地载/固定翼/螺旋翼都能显示对目标载具的伤害；给新载具留可维护入口。
+- 缺口：三族武器其实都已发命中反馈，但 `GroundHud` 从不画 `enemyHealthBar`（jet/apache/littlebird HUD 都画）；“是否弹条”的判定各武器还不一致（地面按 `instanceof GunshipRider`，空中按 `AirframeTargets.isAirframe`）；比例逻辑散在 4 处静态方法里。
+- 收口：`GunshipRider` 新增 `float healthFraction()`，各 hull 自报 0..1 完整度（Jet/Apache/LittleBird/Tank/IFV 各 5 行）；新增 `HitFeedback.report(ServerPlayer, Entity)` 作为唯一上报入口（kill + `target instanceof GunshipRider` 决定是否弹条 + 比例）；5 个武器调用点（小鸟机枪、Apache 机炮、小鸟火箭、Apache 导弹、`GroundWeapons.fireHitscan`，喷气机炮也走后者）改为一行调用；旧 `*Entity.healthFractionOf` 退化为委托、`GroundWeapons.healthFraction` 删除。
+- 语义修正：血条标志 `aircraft`→`vehicle`，判定=任意 `GunshipRider`，所以空中武器打坦克/IFV 现在也会弹条（此前不会）。
+- 入口：新载具实现 `GunshipRider.healthFraction()` 即可被所有武器正确显示；新武器只需调 `HitFeedback.report(shooter, target)`。
+- 验证：全量 `build` 成功；JAR sha256 `34f3c8ce…fd9e` 与实例一致、仅一份；HUD 实际表现待游戏内实测。
+
+### 64.15 喷气机起飞滑跑抽搐修复（2026-09-14）
+- 根因：`JetFlightModel` 地面把 `vy` 归零，而 `Entity.move` 只在“有向下位移”时置 `onGround` → 地面 `onGround` 每隔一 tick 翻假，§9.13 的地面失速低头门失效，起飞滑跑时机头交替低头 → 抽搐（已用 `Entity.class` 字节码确认 `setOnGroundWithKnownMovement` 的赋值路径）。
+- 修复：地面保留 `0.05` 向下探针（向上请求不覆盖），`move` 碰撞自行归零、位置不下沉；新增 60 刻地面单测。
+- 验证：全量 `build` 成功，飞行单测 25 项全绿，JAR sha256 `8f310c27…a5e4` 与实例一致、仅一份；地面/抬轮手感待实测。
+
+### 64.16 补齐 4 台载具修理配方（2026-09-14）
+- 缺口：生存打造链与回收已覆盖 6 台载具，但修理配方只有小鸟/阿帕奇两条（datagen 静默不产出“同名进出”无序配方，见 §58.4）。
+- 补齐：F-35 5、Su-57 5、M1A5 6、IFV 5 铁锭，手写 JSON 与既有两条同格式；新增 `RepairRecipeTest` 锁定全部 6 条（type/产物/携带机体/铁锭数），防止再次静默缺失。
+- 验证：`RepairRecipeTest` 与全量 `build` 成功，6 条修理配方均在 JAR 内；JAR sha256 `48e842c7…9f5d` 与实例一致、仅一份。
+- 待实测：残血机体 + 对应铁锭在背包合成栏能修满；满血机体仍会被该配方匹配（原版无法判断 NBT，§58.4）。
+
+### 64.17 固定翼三段组装 + 载具工厂（2026-09-14）
+- 固定翼缺陷：`f35`/`su57` 是 11 材料无序配方，3x3 放不下且两机材料相同 → 不可合成也无法区分。改为仿阿帕奇三段：`f35_airframe`/`f35_weapons`、`su57_airframe`/`su57_weapons`（同材料异布局区分两机），整机 4 格无序，总成本不变。`RecipeGridTest` 遍历全部生成配方断言无序 ≤9、形状 ≤3x3、6 台载具都有配方。
+- 新增方块 `battlefield:vehicle_factory`（方块 + 方块实体 + 9 输入/1 输出 `ItemStackHandler` + 能力 + 方块状态/模型/贴图/双语 + 自身配方）：“零件进、整机出”。纯规则表 `assembly/VehicleAssembly`（多者可造时取最贵），`VehicleAssemblyTest` 与生成配方逐行交叉校验；漏斗单向进出、比较器报 0/进度/15。
+- 接线：ModBlockEntities（新）、ModBlocks/ModItems/ModCreativeTabs、LittleBird 主类；1.20.1 用 `BlockEntity#getCapability` 暴露物品栏（`registerBlockEntity` 便利 API 属 1.20.2+，本次踩到）。
+- 验证：runData + 全量 build 成功；374 测试 0 失败；JAR sha256 `1c50e225…7d06` 与实例一致、仅一份；工厂配方/方块状态/模型/贴图均在 JAR。
+- 待实测：建造时间手感、漏斗方向、比较器读数、右键投料/取件；工厂无 GUI（纯自动化交互）。
+
+### 64.18 喷气机鼠标偏航/滚转切换（2026-09-14）
+- 新增客户端配置 `jet_mouse_yaw` + 按键 `Y` + 屏幕提示；换轴抽成纯规则 `flight/JetAxes`（默认鼠标滚转、A/D 偏航，开启后互换），`JetEntity.applyLocalFlight` 只调用一次；与俯仰反转（§64.10-14）互相独立。
+- 直升机未改：小鸟/阿帕奇本就是鼠标偏航 + A/D 滚转。
+- 验证：`JetAxesTest` + `LangFileTest` 全绿，376 测试 0 失败；JAR sha256 `d2a85d5f…0372` 同步、仅一份。
+- 待实测：两种手感差异与 `Y` 键冲突。
+
+### 64.19 阿帕奇视觉升级（贴图 + 细节件，2026-09-14）
+- 盘点：阿帕奇本就是细节最多的一台（贴图 20 色、约 70 个盒子件），真正“平”的是 F-35/Su-57（各 6 色）。本次按“先修阿帕奇”的指令做第一台样板。
+- 贴图：新增 `tools/generate_apache_texture.py`（原 `generate_apache_texture.ps1` 是 PowerShell，WSL 无 pwsh 需 interop），保留 5 条 UV 带布局不变，细节从 20 色提到 282 色：顶光渐变、迷彩斑块、铆钉面板线、做旧流痕、低可视编号块；玻璃反光渐变 + 框条；金属拉丝 + 桨尖白条；火箭巢肋条/管口/红色管帽；炮塔渐变、轮胎花纹、MFD 青色仪表条。确定性 LCG，重建字节一致。
+- 模型：`ApacheModel.addDetails` 加约 20 个细节件，全部落在既有包络内、y≥0，`ApacheGeometry` 常量与 `SKID_BOTTOM`/旋翼/炮塔不变量零改动（几何与模型数学测试原样通过）。
+- 验证：全量 build 成功；376 测试 0 失败；JAR sha256 `d347e199…3c06` 与实例一致、仅一份；贴图字节 17265 已在 JAR 内。
+- 待实测（必须目视）：新细节件的位置/比例、贴图在模型上的 UV 对齐、迷彩浓淡；建议游戏内多角度截图后再迭代。下一步可照此样板推 F-35/Su-57（目前最平）。
+
+### 64.20 重制模型改为独立副本，原版暂不替换（2026-09-14）
+- 指令：先做一个使用新模型的“副本阿帕奇”，确认无误后再替换原版。
+- 做法：新模型/贴图另存为 `ApacheDetailedModel` + `apache_detailed.png`；原版 `ApacheModel`/`apache.png` 用 `git show HEAD:` 精确还原（本会话对 ApacheModel 只加了 76 行，HEAD 即改前版本，且原贴图 9737 字节 20 色）。新增预览实体 `battlefield:apache_remodel`（复用 `ApacheEntity` 行为，只换渲染器/模型/贴图）+ 部署物品，入创造栏，中英双语。原版 `battlefield:apache` 行为与外观完全不动。
+- 无头截图路径（环境坑）：WSL 下 `build/natives` 为空导致 `liblwjgl.so` 找不到；从 Gradle 缓存解出 7 个 `*-natives-linux.jar` 的 .so 到 `build/natives`，再给 `runClient` 临时加 `org.lwjgl.librarypath`，即可用 llvmpipe 跑 `runClient --args="--quickPlaySingleplayer New World"` 出图。临时夹具 `DevScreenshotHarness`（`BF_SHOT` 触发）与 build.gradle 临时改动现已删除/还原。
+- 验证：376 测试 0 失败；JAR sha256 `9497c2ac…6df6` 与实例一致、仅一份；副本实体/渲染/贴图已在无头客户端成功渲染（截图 `run/screenshots/compare.png`，构图一般但能确认新件与贴图生效）。
+- 待你确认：游戏内并排对比原版与副本，确认后把 `ApacheDetailedModel` 落到原版并删除副本实体/物品/渲染器与 `apache_detailed.png`。
+
+### 64.21 重制模型替换原版阿帕奇（2026-09-14，用户确认后）
+- 用户确认后执行替换：`ApacheDetailedModel` 内容落回 `ApacheModel`（类名/图层名还原为 `ApacheModel`/`APACHE_LAYER`），`apache_detailed.png` → `apache.png`（17265 字节、282 色）。
+- 删除副本：实体/物品 `apache_remodel`、`ApacheRemodelRenderer`、`ApacheRemodelDeployItem`、`models/item/apache_remodel.json`、lang 键、`apache_detailed.png` 全部移除，`ModEntities`/`ModItems`/`ModCreativeTabs`/`ClientModEvents` 注册回退。
+- 验证：源码与 JAR 均无 `apache_remodel`/`apache_detailed` 残留；376 测试 0 失败；JAR sha256 `5306d818…0ea5` 与实例一致、仅一份。
+- 结果：`battlefield:apache` 现在就是重制版（新几何 + 新贴图），创造栏不再有副本条目。
+
+### 64.22 两架固定翼视觉升级（贴图 + 细节件，2026-09-14）
+- 贴图：重写 `tools/generate_jet_texture.py`，6 个 UV 分区矩形保持不变（与 JetModel/Su57Model 的 texOffs 对齐），F-35 **6→478 色**、Su-57 **6→573 色**：受光渐变、迷彩斑块、铆钉面板线、做旧流痕、低可视标识；座舱反光渐变；喷口热变色与花瓣线；挂架/弹箱金属 + 警示条 + 喷字；深色件分区。物品图标保留。
+- 几何：`JetModel` 加约 12 个细节件（空速管、EOTS 下巴窗、DAS 窗口、进气道唇、弹舱门、襟副翼、编队灯、背鳍天线；尾喷花瓣环做成 nozzle 的子件，随 VTOL 一起偏转）；`Su57Model` 加约 14 件（空速管、IRST 球、大边条 LERX、弹舱门、双喷口花瓣环、背部减速板、编队灯）。全部落在既有包络内、y≥0，`JetGeometry` 常量与测试零改动。
+- 验证：376 测试 0 失败；JAR sha256 `b08df55c…d602` 与实例一致、仅一份；两张实体贴图（17707 / 18040 字节）与物品图标已进包。
+- 待实测（目视）：新件位置/比例、贴图在模型上的 UV 对齐；需要的话我可以再跑无头客户端出图。
+
+### 64.23 两种地载视觉升级（贴图 + 少量细节件，2026-09-14）
+- 贴图：重写 `tools/generate_ground_unit_textures.py`，10 个命名分区矩形不变（与两个模型的 texOffs 对齐），不再平涂：受光渐变、迷彩斑块、铆钉面板线、做旧流痕；履带链节与磨损、负重轮金属、炮管磨损环、热护套包布、车灯透镜、车窗反光、烟雾管口、白色喷涂。坦克保留 NATO 橄榄（10 色平涂 → 564 色），步战车改为灰蓝城市涂装（10 色 → 555 色），两车一眼可辨。
+- 几何：M1A5 补 4 对炮塔侧面备用履带板 + 两块后挡泥板；EBAA Wildcat 补后门备胎 + 第二根鞭状天线。全部落在既有包络内、y≥0，几何常量与座位/驾驶/HUD 测试零改动。
+- 验证：376 测试 0 失败；JAR sha256 `c5614f4b…2366` 与实例一致、仅一份；两张地载贴图（19946 / 20521 字节）已进包。
+- 待实测（目视）：新件位置与贴图 UV 对齐。
+
+### 64.24 地载通过性与速度增强（2026-09-14）
+- 根因（已核实）：1.20.1 的 `Entity.move` **不读 `maxUpStep`**（`Entity` 类里只有 field/getter/setter 引用，只有 `LivingEntity` 读它），两车直接继承 `Entity`，所以原来的 `setMaxUpStep(1.0F)` 是死代码——撞上 1 格台阶就停。
+- 爬台阶：新增 `entity/ground/GroundMover.stepUp(vehicle, requested, stepHeight)`——驱动 move 被水平挡住且在地面时，按 `GroundDrive.stepRises()` 的 0.5 格台阶逐级抬高重试同一水平位移，成功则落回新表面，仍被挡则回退（高墙照旧挡住）；显式传入本次请求位移，避免 move 削过的 delta 导致重试没速度。纯规则 `GroundDriveStepTest` 覆盖台阶序列。
+- 速度与配置（CLIENT `ground`）：坦克极速 0.30→**0.45 b/t（9 b/s）**、加速 0.02→0.035、刹车 0.04→0.05、转向率 2.0→2.4、原地转向比 0.35→0.5；步战极速 0.45→**0.62（约 12 b/s）**、加速 0.03→0.05、刹车 0.05→0.065、转向率 3.5→4.0、原地转向比 0.20→0.25。新增 `tank.step_height` 1.5 / `ifv.step_height` 1.0（履带 > 轮式）。
+- 现有配置：`run/config` 与 PCL2 实例的 `battlefield-client.toml` 各同步改 10 处地面值；缺失的 `step_height` 会在下次启动按新默认补写。
+- 验证：378 测试 0 失败（+2）；JAR sha256 `f2e2a54a…abbc` 与实例一致、仅一份。
+- 待实测：爬 1 / 1.5 格台阶与斜坡的手感、极速是否过快、原地转向。
+
+### 64.25 履带坡度物理（2026-09-14）
+- 缺口：§64.24 只有台阶攀爬，没有坡度——上坡不掉速、下坡不加速、无最大爬坡角、无回溜，能无限长 45° 楼梯全速爬。
+- 纯规则（`GroundDrive`）：`Spec` 增加 `maxGradeDegrees`（保留 5 参构造，旧调用/测试不破）；新增 `gradeSpeedFactor(grade, max)`（上坡线性掉到 15% 底、下坡最多 +30%）与带 `gradeDegrees` 的 `advance` 重载——超过 `maxGrade` 且给前进油门时目标速度转负，坡度越超越多回溜越快。
+- 采样（`GroundMover.gradeDegrees(vehicle, halfLength)`）：用 `Heightmap.MOTION_BLOCKING_NO_LEAVES` 取车头/车尾地面高度，`atan2(Δh, 车长)`；半车长取各自 Geometry 的 `HULL_LENGTH_UNITS`（坦克 3.5 格、步战 3.0 格）。空中/停用返回 0。
+- 配置（CLIENT `ground`）：新增 `tank.max_grade_degrees` **35**、`ifv.max_grade_degrees` **25**（履带 > 轮式）；现有配置文件缺该键时按默认生效，Forge 下次启动补写。
+- 验证：382 测试 0 失败（+4 坡度测试）；JAR sha256 `2f11c6d7…9441` 与实例一致、仅一份。
+- 未做（可选下一步）：车身随坡面俯仰（渲染层），现在上坡时车身仍水平。
+- 待实测：35° / 25° 是否合适、自然地形与楼梯上的坡度采样手感、回溜速度。
+
+### 64.26 车身随坡面俯仰（2026-09-14）
+- 依据：渲染器已把 `entity.getXRot()` 当模型俯仰（`MainBattleTankRenderer:40-42`、`InfantryFightingVehicleRenderer:41-43`），且 `LittleBirdModelMath.modelPitchDegrees = -pitch`（第 32-34 行），所以上坡（grade>0）要设 `setXRot(-grade)`。
+- 实现：`GroundMover.hullPitchDegrees(grade, current, lerp)` 把坡度转成 MC 俯仰（正=低头），限幅 ±30°、按 `lerp=0.3` 缓动；空中 `grade=0` 自然回平。两车在 `tickClient` 里每次驱动 tick 调用；`super.tick()` 更新 `xRotO`，渲染端 `Mth.lerp(partialTick,...)` 自带插值。
+- 影响面：`getXRot` 不参与地面火控（坦克 `muzzle()` 只用 yaw、IFV 炮塔用驾驶员视角），乘员座位是固定 offset，所以只改观感。
+- 验证：382 测试 0 失败；JAR sha256 `0434865d…926e` 与实例一致、仅一份。
+- 待实测（目视）：上坡俯仰方向是否正确、±30° 限幅与缓动快慢、停在坡上时的车身姿态。
+
+### 64.27 车身俯仰抖动修复（2026-09-14）
+- 现象：§64.26 俯仰生效后仍有“神秘抖动”。
+- 根因：`GroundMover.gradeDegrees` 的两个高度探针是**离散**的——车头/车尾跨方块边界时，采样坡度会在一 tick 内翻转好几度；直接 `setXRot` 就把噪声喂进了渲染。
+- 修复：新增纯规则 `HullTilt`（EMA smoothing=0.2 + 死区 1° + 每 tick 限速 2°/tick + 原始坡度限幅 ±45° + 最大俯仰 ±30°），两车各持一个实例并在 `resetClientPrediction` 复位；`gradeDegrees` 增加未加载区块保护（`Level.isLoaded`），避免探针落在未加载区块时给出极值。
+- 验证：387 测试 0 失败（+5 HullTilt 测试）；JAR sha256 `8d593b4a…5fb0` 与实例一致、仅一份。
+- 待实测（目视）：抖动是否消失、俯仰跟随是否够快；若其实是**车身上下弹**（台阶 `GroundMover` 抬放）而非俯仰抖，再单独处理。
+
+### 64.28 地载接地抖动修复：零位移清 onGround（2026-09-14）
+- 现象：车身上下弹跳；爬坡反而不正常抬头。
+- 根因（与 §9.19 喷气机同一个机制）：两车在地面时 `dy = onGround() ? 0`，而 `Entity.move` 的**严格零竖直位移会清掉 `onGround`**；于是每隔一 tick `onGround=false`，`gradeDegrees` 的 `!onGround` 早退返回 0、`stepUp` 也因 `!onGround` 不跑——坡度采样一半为 0（不抬头），台阶辅助时有时无（弹跳感）。
+- 修复：① 地面保留向下微探针 `GROUND_CONTACT_PROBE = 0.05`（`dy = -probe`），`move` 会自行压回，`onGround` 每 tick 为真；② `gradeDegrees` 不再依赖抖动的 `onGround`，改用“车下地面高度差 ≤0.5 格”的稳定接近判断，并加未加载区块保护；③ `HullTilt` 放到 (30°, 4°/tick, 死区 0.75°, smoothing 0.35) 提高跟随速度。
+- 验证：387 测试 0 失败；JAR sha256 `c355c27c…37ba` 与实例一致、仅一份。
+- 待实测：弹跳与抬头是否都正常；若仍有台阶式上下跳动，则是 `stepUp` 一格一跳的抬放，需要单独的爬坡平滑。
+
+### 64.29 台阶分级抬升 + 俯仰上限 60°（2026-09-14）
+- 台阶弹跳：`stepUp` 原来一格一 tick 直接抬到位，视觉就是一格一格跳。改为**分级抬升**——每 tick 抬 `max(0.5 格, 当前横向速度)`（保证仍跟得上 45° 楼梯），先只抬、达到能过 lip 的高度后才前移并落回；1 格台阶分 2 tick 爬完。
+- 只前进时爬：`requested·forward > 0` 才爬，倒车或坡度回溜（目标速度为负）时不爬，避免和坡度物理打架。
+- 俯仰上限：`HullTilt` 最大俯仰 30→**60°**，采样限幅 45→60（否则到不了 60）；两车实例 `new HullTilt(60, 4, 0.75, 0.35)`。
+- 验证：387 测试 0 失败；JAR sha256 `d893bb90…2087` 与实例一致、仅一份。
+- 待实测：1 格台阶是否还跳、60° 俯仰是否过陡或出现穿模。
+
+### 64.30 地载手感返工：坡度改“实走坡度”、放软耦合（2026-09-14）
+- 体检结论：多轮盲改的问题集中在**坡度来源**。`GroundMover.gradeDegrees` 取的是**车头前 3.5 / 3.0 格的地面高度**（前方地形），于是接近台阶就提前抬头并减速、过台阶又读到下坡而加速；原始坡度直接进驱动（极限只剩 15% 且会回溜），在方块地形上就是忽快忽慢、上台阶一顿一顿。
+- 改法：① 新增纯规则 `SlopeTracker`——用**实际发生的位移**（本 tick 竖直位移 ÷ 驱动请求的水平距离）做约 20 tick 均值得到坡度：平地为 0、顶墙不误判成悬崖、停车约 1 秒回平；② 驱动改用“上一 tick 的实走坡度”并放软：上坡线性降到 **70%** 封顶、下坡 +15%、**取消回溜**（陡坡只是慢，不会卡住或倒退）；③ 车身俯仰用同一实走坡度（`HullTilt` 60° 上限、4°/tick、死区 0.75°）；④ 删除前方高度探针（不再依赖 heightmap / 区块加载），台阶辅助在“只抬到一半”时也照走水平，爬台阶不再整帧停顿；⑤ 加速：坦克 0.035→0.05、步战 0.05→0.07，起步更跟手。
+- 现有配置：两份 `battlefield-client.toml` 的 `acceleration` 已同步改值（其余沿用）。
+- 验证：391 测试 0 失败（+4 SlopeTracker，坡度测试已更新）；JAR sha256 `685b11bd…a669` 与实例一致、仅一份。
+- 待实测：直线速度是否稳定、上台阶是否平顺、陡坡是“慢”而不是“卡”、俯仰跟随是否符合预期。
+
+### 64.31 小台阶原地打转修复：抬升不再瞬移（2026-09-14）
+- 现象：遇到小台阶就原地打转（卡在台阶前 + 转向）。
+- 根因：§64.29 的分级抬升用 `setPos(start.y + rise)` 把车身**直接塞进台阶内部**；下一 tick 驱动的地面探针（`dy=-0.05`）又把它推回，形成“塞入—推出”的拉锯，车停在台阶前、速度归零，此时转向就表现为原地打转。
+- 修复：抬升改用真正的 `vehicle.move(0, rise, 0)`——车身全程在方块旁边、不会嵌入；抬到能过 lip 的高度后再前移并落回。分级抬升与平滑保留，但不再依赖瞬移。
+- 验证：391 测试 0 失败；JAR sha256 `d022a5d1…4fe6` 与实例一致、仅一份。
+- 待实测：小台阶能否顺畅爬上、是否还卡住/打转、爬升是否平顺。
+
+### 64.32 坦克两把机枪分开枪口（多人，2026-09-14）
+- 问题：坦克两个座位共用一把 `coax`，且 `fireCoax` 用的是 **120mm 主炮炮口 `muzzle()`**。两把可视机枪（驾驶席右侧 M240 同轴、2 号位顶部车长 .50）的曳光/命中都从主炮口出来，两个玩家同时开火时就像同一个洞射出的子弹。
+- 修复：`MainBattleTankGeometry` 新增两把机枪的枪口偏移（相对炮塔环，单位空间：同轴 lateral +9.5 / height -9.5 / barrel 16；车长 0 / +1 / 28，分别对应模型里的 M240 与 .50 炮管）；实体新增 `machineGunMuzzle(cupola)`，按炮塔朝向把“环位 + 横侧偏移 + 枪管长”换算到世界坐标；`fireCoax` 按座位取各自枪口——驾驶席=同轴、2 号位=车长机枪。共用弹链与射速不变，只改出弹点（曳光、烟、命中射线随之分开）。
+- 验证：392 测试 0 失败（+1 枪口分离测试）；JAR sha256 `503bc5be…332d` 与实例一致、仅一份。
+- 待实测（多人）：两人同时开火时两条曳光是否分别从 M240 与 .50 出来；若左右/高低有偏差（模型 +X 方向符号），一行取反即可。
+
+### 64.33 坦克两把机枪弹药分开（多人，2026-09-14）
+- 需求：两把机枪的**弹药也分开计算**（§64.32 只分了枪口，仍共用一条弹链）。
+- 做法：`MainBattleTankEntity` 把单一 `coax` 弹池拆成两个——驾驶席 `coax` 与 2 号位 `cupola`，各自容量、冷却、补给与同步：新增 `DATA_CUPOLA_AMMO`、`getCupolaAmmo()`、`cupolaCooldown`；`tickTurret` 里 2 号位打 cupola、驾驶席选 COAX 打 coax，互不消耗也不共享冷却；弹药箱 `tickAmmoSupply` 同时补两条；HUD 弹链槽按座位显示（2 号位看 cupola、驾驶席看 coax）。
+- 配置（COMMON `balance.main_battle_tank`）：新增 `cupola_capacity` 200、`cupola_fire_interval_ticks` 3；原 `coax_*`（300 发 / 2 tick）归驾驶席。伤害仍共用 coax 数值（本次只按需求拆弹药）。现有配置文件缺新键时按默认生效，Forge 启动补写。
+- 验证：392 测试 0 失败；JAR sha256 `e49dd064…4d64` 与实例一致、仅一份。
+- 待实测（多人）：两座位弹数是否各自递减、弹药箱是否同时补两条、HUD 弹链槽读数是否随座位正确显示。
+
+### 64.34 爬坡子系统重构：多点坡面拟合 + 俯仰侧倾 + 50° 参数（2026-09-14）
+- 背景与决策：用户确认 50° **只作参数**（不强制物理坡道）、坦克+步战都改、**多探针贴合坡面法线**、先建测试基建但最终验收由用户做。既有 8 轮盲改（§64.24–64.31）留下的问题是缺少稳定、无反馈回路的坡度来源。
+- 根因（静态确认）：① 车身俯仰与驱动坡度都吃**实走坡度**（§64.30），而台阶辅助的竖直位移逐 tick 抖动 → 坡度/速度/俯仰形成反馈回路，一起抖；② 原版 Entity.move 确实不读 maxUpStep（反编译映射后 Entity.class 印证：maxUpStep 只有 field/getter/setter），爬台阶只能自研。
+- 重构：新增纯规则 GroundContact（四角高度拟合坡面：俯仰=前后均差、侧倾=左右均差，NaN/超 60° 判无效）与 HullPose（俯仰+侧倾 EMA+死区+4°/tick 限速，无效样本回平）；GroundMover.sampleSurface 用 4 条向下 ClipContext.Block.COLLIDER 射线采四角地面，探针取**车体自身 AABB 足迹内**（getBbWidth()/2），不做前视。**接触面只驱动渲染姿态**；**驱动坡度仍用 SlopeTracker 实走坡度**（§64.30 结论）。两台车 max_grade_degrees 35/25 → **50**（含两份已存在配置文件）。渲染器在 Yaw→Pitch 后加 Axis.ZP 侧倾。
+- 用户实测「上一个半砖卡半天、颤抖后才上去」后的二次修正（纯代码定位，未再游戏内验证）：① 旧 stepUp 用 setPos 瞬移试探并在同 tick 多次 move，抬升后车体 AABB 可嵌进前方方块，下一 tick 的 drive move 从穿透态被弹回；② 旧代码「没抬够就 return」把车体留在离地态，而入口又要求 onGround → 抬/落循环。重写 GroundMover.stepUp：完全不做 setPos，改用 level.getBlockCollisions(vehicle, candidateAABB) 求最小净空 rung，然后一次干净的上抬→前移→落回（全部 collision-clipped），保证任何 tick 都不以穿透或离地状态开始/结束；太高的墙仍原地不动。
+- 范围：仅爬坡相关。旧 HullTilt 暂留、不再被引用，验收通过后再删。临时诊断采样器 ClimbTelemetry 已删除。
+- 验证（构建层，已实跑）：./gradlew test → **409 测试 0 失败**（GroundContactTest 7、HullPoseTest 7、GroundClimbSimulationTest 3）；./gradlew build 成功；JAR sha256 6083fc1e…6954，与实例一致且仅一份。
+- 待游戏内验收（用户执行）：50° 是否稳定上行不倒退；小半砖/整块台阶是否不再卡顿与颤抖；全程是否无可感知抖动；俯仰/侧倾方向与贴合（若侧倾反向改 modelRollDegrees 一处符号）；平地/下坡/转向/上下车回归。已知取舍：整块台阶一次抬满，可能有一次约 1 格的视觉抬升（先保证不卡，不采用会卡死的分 tick 半抬）。
+### 64.35 全速爬坡卡住修复：净空试探改为短距（2026-09-14，用户实测反馈后）
+- 反馈：全速爬坡仍会卡住，轻点一下 S（降速）就能上去——说明卡与**速度**有关。
+- 代码定位：64.34 的 clearance 用**完整一步位移** `flat` 去判断抬升后 AABB 是否净空。速度越快这一步越长，抬升后的 AABB 越容易碰到**下一级台阶**，于是所有 rung 都判为有碰撞，stepUp 直接不动作 → 卡死；降速使这一步变短就能过。
+- 修复：clearance 的前移量固定为 `PROBE_FORWARD=0.1` 格（只够探到车体正贴着的那个唇口），真正的前移交给 collision 裁剪。
+- 验证：./gradlew test 409 测试 0 失败；./gradlew build 成功；JAR sha256 d6e8f61a…7a83 与实例一致且仅一份。
+- 剩余已知情形（待实测判定）：车体 AABB 3.4 格长，在「每格抬 1 格」的 45° 密台阶上，单次抬升要越过 AABB 足迹内的最高台阶（≈2 格）已超过 step_height 1.5，这类极密台阶可能需要「坡面竖直跟随」（连续微抬）而非单次抬升；先按本次修复实测再决定是否加。
+### 64.36 主战坦克新增炮射霰弹（2026-09-14）
+- 需求：新增主炮弹种「炮射霰弹」——40 枚弹丸、每个 20 伤害；散布与最大偏角由实现方定。
+- 采用参数（2026-09-14 二次调整）：40 弹丸 / 每发 **40**（对机体同为 40；原 20 会因 MC 受击无敌帧只结算一发而大幅衰减，故抬高单发）/ 锥半角 **5°**（原 10°）/ 射程 **40 格** / 无溅射。散布复用已测的 LittleBirdBallistics.spreadDirection（按面积均匀，最外圈正好落在 5°）。
+- 实现：MainGunAmmoType 新增 CANISTER("canister")（沿用原弹种转盘与各自待发/备弹）；纯规则 CanisterShot 固定常量与方向采样；GroundWeapons.fireCanister 从炮口按锥角发 40 条 pellet hitscan（每条独立判定方块/实体，命中 20 伤害，各发 1 条曳光），整发只播一次炮声/烟；MainBattleTankEntity.fireMainGun 对 CANISTER 走炮口爆发分支，不生成炮弹实体。Config 新增 main_gun_canister_{pellets,pellet_damage,pellet_vehicle_damage,spread_degrees,range}（旧配置缺键按默认补写）。HUD 弹种名与中英文本已加 hud.battlefield.shell.canister。
+- 顺带修复：item.battlefield.f35_preview 只有英文、缺中文，被语言一致性测试暴露，已补 zh_cn。
+- 验证：./gradlew test → **413 测试 0 失败**（新增 CanisterShotTest 4；MainGunAmmoTypeTest/MainGunAmmoTest 更新为 3 弹种）；./gradlew build 成功；JAR sha256 0e38d359…9f37，与实例一致且仅一份。实例 config 的 canister 三项已同步改为 40/40/5。
+- 待实测：近距离 40 发全中的强度、10° 锥在 20/40 格的命中率、炮声与曳光观感、备弹/装填节奏。
 
 
 
 
 
 
+
+
+
+
+
+
+### 65.1 M2A2 Bradley 载具：M1 纯规则 + M2 Forge 集成（2026-09-27）
+
+- 需求（用户拍板）：游戏内 6 座 —— 0 号座驾驶员开车并操作炮塔三件套（25mm 机炮 / TOW 导弹 / 烟幕弹），
+  1 号座操作车顶 M2，2-5 号座为 4 名成员；TOW 复用 Apache 的制导导弹实体；烟幕在车头前方 5m 铺一道墙；
+  外观用 Blender 的 M2A2 模型（细节详细）。
+- M1（纯规则，已完成）：entity/seat/GroundSeat.java 增 BRADLEY_* 六个座位与 isBradley* 判定；
+  新增 entity/BradleyGeometry.java（180 行，尺寸取自 Blender 冻结规格：车长 6.55m / 全宽 3.28m / 离地 0.43m /
+  甲板 1.68m / 炮塔顶 2.44m / 炮轴 2.16m、6 负重轮 0.80m 节距、炮塔环后移 0.62m、座位与 M2 挂点）；
+  新增 entity/weapon/SmokeWall.java（110 行，Spec/State + 横向布点 + 墙心 = 半车长 + 5m + 冷却/寿命/补给 + HUD 分数）。
+- M2（Forge 集成，已完成）：新增 entity/BradleyEntity.java（757 行，驱动沿用 GroundDrive / GroundMover / HullPose /
+  SlopeTracker；炮塔用 ChainGunTurret；25mm 走 TwoStageMagazine 300 待发 + 600 备弹；TOW 走 ApacheMissileEntity；
+  车顶 M2 走 AmmoPool + hitscan；烟幕走 SmokeWall 并在墙心逐管发 CAMPFIRE_COSY_SMOKE 粒子）、
+  item/BradleyDeployItem.java；registry/ModItems.java（BRADLEY 物品）、registry/ModEntities.java（bradley 实体类型）、
+  registry/ModCreativeTabs.java、LittleBirdConfig.java（client 的 bradley 手感块 7 项 + common 的 bradley 平衡块 24 项 + 18 个访问器）。
+- 验证：./gradlew compileJava 与 ./gradlew test --rerun-tasks 均 BUILD SUCCESSFUL；全量 429 测试 0 失败
+  （新增 BradleyGeometryTest 6、SmokeWallTest 8；GroundSeatTest 由 3 增至 5）。未跑 build、未同步 JAR，实例未改动。
+- 未完成（现在不要进游戏）：M3 模型（BradleyModel + BradleyRenderer，需从 Blender Bradley 生成箱体表）、
+  M4（ClientModEvents 渲染器/图层注册、GroundHud / GroundCamera / GroundRiderRender / AirframeTargets 接入、配方、成就、
+  中英语言、entity/item 贴图）、M5（全量 build + JAR 同步 + 哈希）。
+  实体已注册但尚无渲染器：Minecraft 里生成它会缺渲染器，按本项目既有教训可能直接崩客户端。
+- 待实测（M3 完成后）：6 人上机的座位顺序与叠人、25mm 射速与过热、TOW 制导手感与伤害、车顶 M2 的指向与弹道、
+  烟幕墙是否正确落在车头前 5m 并与车头朝向对齐（横向偏移的左右符号需在游戏里确认一次）。
+
+
+### 65.2 M2A2 Bradley 载具：M3 模型 + M4 接入 + M5 交付（2026-09-27）
+
+- M3（模型，已完成）：新增 bradley/export_mc_bradley.py（Blender 导箱体表，MC 轴 Y 上 / 车首 -Z / +X 右，
+  16 单位 = 1 格；车体壳按 Z 切 14 段保留首上斜面，两条履带各切 18 段保留上下支重带）；
+  新增 tools/generate_bradley_model.py（读 tools/data/bradley_boxes.json，自动排 UV 区并自检越界，
+  产出 client/BradleyModel.java **367 箱（车体 296 + 炮塔 71）**、1174 行，另出 tools/data/bradley_uv.json）；
+  新增 client/BradleyRenderer.java（沿用 LittleBirdModelMath 的 yaw/pitch/roll 与炮塔随动）；
+  新增 tools/generate_bradley_texture.py（纯 stdlib PNG 写入器，按 UV 区上材质底色）→ textures/entity/bradley.png。
+- M4（接入与资源，已完成）：client/GroundHud.java 增 BRADLEY_ROWS=3 与 renderBradley（0 号座按武器槽切准星：
+  25mm 机炮十字 / TOW 投影准心 / 烟幕标记；1 号座车顶 M2 中心十字；三格武器条 + 读数 + 车况条）；
+  GroundCamera / GroundRiderRender / AirframeTargets 各加一条 instanceof；models/item/bradley.json（自 IFV 克隆）；
+  textures/item/bradley.png（16x16，侧视剪影）；lang en_us/zh_cn 各 +8 键（实体/物品/HUD 武器/载具/成就）。
+- M5（交付，已完成）：assembly/VehicleAssembly.java 增 bradley 配方（5 件：ifv_hull + cannon_barrel +
+  armor_plate + avionics_unit + targeting_computer，230 点，件数与 IFV/坦克都不同以免装配歧义）；
+  data/ModRecipeProvider.java 增同料无序配方；advancements/first_bradley.json。
+- 验证：./gradlew runData --rerun-tasks 与 ./gradlew build 均 BUILD SUCCESSFUL；
+  **429 测试 0 失败**；JAR 788112 字节 sha256 2e9473d6ef8939f3aa57797f845dadb6a472a0eea1be8005fe626819990e2bd8，
+  与 PCL2 实例 mods 内唯一一份 battlefield-0.1.0.jar 一致。模型另用 Blender 回放箱体表渲了三视图核对（shots/mc_*.png）。
+- 待实测（游戏内）：6 人上机顺序与前 4 名是否叠人；0 号座武器键轮换 25mm/TOW/烟幕与三格武器条；
+  TOW 制导与命中；车顶 M2 的指向；**烟幕墙是否落在车头前 5m 且左右不反**（横向符号约定为"正 = 车体左侧"）；
+  25mm 300 发待发打空后 R 键从 600 备弹补给；装配与成就解锁顺序。
+
+
+### 65.3 Bradley 模型返工：履带降维错误 / 共面 z-fighting（2026-09-27，用户实机截图反馈）
+
+- 现象（用户）：部分视角下像丢贴图；截图显示负重轮区域是一整堵黑板。
+- 只读诊断（数值）：① 履带每段 AABB 的 Y 跨度 11.4-16.5 单位，而负重轮只有 1.4-10.7 —— 按 Z 切片会让同一片同时含上带与下带，18 片合成一堵实心黑板，把 6 个负重轮整个盖住；履带最外面 X=-25.5、负重轮外面 X=-25.1，履带挡在前面。② 99 个坐标平面上有 >=6 个共面；按"同朝向 + 另两轴重叠"重算，真正的 z-fighting 面对 134 对。③ 每个圆轮导出成一个 AABB，轮子被压成方块。④ UV 越界已排除（17 个标记全是 JSON need 只留 1 位小数造成的边界相等，最坏 1 像素）。
+- 修复（导出器 export_mc_bradley.py v2）：履带改为片内按负重轮轴高分上下簇，只有真的分离才出两个薄箱（46 薄带 0.8-2.5 单位 + 6 端部绕轮块）；圆盘件（负重轮/惰轮/主动轮/托带轮）改为三片叠层近似八角形（22 盘 = 66 箱）；同类别被完全包住的箱体丢弃。车体壳只对长件切片。
+- 未解决并如实记录：共面 z-fighting。试了自动化"同朝向重叠面按序号外推/平移"，结果 134 变 184 对（打地鼠，平移又制造新共面），已停用（EPS=0）。下一步应改为结构性合并（同类别共面相邻箱体先并成一块），而不是位移。
+- 诊断期贴图：未绘制区域改成洋红，track 提亮到 (74,72,70) —— 游戏里任何洋红即 UV 漏绘；确认后改回深灰。
+- 验证：箱体 426（车体 357 + 炮塔 69）；最低箱体 y0=-0.03 单位（贴地正常），最高 2.84 m + 天线；429 测试 0 失败；gradlew build 成功；JAR 789919 字节 sha256 23b5f048，与实例一致。
+- 待实测：同机位重截 —— 行路装置是否已是"轮子 + 上下履带带"、有无洋红斑块、是否仍丢贴图。
+
+
+### 65.4 Bradley 25mm：300 RPM + 2 格溅射炮弹（2026-09-27，用户指定）
+
+- 需求：把 25mm 从 hitscan 子弹改成**弹道炮弹**，溅射 **2 格**，射速 **300 发/分**。
+- 射速：ChainGunTurret.advance 新增 intervalTicks 重载（原方法委托给包内默认 2 tick = 600 rpm），
+  新增 MIN_FIRE_INTERVAL_TICKS=2 作为机械下限（配置防呆）；Bradley 传 bradley_autocannon_fire_interval_ticks=4。
+- 炮弹：新增 entity/AutocannonShellEntity.java —— 真正的弹道实体（复用 MainGunShellBallistics 的重力/寿命，
+  速度可配 3.0 格/tick），命中做**实体伤害**：直击按护甲定价，半径 2 格内按距离线性衰减（fraction = 1 - d/r），
+  同乘员/自己/自己的载具免疫。**不破坏地形**：120mm 的 MainGunShellEntity 共用主炮的 breaks_blocks 开关，
+  5 发/秒会把地图犁了，所以没有复用它。
+- 表现：弹体本体不画（照 120mm 的先例，靠曳光读弹道）——但**必须注册渲染器**否则客户端崩，故新增
+  client/AutocannonShellRenderer（最小合法实现，贴图复用 main_gun_shell）；飞行中每 tick 发 1 个 FLAME、每 4 tick 一个 SMOKE；
+  发射时炮口 3 个 SMOKE + GUN_SHOT(0.9, 1.35)；命中 SMOKE/FLAME + EXPLOSION(0.9, 1.25)。
+- 配置（common.bradley 新增 4 项）：autocannon_fire_interval_ticks=4、autocannon_splash_radius=2.0、
+  autocannon_shell_speed=3.0、autocannon_shell_lifetime_ticks=60。伤害仍用已有的 autocannon_damage/vehicle_damage。
+- 未改动：IFV 的 30mm 与车顶 M2 仍是 hitscan，行为不变（重载默认参数保证）。
+- 验证：新增 ChainGunCadenceTest 4 例（300 rpm = 40 tick 10 发、包内默认仍 600 rpm = 20 发、慢射速少积热、
+  0 被钳到 2）；全量 433 测试 0 失败；gradlew build 成功；JAR 796765 字节 sha256 fe85e197，与实例一致。
+- 待实测：手感（300 rpm 是否合适）、2 格溅射的实际杀伤、曳光是否看得清、命中不破坏地形是否符合预期。
+
+
+### 65.5 Bradley 25mm 改火箭式：可见弹体 + 命中爆炸 + 溅射（2026-09-27，用户二次反馈）
+
+- 反馈：65.4 做成了"隐形弹体 + 曳光"，用户要的是像火箭那样**看得见的弹体 + 击中爆炸特效 + 溅射**。
+- 弹体建模：新增 client/AutocannonShellModel.java（64x64 图层：钢弹体 2x2x8 + 黄铜药筒底 3x3x2 +
+  深色风帽 1x1x3，全长 13 单位）；新增 textures/entity/autocannon_shell.png（纯 stdlib 生成：
+  钢体 (92,95,100) / 黄铜 (170,141,74) / 深帽 (48,48,52)）；AutocannonShellRenderer 改为照火箭渲染器
+  用 yaw/pitch 画出弹体（原来是最小空渲染器）。
+- 命中：detonate 改成 LittleBirdRocketEntity 的写法 —— EXPLOSION_EMITTER + EXPLOSION x8 + LARGE_SMOKE x22 +
+  FLAME x12 + **server.explode(半径=配置的 2.0, ExplosionInteraction 由配置决定)** + EXPLOSION 音效。
+  溅射改由原版爆炸结算（原来是我自己写的一段半径衰减循环，已删除）——这也是用户说的"溅射"。
+- 弹道：默认弹速 3.0 -> **2.0 格/tick**，弧线看得见（配置可调到 12 追求平直）。
+- 新增配置 autocannon_breaks_blocks（默认 false）：5 发/秒的机炮若会犁地形就没法玩，需要时再开。
+- 验证：433 测试 0 失败；gradlew build 成功；JAR 799686 字节 sha256 68ef7171，与实例一致。
+- 待实测：弹体在 300 rpm 下是否看得清（必要时降射速或缩短弹体）、爆炸尺寸是否合适、
+  贴脸射击时爆炸会不会溅到自己车体（原版 explode 没有排除 API，火箭同样如此）。
+
+
+### 66.1 TOW 制导整体重构（2026-09-27，用户反馈"随准心变化十分不明显"）
+
+- 根因（代码读出，非猜测）：ApacheMissileEntity.sightLine() 只认一种车 ——
+  if (vehicle instanceof ApacheEntity apache)，其余车辆落到兜底分支"朝自己的速度方向制导"，
+  等于永远直线飞；seekPoint() 同一处判断，返回导弹自身位置。Bradley 的车是 BradleyEntity，
+  因此它的 TOW **完全没有制导**，动准心毫无反应。
+- 重构：新增 entity/MissileSight.java 接口（missileSightDirection / missileSightOrigin），
+  ApacheEntity 与 BradleyEntity 各自实现（Bradley 用**炮塔瞄准线**做方向、**炮口**做原点，
+  不拿驾驶员头部，保证瞄准点跟着炮管走）。ApacheMissileEntity 改为只认接口，不再出现任何车辆类名。
+- 瞄准点改为每 tick 重算：从制导源原点沿当前视线 raycast，打到近墙就把引信拉近、
+  扫到天空就推到 sight range；只有无人制导时才沿用发射时的深度。
+- 照搬参考工程 final-paradox-forge 的 terra-rover（TerrastalkerRoverEntity:921-944）两点：
+  ① **朝瞄准点转向**而不是朝视线方向 —— 这样准心是"拖动"导弹落点而不是只让它转平行；
+  ② **发射段**（默认 6 tick）出管不制导、不落，避免刚出膛就甩。
+- 转向率与视距改为配置：touch 新增 tow.launch_ticks=6 / tow.turn_rate_degrees_per_tick=12 /
+  tow.sight_range_blocks=64（12 与参考工程 MISSILE_MAX_TURN_DEGREES 一致；旧的写死值 7 读起来像没在制导）。
+- 顺带修掉我自己的回归：bradleyTowDamage / TowVehicleDamage / TowSplashRadius 三个键此前是死键，
+  现在通过 ApacheMissileEntity.configureWarhead(...) 真正生效（Bradley 的 TOW 用自己的弹头数值，
+  Apache 仍用共享的 apache.missile_*）。
+- 验证：新增 TowGuidanceTest 8 例（90 度偏差收敛、摆动视线确实拖弹、转向率越高收敛越快、
+  单 tick 不超转向上限、稳定视线不漂、发射段不转、发射段结束开始转、旧默认值不变）；
+  全量 441 测试 0 失败；gradlew build 成功；JAR 801578 字节 sha256 e6a3bf57，与实例一致。
+- 待实测：300 rpm 之外的 TOW 手感 —— 转向率 12 是否够灵、发射段 6 tick 是否偏长、
+  近墙/天空两种瞄准点的引信深度是否符合预期。
+
+
+### 66.2 伤害类型重构：DamageType x ArmorClass 矩阵（2026-09-27，用户拍板分类）
+
+- 需求（用户）：子弹（机枪）不能对重甲造成伤害、但对直升机有效；炮弹/机炮可以对重甲造成伤害；
+  机炮归入炮弹；履带车都算重甲。
+- 旧模型的问题：两套并行且重叠的分类 —— GroundWeapons.isArmored(e) = e instanceof GunshipRider
+  （机甲、小鸟、坦克、步战、Bradley 全都实现），AirframeTargets.classify(e) 只管飞机；damageTo 只有两档。
+  结果"装甲"这一档把直升机和坦克混在一起，用户要的区分根本表达不出来。
+- 新模型：新增 entity/weapon/DamageType.java（BULLET / SHELL）与 ArmorClass.java
+  （UNARMORED / AIRFRAME / LIGHT_ARMOR / HEAVY_ARMOR）；判定收进一处
+  AirframeTargets.armorClass(Entity)，矩阵落在
+  LittleBirdBallistics.damageTo(DamageType, ArmorClass, 普通伤, 装甲伤)：
+  规则为 BULLET + HEAVY_ARMOR -> 0（完全吸收），UNARMORED 取普通伤，其余取装甲伤。
+- 分类表（已按用户确认）：HEAVY_ARMOR = M1A5（履带）+ M2A2 Bradley（履带）；
+  LIGHT_ARMOR = EBAA 小野猫（6x6 轮式）；AIRFRAME = 小鸟/阿帕奇/F-35/Su-57；UNARMORED = 玩家与生物。
+  DamageType：BULLET = 仅机枪（坦克同轴 M240、车长 .50、Bradley 车顶 M2、小鸟 7.62 机枪、霰弹弹丸）；
+  SHELL = 120mm 主炮、所有机炮（Bradley 25mm、步战 30mm、阿帕奇 30mm 链炮、喷气机炮）、火箭、导弹。
+- 接法：GroundWeapons.fireHitscan / fireCanister 增 DamageType 重载（默认 BULLET，既有调用点不动），
+  只有机炮调用点显式传 SHELL；applyDamage/splash 走矩阵；splash 不再二次过 applyDamage（原来会把已算好的伤害
+  再分类一次）。GroundWeapons.isArmored 改为委托 armorClass(...) != UNARMORED，语义从"是不是我们的车"
+  收窄为"是不是有甲"。
+- 验证：新增 DamageMatrixTest 8 例（子弹被重甲吸收、子弹打得动直升机、子弹打轻甲打折、
+  炮弹穿重甲、炮弹对各类同价、全类型x全类别矩阵遍历、非法数值归零）；
+  全量 449 测试 0 失败；gradlew build 成功；JAR 803862 字节 sha256 56ab5a1a，与实例一致。
+- 待实测：机枪扫坦克应当毫无反应（连火花提示都不该有伤害数字）、机枪扫小鸟/阿帕奇照旧有效、
+  机炮与炮弹照旧能打坦克、霰弹弹丸打坦克归零是否接受。
+- 备注（历史）：MainBattleTankEntity 与 InfantryFightingVehicleEntity 仍各自保留一份
+  SPLASH_DAMAGE_FRACTION = 0.5，与 ChainGunTurret 的那份重复；本次未动，留在清理项里。
+
+
+### 66.3 伤害矩阵补漏：绕过 GroundWeapons 的直伤路径（2026-09-27，用户"没有生效"）
+
+- 现象：66.2 上线后用户实测"没有生效"（机枪打坦克仍有伤害）。
+- 根因：66.2 只把 GroundWeapons.fireHitscan / fireCanister 这条路径接进矩阵，而**小鸟的机枪自己算伤害**：
+  LittleBirdEntity 直接 AirframeTargets.classify + damageTo(airframe, gunDamage, gunDamageAircraft, gunDamageApache)。
+  打坦克时 airframe == NONE，于是取了"普通伤害"14 —— 坦克照吃不误。这是本次唯一的漏网 BULLET 路径。
+- 修复：LittleBirdBallistics 新增三档飞机定价的矩阵重载
+  damageTo(DamageType, ArmorClass, Airframe, 普通, 飞机, 阿帕奇)：先判"子弹 x 重甲 = 0"，再走原有的飞机定价，
+  既补上免疫又不改动按机型定价的行为；LittleBirdEntity 传 BULLET，ApacheEntity 两处（直击 + 溅射）传 SHELL。
+- 覆盖审计（脚本遍历全仓库 damageTo 调用点，共 13 处）：矩阵 4 处 + 旧式 9 处；旧式 9 处**全部是 SHELL 类**
+  （120mm 炮弹、25mm 炮弹、70mm 火箭、TOW、空空导弹与其内部委托），免疫规则对其本就不适用，行为不变。
+  BULLET 只有三条路径：小鸟机枪、GroundWeapons.fireHitscan 默认值、fireCanister 弹丸 —— 现已全部走矩阵。
+- 顺带：ApacheEntity 溅射处把 boolean 传给了要 Airframe 的参数，编译报错，已改为 AirframeTargets.classify。
+- 验证：新增 1 例（三档飞机定价仍遵守装甲规则，且机型定价不变）；全量 450 测试 0 失败；gradlew build 成功；
+  JAR 804114 字节 sha256 60cd8f98，与实例 match=True。
+- 重要边界：本矩阵只管**本模组的武器**。玩家若用其它模组（实例里装了 TaCZ 枪械）的枪打坦克，
+  走的是那套模组自己的伤害，不受此处约束；要让外来子弹也被重甲弹开，需要在 LivingHurtEvent 里按伤害来源拦截，
+  属另一项工作。
+- 待实测：小鸟机枪扫 M1A5 / Bradley 应当完全无伤害；扫直升机照旧。若用户测的是别的武器，需再定位。
+
+
+### 66.4 炮弹命中补上命中反馈（2026-09-27，用户反馈"炮弹命中没有血条反馈"）
+
+- 现象：炮弹打中目标只掉血，射击者看不到命中标记，也不出敌方血条。
+- 根因（脚本遍历）：全仓库 HitFeedback.report 只有 6 个调用点 —— 阿帕奇链炮、小鸟火箭、阿帕奇导弹、
+  小鸟机枪、GroundWeapons 的直击与溅射。**两个炮弹实体一个都没有**：
+  MainGunShellEntity（坦克 120mm）与 AutocannonShellEntity（Bradley 25mm）命中后只 hurt()，从不 report()。
+  所以这是从 120mm 时代就存在的旧洞，不是这一轮 25mm 引入的。
+- 修复：两个 detonate 在直击结算成功后，若 owner 是 ServerPlayer 就 HitFeedback.report(serverPlayer, directHit)
+  （与火箭/导弹同一写法，记功给开炮的玩家）；顺带补上两个文件的 ServerPlayer import。
+- 验证：全量 450 测试 0 失败；gradlew build 成功；JAR 804336 字节 sha256 bd644eb6，与实例 match=True。
+- 待实测：坦克 120mm 与 Bradley 25mm 命中后是否出现命中标记与敌方血条；击毁时是否也报（report 的 kill 参数已带）。
+- 备注：溅射伤害（原版 explode 结算）不发命中标记，与既有约定一致（只有直击发）。
+
+
+### 66.5 BF2042 口径伤害矩阵：方案 B 实施（2026-09-27，用户逐条给定数值）
+
+- 用户口径：小野猫也算重甲；TOW 对重甲 45；火箭对重甲 8；步战 25 机炮对重甲 3；
+  喷气 25 机炮对重甲 0；双 30 对重甲 1；120AP 对重甲 40、HE 30；阿帕奇 30mm 链炮对重甲 2；
+  120AP 对空载一发击毁；AGM 45 且不主动锁定空载；AIM120 对地 0、对空 45 且不主动锁定地面。
+- 模型：LittleBirdBallistics 新增 WeaponDamage(unarmored, airframe, heavy) 记录与
+  damageTo(DamageType, ArmorClass, WeaponDamage)；BULLET 对 HEAVY/LIGHT 恒为 0，其余按行取列。
+  AirframeTargets 把小野猫也归 HEAVY_ARMOR（BF2042 里它就是 Heavy），LIGHT_ARMOR 保留给以后的车。
+- 配置：新增 9 个重甲键（rocket_heavy_damage 8 / chain_gun_heavy_damage 2 / missile_heavy_damage 45 /
+  main_gun_heavy_damage 40 / main_gun_he_heavy_damage 30 / IFV autocannon_heavy_damage 1 /
+  IFV atgm_heavy_damage 45 / BRADLEY autocannon_heavy_damage 3 / tow_heavy_damage 45）+ 8 个访问器。
+- 已接线（本轮）：坦克同轴与车长 MG、Bradley 车顶 M2、炮射霰弹（均 BULLET -> 重甲 0）；喷气机炮 0；
+  小野猫 30mm 1、小野猫 ATGM 45；坦克 120mm AP 40 / HE 30；Bradley 25mm 3；70mm 火箭 8（不乘机型系数）；
+  TOW（阿帕奇与 Bradley 各用自己的键）45；阿帕奇 30mm 链炮 2。
+- 未接线（下一轮）：MissileKind 三型（AGM 重甲 45 / AIM120 对地 0 对空 45 / IR）；
+  120AP 对空载一发击毁；AGM 与 AIM120 的锁定行为核对。
+- 验证：全量 450 测试 0 失败；gradlew build 成功；JAR 807476 字节 sha256 ab81c36d，与实例 match=True。
+- 待实测：机枪扫三种地面车应完全无伤害；火箭打坦克 15 发、TOW 3 发、120AP 3 发、120HE 4 发。
+
+### 67 坦克开火特效强化（2026-09-29，用户："炮弹飞行和落点爆炸要明显、硬邦邦，炮镜也要硬邦邦"）
+
+- 诊断（只读先做，证据见 docs/plan/tank-fire-fx-plan.md 第 0 节）：`MainGunShellEntity.spawnFireball()` 每 tick 在弹体位置喷
+  FLAME+SMOKE（一团跟随弹体的火球）；渲染器用世界光照，夜里弹体是黑点；`detonate()` 只有一次 EXPLOSION_EMITTER + 少量粒子 + explode()；
+  `GroundCamera.computeFov` 内部视角用 cockpit_fov（默认 1.00 = 零放大），`GroundHud.drawTurretInterior` 只有一个十字加两行文字。
+- 冻结规格：docs/plan/tank-fire-fx-plan.md；实施按 3 个互不重叠写作用域的切片并行 + Lead 集成。
+- A 弹道曳光：`MainGunShellRenderer` 弹体改 `LightTexture.FULL_BRIGHT`（夜里也亮），曳光用 `RenderType.lightning()`（POSITION_COLOR、不采样
+  lightmap、恒亮，vanilla 闪电同款 buffer）；`MainGunTracerTrail`（纯规则）按 entity id 存最近 8 帧真实插值位置成折线，6 格裁剪窗内重力
+  下垂仅约 0.014 格故肉眼仍是直线；半宽 0.05 格、亮度 1.0→0.25、跳变阈值 24 格/tick、追踪上限 64 发、100 tick 过期清理。
+- B 落点硬冲击 + 镜头：`MainGunImpactFx`（定向碎片 16×BLOCK + 10×CRIT 沿命中面法线、尘柱 4 步、冲击环 2 层×10 POOF 封顶 24、
+  闪光 14 FLAME + 1 EXPLOSION_EMITTER、`explode` 半径 clamp 0..32、EXPLOSION 1.6/0.7 + GUN_SHOT 1.3/0.6 分层硬脆炮声）；
+  `MainGunImpactPacket`（PLAY_TO_CLIENT id=13）只发给 64 格内玩家并逐人按 (1-d/64)² 衰减强度；`ImpactShake` trauma 模型
+  （0.86/tick 衰减、<0.001 归零、确定性三正弦噪声、上限 yaw 2.0°/pitch 1.6°），由 `ImpactClientEvents` 每客户端 tick 衰减。
+- C 炮镜：`GunSightMath`/`GunSightDraw` 光学镜（默认倍率 0.55 → 1920×1080 开口 656×656、mil 分划梯、中心瞄准点、目标框、镜筒遮罩，
+  硬边纯 fill）；`GroundCamera` 内部视角改用新键 `ground_sight_fov_multiplier`，并在同一个 ComputeCameraAngles handler 内先锁炮塔 yaw
+  再无条件叠加 ImpactShake（写在两处会让顺序不可控、互相覆盖）。
+- 新增 3 个 client 配置键（view.effects）：`ground_sight_fov_multiplier` 0.55 / `main_gun_tracer_length_blocks` 6.0 /
+  `main_gun_impact_shake` 1.0（0 关闭，>1 更重）。
+- Lead 集成：`MainGunShellEntity` 去掉跟随火球，改为每 2 tick 极低扩散余烟；命中统一调用 `MainGunImpactFx.detonate(...)`，
+  爆炸/粒子/声音只此一处，伤害仍在弹体内只结算一次；表面法线取方块命中面，扫描碰撞按 onGround/速度反推。
+- 验证：全量 **479 测试 0 失败**（新增 29：MainGunTracerTrailTest 9 / ImpactShakeTest 9 / GunSightMathTest 11）；
+  `./gradlew build` BUILD SUCCESSFUL（含 reobf + syncLocalMods）；JAR 837141 字节 sha256 `71dcf5b0…a955`，与实例
+  `versions/1.20.1-Forge_47.4.20/mods/battlefield-0.1.0.jar` 哈希一致且实例只有这一份 battlefield JAR。
+- 待实测（离线无法替代）：夜间/阴影中弹体可见性；曳光粗细与亮度手感；>100 格远距离可辨性；命中坑 + 定向碎片 + 尘柱 + 冲击环观感；
+  近弹镜头冲击力度（只调 `main_gun_impact_shake`）；炮镜在不同 GUI 缩放/宽高比下的居中与分划可读性；IFV/Bradley 内部视角一并放大是否有意接受。
+- 未做：开炮瞬间射手方向的镜头后座（本轮只有命中冲击）；炮口闪光维持原样（原本已足够大）。
+
+
+### 67.1 远距离可见性：炮弹飞行与落点（2026-09-29，用户："让炮弹的渲染距离变大，狙击远距离目标也要看到炮弹飞行"）
+
+- 根因（javap 官方映射 jar 实据）：`Entity.shouldRenderAtSqrDistance(d)` 的 vanilla 实现是
+  `d0 = AABB.getSize() * 64.0 * viewScale; return d < d0*d0`，120mm 弹 AABB 只有 0.3 格 → **19.2 格之外客户端根本不画**。
+  实体追踪本来就不是瓶颈：`ModEntities` 里 MAIN_GUN_SHELL 已是 `clientTrackingRange(64)` + `updateInterval(1)`。
+- 修复：`MainGunShellEntity` 覆写 `shouldRenderAtSqrDistance`，改读新键 `main_gun_shell_visible_distance_blocks`
+  （client/effects，默认 512，范围 64–2048）；非法值回退 super。世界的渲染距离仍是硬上界（未加载区块里的实体不参与绘制）。
+- 曳光远距离可读性：`MainGunTracerTrail` 新增纯函数 `pixelsPerRadian` / `halfWidthForDistance` / `lengthForDistance`
+  与 7 参 `segments` 重载，几何按屏幕像素补偿：宽度保底 2 px（`main_gun_tracer_min_pixel_width`）、长度保底 24 px
+  （`main_gun_tracer_min_pixel_length`），上限 MAX_HALF_WIDTH=0.75 格 / MAX_LENGTH_BLOCKS=48 格。渲染器用"本帧有效 FOV
+  （地面载具内部视角时乘 groundSightFovMultiplier）× framebuffer 高度"算 px/rad，所以开镜不会让曳光变细一半。
+  `track` 改为每 tick 只留一个样本（`floor(tickStamp)` 去重），使 8 个样本 = 8 tick ≈ 35–40 格路径，与帧率无关。
+- 远距离命中：vanilla `ServerLevel.sendParticles` 与 `playSound` 只覆盖约 32 格，因此新增视觉广播半径
+  `main_gun_impact_visible_distance_blocks`（默认 512）：`MainGunImpactPacket` 增加 `visualStrength` 字段，
+  远端客户端自绘亮闪（EXPLOSION_EMITTER + EXPLOSION 固定两点）+ 1×烟/焰（按强度缩放，每档至少 1，总数 ≤10），
+  并放一记闷响（volume=min(12, 1+d/24)，只在震动为 0 时补，避免近场与服务器 playSound 叠两遍）。
+  **镜头震动半径仍是 64 格**（`intensity = base*(1-d/64)²`），不会全图抖。
+- 关键数字（70° FOV / 1080p → 771.2 px/rad）：200 格 → 宽 0.52 格（2 px）/ 长 6.2 格；400 格 → 1.04 格（2 px）/ 12.45 格（24 px）；
+  512 格 → 1.33 格 / 15.9 格；800 格 → 1.5 格（触 MAX_HALF_WIDTH 帽）/ 24.9 格。宽度补偿约 39 格起生效，长度约 193 格起生效。
+- 验证：全量 **487 测试 0 失败**（新增 8：MainGunTracerTrailTest 9 → 17）；`./gradlew build` BUILD SUCCESSFUL（含 reobf + syncLocalMods）；
+  JAR 840946 字节 sha256 `1744cd3a…`，与实例 `versions/1.20.1-Forge_47.4.20/mods/battlefield-0.1.0.jar` 一致且只有一份。
+- 待实测前提：**必须把渲染距离调高**——单机（集成服务器）的实体追踪与绘制都跟着客户端渲染距离走：12 区块=192 格、16=256 格、
+  24=384 格（覆盖 300 格满射程）。专用服务器还要 view-distance ≥ 对应值。其余待测：开镜/不开镜曳光屏幕尺寸是否一致；
+  800 格下 1.5 格宽是否像"光板"；远距离落点亮闪是否够看；远处闷响音量与距离延迟是否自然；近场 64 格内本地 farBlast 与
+  服务器粒子是否出现"双闪"（若明显，把 farBlast 门控在 intensity<=0 即可，一行）。
+
+
+### 67.2 Bradley 25mm 机炮"硬邦邦"（2026-09-29，用户："把 bradley 的机炮也改成硬邦邦的"）
+
+- 诊断：`ModEntities.AUTOCANNON_SHELL` 是 `sized(0.25, 0.25)`，vanilla `shouldRenderAtSqrDistance = AABB.getSize()*64` →
+  **16 格就剔除**（比 120mm 的 19 格更狠）；渲染器吃世界光照、完全没有曳光条；命中是 EXPLOSION_EMITTER + 22 LARGE_SMOKE +
+  12 FLAME 的糊状大爆炸（5 发/秒 = 烟墙）；弹速默认 2.0 格/tick 是"可见抛射弧"，与"硬邦邦"相反（用户实例里此前已自行调到 3.0）。
+- 三切片并行 + Lead 集成：
+  - **D 飞行**：`MainGunTracerTrail` → **`ShellTracerTrail`** 改名，新增 **`ShellTracerDraw`**（两种炮弹共用 ribbon 绘制与
+    "炮镜有效 FOV"规则；120mm 渲染逐像素不变）；`AutocannonShellRenderer` 改 `FULL_BRIGHT` + 曳光条
+    （TAIL_OFFSET 5/16、起始半宽 0.022 格、芯 0xFFE9A8 / 辉光 0xFF7A20）；`AutocannonShellEntity` 覆写
+    `shouldRenderAtSqrDistance`（**16 → 384 格**，读新键）并把每 tick 的 FLAME 改成每 2 tick 一颗极低扩散 SMOKE。
+  - **E 命中**：新建 `AutocannonImpactFx`（**每发 ≤20 粒子**：BLOCK 碎屑 6 + CRIT 火花 5 + FLAME 3 + SMOKE 4 +
+    EXPLOSION 1，沿命中面法线定向；无尘柱、无冲击环；震动 0.30×(1-d/48)²；视觉半径 192 格；
+    EXPLOSION 0.55/1.5 + GUN_SHOT 0.4/1.7 硬脆响；**完全没碰 120mm 路径**）。
+  - **F 炮镜**：`GunSightMath`/`GunSightDraw` 的分划按 (speed, gravity) 参数化，Bradley 内部视角选中机炮时走光学镜 +
+    25mm 分划梯；120mm 单参路径改为委托同一实现（逐像素不变，新增用例钉住）。25mm@6.0：100 格 = 29.44 mil（旧 2.0 时 255 mil）。
+  - **Lead**：25mm 弹速默认 **2.0 → 6.0** 格/tick（50 格下坠 0.7 格、100 格 2.9 格，射程 60 tick×6 = 360 格），并把实例
+    `config/battlefield-common.toml` 里用户此前调过的 3.0 同步为 6.0；`AutocannonShellEntity.detonate` 接线到
+    `AutocannonImpactFx`（法线取方块命中面，扫描碰撞按 onGround/速度反推）；炮口加 3 颗沿膛线方向的 FLAME 闪光；
+    新增 client 键 `autocannon_shell_visible_distance_blocks`=384、`autocannon_impact_visible_distance_blocks`=192；
+    三个曳光观感访问器改中性名（`shellTracer*`，**键字符串未变**，老配置不需要迁移）。
+- 验证：全量 **491 测试 0 失败**（ShellTracerTrailTest 17 / GunSightMathTest 15 / ImpactShakeTest 9）；`./gradlew build`
+  BUILD SUCCESSFUL（含 reobf + syncLocalMods）；JAR 849838 字节 sha256 `636823f8…34fd`，与实例一致且只有一份。
+- 注意（平衡）：弹速 2.0→6.0 同时把 25mm 从"抛射弧 / 120 格射程"变成"近平直 / 360 格射程"，等于命中率与射程双加强；
+  不想动平衡就把 `autocannon_shell_speed` 调回 3.0~4.0（实例 toml 一处，代码默认一处）。
+- 待实测：连发曳光是否成一条硬亮条且远距离保持约 24×2 像素；弹体夜里是否恒亮；5 发/秒下是否还有烟墙感；
+  192 格边缘落点可读性；48 格 / 0.30 的震动是否偏轻；Bradley 镜筒分划在 机炮↔TOW↔烟雾 切换时是否正确；
+  300–600 米实际弹着与刻线是否吻合。
+- 同一根因的其它遗留（本轮未做，可再提）：`LittleBirdRocket`(0.4)、`ApacheMissile`(0.35)、`LockOnMissile`(0.4)
+  同样被 vanilla 按 AABB×64 剔除在 22–26 格；要一起放宽，给各自加同样的覆写即可（各 4 行）。
+
+
+### 67.3 Bradley 25mm 射速改为 180 发/分（2026-09-29，用户："把 rpm 改成 180"）
+
+- 问题：旧配置是整数 tick 的 `autocannon_fire_interval_ticks`（4 tick = 300 rpm）。180 rpm = 每发
+  **6.6667 tick**，整数 tick 表达不出来（6 tick=200、7 tick=171），四舍五入就等于换了个射速。
+- 做法：
+  1. `ChainGunTurret.State.cooldown` 由 int 改为 **double**，新增 `advance(..., double intervalTicks)` 重载
+     （int 重载委托给它，Apache / Wildcat 的整数节奏逐 tick 不变，测试钉住）；开火时冷却从"重置为 interval"
+     改成 **"累加 interval"**，让零头带进下一发，平均射速才精确；再加 `COOLDOWN_EPSILON = 1e-6` 的"已耗尽"阈值，
+     否则 1e-15 的浮点残渣会让下一发推迟整整一 tick（第一版就踩了这个坑，测试把它抓出来了）。
+  2. 配置键换成 **`autocannon_rounds_per_minute`**（int，默认 **180**，范围 30–600；600 是炮塔自身 2 tick 下限），
+     访问器 `bradleyAutocannonRoundsPerMinute()` + `bradleyAutocannonFireIntervalTicks()`（double = 1200/rpm）。
+  3. Bradley / Wildcat 的 NBT `TurretCooldown` 改存 double（旧存档的 IntTag 用 `getDouble` 照样读得出来）。
+  4. `ChainGunCadenceTest` 重写：180 rpm 在 300 tick 内**正好 45 发**；零头携带的节奏精确钉成
+     `[0,7,14,20,27,34,40]`（7,7,6 交替）；整数节奏 `[0,4,8,12,16]`、`[0,2,4,6,8]` 保持不变；NaN 退回内置 2 tick。
+- 实例配置已同步：`autocannon_fire_interval_ticks = 4` → `autocannon_rounds_per_minute = 180`（旧键已删，不留悬空项）。
+- 连带的玩法数字：3 发/秒；过热前可连打 50 发（约 16.7 秒，比 300 rpm 时的 10 秒更耐用）；300 发备弹约 100 秒。
+- 验证：全量 **494 测试 0 失败**；`./gradlew build` BUILD SUCCESSFUL；JAR 850288 字节 sha256 `59ed64a5…`，
+  与实例一致且只有一份。
+- 待实测：连发手感与音效节奏、长按到过热的时长、切换武器与存档重载后节奏是否正常。
+
+
+### 67.4 修复：连点鼠标左键可以打出超过射速的"泼水"（2026-09-29，用户："连续点击鼠标左键时会快速射击，修复这个bug"）
+
+- 根因（读代码定位，非猜测）：`ChainGunTurret.advance` 的"松扳机"分支原本是
+  `cooldown = 0; heat -= COOL_PER_TICK;` —— **松开扳机就把射击间隔清零**，于是每一次新的点击都在第一个按住 tick
+  立即开火。按住时节奏正确（180 rpm），连点 8 次/秒就能打出 8 发/秒。同一个类被三个载具共用，所以
+  **Apache 30mm 链炮、Wildcat 30mm、Bradley 25mm 都中招**；坦克 120mm 主炮（`MainGun`）本来就在注释里写明
+  "松扳机不清 CD，所以连点也打不出超过间隔的第二发"，是正确实现；坦克同轴/车长 MG、TOW、M2、IFV ATGM 的冷却
+  也都是无条件每 tick 递减，无此问题。
+- 修复：松开扳机时不再清零，而是**继续每 tick 递减并夹在 0**（夹 0 是为了防止长时间待机攒出"欠账"再一次性泼出去）：
+  `cooldown = Math.max(0.0D, cooldown - 1.0D);`。这样"两发之间的最小间隔 = 配置间隔"这一不变式与扳机图案无关，
+  和坦克主炮的规则统一。副作用方向是安全的：连点只会比按住**慢**（点击必须落在间隔已耗尽的 tick 上），绝不会更快。
+- 回归测试（先证明能抓住 bug）：`ChainGunCadenceTest` 新增
+  `aTapCannotStealAFreeShot`（打一发、松 1 tick、再按：不许开火）与
+  `clickSpamCannotBeatTheInterval`（每 3 tick 点一次的连点图案跑 200 tick：发数 ≤30 且相邻两发间隔 ≥7 tick）。
+  把修复临时改回旧写法跑一遍 → 这两个用例**双双 FAILED**；恢复修复 → BUILD SUCCESSFUL，修复行在 :149。
+- 验证：全量 **496 测试 0 失败**；`./gradlew build` BUILD SUCCESSFUL；JAR 850295 字节 sha256 `bf98f3fb…c9926d`，与实例一致且只有一份。
+- 待实测：连点（10 次/秒）时射速应稳定在 180 rpm；按住不放仍是 180 rpm；松扳机过热的冷却速度不变。
 

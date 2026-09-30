@@ -297,3 +297,28 @@ desired.pitchDegrees() / turret.aimYawDegrees() / turret.aimPitchDegrees()。
 上坦克**（一次是 /tp 改视角被客户端覆盖，一次是误按 Escape 打开了暂停菜单）。
 
 **本轮仍未取到**：抽搐的时序前后录屏/连拍（只有机制级证据 + 单写入源证明）。
+
+---
+
+## 追加：炮射霰弹（120mm CANISTER）散布改为椭锥（2026-09-14）
+
+需求：以准心水平线为基准，**上下 2°、水平 5°** 的角度散布。
+
+改前现状：CanisterShot 用 **5° 半角圆锥**（LittleBirdBallistics.spreadDirection，按面积均匀）；
+且 GroundWeapons.fireCanister 收了 spreadDegrees 参数却**从未使用**（方向一直取 CanisterShot 常量 5.0）——本次一并修掉。
+
+改动：
+- **CanisterShot**：HORIZONTAL_HALF_DEGREES=5.0、VERTICAL_HALF_DEGREES=2.0；direction 改为两轴独立采样
+  （样本 0.5 = 准心轴，0/1 = 负/正半角）；新增纯函数 horizontalAngleDegrees / verticalAngleDegrees。
+- **GroundWeapons.fireCanister**：签名 spreadDegrees -> horizontalSpreadDegrees + verticalSpreadDegrees，
+  并真正用于每颗弹丸方向。
+- **MainBattleTankEntity**：传两个配置值。
+- **LittleBirdConfig**：main_gun_canister_spread_degrees(5.0) 拆成
+  main_gun_canister_spread_horizontal_degrees(5.0) 与 main_gun_canister_spread_vertical_degrees(2.0)。
+  **注意**：旧配置键改名，已有配置文件会回退到默认值。
+- **CanisterShotTest**：重写，断言水平上限 5°、垂直上限 2°、0.5/0.5 命中准心轴、0/1 落在边界、全采样不越界。
+
+验证与同步：
+- ./gradlew build -> BUILD SUCCESSFUL；**413 tests / 0 failures / 0 errors**。
+- JAR 同步 sha256 f5b4802484814aedcb0af23a84a328c1991cf75bbb5eae774ad4d8858773fd4d，实例内仍单份。
+- 待实机：游戏内目视弹着散布（WSL 无 runClient）。
