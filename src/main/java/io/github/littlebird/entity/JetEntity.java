@@ -90,8 +90,6 @@ public class JetEntity extends Entity implements GunshipRider {
     private static final double PILOT_PITCH_REFERENCE_DEG = 90.0D;
     private static final double CRASH_DAMAGE_PER_SPEED = 14.0D;
     /** 25mm direct hit: light, so a jet strafes infantry and light armour, not a tank. */
-    private static final float CANNON_DIRECT_DAMAGE = 8.0F;
-    private static final float CANNON_ARMORED_DAMAGE = 4.0F;
     /** Hydra-70 direct hit, priced against the Little Bird's own 70mm rocket. */
     private static final float ROCKET_DAMAGE_SCALE = 1.0F;
     private static final double LOCK_RANGE_BLOCKS = 96.0D;
@@ -653,7 +651,8 @@ public class JetEntity extends Entity implements GunshipRider {
                 .add(0.0D, JetGeometry.cannonMuzzleHeightBlocks(), 0.0D)
                 .add(aim.scale(JetGeometry.cannonMuzzleForwardBlocks()));
         GroundWeapons.fireHitscan(server, this, pilot, muzzle, aim,
-                CANNON_DIRECT_DAMAGE, CANNON_ARMORED_DAMAGE, 0.0F, 0.0D, 0.0F, 1.3F, io.github.littlebird.entity.weapon.DamageType.SHELL);
+                io.github.littlebird.entity.weapon.VehicleDamageTable.Weapon.JET_CANNON,
+                0.0D, 0.0F, 1.3F);
     }
 
     private void launchRocket(ServerLevel server, Player pilot, int pod, int tube) {
@@ -788,6 +787,10 @@ public class JetEntity extends Entity implements GunshipRider {
     public boolean hurt(DamageSource source, float amount) {
         if (level().isClientSide || isRemoved() || source.is(DamageTypeTags.IS_FALL)
                 || isInvulnerableTo(source) || !destruction.acceptsDamage()) {
+            return false;
+        }
+        if (source.is(DamageTypeTags.IS_EXPLOSION)) {
+            // Splash never damages a vehicle, aircraft included: hits are priced on the hit.
             return false;
         }
         float remaining = getHealth() - amount;

@@ -14,7 +14,7 @@ public enum MainGunAmmoType {
     AP("ap"),
     /** High explosive round: less armour penetration, a bigger blast. */
     HE("he"),
-    /** Canister round: forty pellets in a cone, short range and lethal up close. */
+    /** Canister round: a wide pellet burst for close and medium range. */
     CANISTER("canister");
 
     private final String id;

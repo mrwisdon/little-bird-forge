@@ -18,6 +18,20 @@ public final class ModSounds {
     public static final RegistryObject<SoundEvent> GUN_SHOT = register("gun_shot");
     public static final RegistryObject<SoundEvent> ROCKET_LAUNCH = register("rocket_launch");
     public static final RegistryObject<SoundEvent> EXPLOSION = register("explosion");
+    /** PHL-191 ripple launch: ignition crack over a low roar. */
+    public static final RegistryObject<SoundEvent> PHL_LAUNCH = register("phl_launch");
+    /** Motor rumble while a PHL-191 rocket is in flight. */
+    public static final RegistryObject<SoundEvent> PHL_FLY = register("phl_fly");
+    /** PHL-191 warhead: sub thump, crack and a long rumble. */
+    public static final RegistryObject<SoundEvent> PHL_IMPACT = register("phl_impact");
+    /** Quick-time event: one sweep tick. */
+    public static final RegistryObject<SoundEvent> QTE_TICK = register("qte_tick");
+    /** Quick-time event scored. */
+    public static final RegistryObject<SoundEvent> QTE_HIT = register("qte_hit");
+    /** Reload ring or a mistimed reload. */
+    public static final RegistryObject<SoundEvent> RELOAD_CLANK = register("reload_clank");
+    /** Tactical radar toggled. */
+    public static final RegistryObject<SoundEvent> RADAR_PING = register("radar_ping");
 
     private ModSounds() {
     }

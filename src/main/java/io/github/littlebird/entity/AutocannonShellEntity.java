@@ -48,6 +48,8 @@ public class AutocannonShellEntity extends Entity {
     private float armoredDamage;
     private float heavyDamage;
     private double splashRadius = 2.0D;
+    /** Table row when configured by weapon; null keeps the legacy three numbers. */
+    private io.github.littlebird.entity.weapon.VehicleDamageTable.Weapon weapon;
 
     public AutocannonShellEntity(EntityType<? extends AutocannonShellEntity> type, Level level) {
         super(type, level);
@@ -67,6 +69,14 @@ public class AutocannonShellEntity extends Entity {
     }
 
     /** Prices this round: what it does to flesh, what it does to armour, and how wide the blast is. */
+    /** Prices this round from the vehicle damage table. */
+    public void configure(io.github.littlebird.entity.weapon.VehicleDamageTable.Weapon weapon,
+                          double splash) {
+        this.weapon = weapon;
+        var row = io.github.littlebird.entity.weapon.VehicleDamageTable.row(weapon);
+        configure(row.flesh(), row.aircraft(), row.heavy(), splash);
+    }
+
     public void configure(float direct, float armored, float heavy, double splash) {
         this.directDamage = direct;
         this.armoredDamage = armored;
@@ -198,14 +208,18 @@ public class AutocannonShellEntity extends Entity {
         if (level() instanceof ServerLevel server) {
             Entity owner = owner();
             if (directHit != null && directHit != owner) {
-                float damage = LittleBirdBallistics.damageTo(io.github.littlebird.entity.weapon.DamageType.SHELL,
-                        io.github.littlebird.entity.AirframeTargets.armorClass(directHit),
-                        new LittleBirdBallistics.WeaponDamage(
-                                directDamage, armoredDamage, heavyDamage));
+                float damage = weapon != null
+                        ? io.github.littlebird.entity.weapon.VehicleDamageTable.damage(
+                                weapon, directHit)
+                        : LittleBirdBallistics.damageTo(
+                                io.github.littlebird.entity.weapon.DamageType.SHELL,
+                                io.github.littlebird.entity.AirframeTargets.armorClass(directHit),
+                                new LittleBirdBallistics.WeaponDamage(
+                                        directDamage, armoredDamage, heavyDamage));
                 if (damage > 0.0F) {
                     // Credited to the driver who fired, the way the rocket credits its pilot.
                     boolean applied = directHit.hurt(
-                            server.damageSources().explosion(this, owner), damage);
+                            io.github.littlebird.entity.weapon.WarheadSplash.source(server, owner), damage);
                     if (applied && owner instanceof ServerPlayer serverPlayer) {
                         HitFeedback.report(serverPlayer, directHit);
                     }

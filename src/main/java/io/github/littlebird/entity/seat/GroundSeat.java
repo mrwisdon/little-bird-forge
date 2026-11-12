@@ -31,6 +31,14 @@ public final class GroundSeat {
     public static final int BRADLEY_CREW_REAR_RIGHT = 5;
     public static final int BRADLEY_SEATS = 6;
 
+    // PHL-191 box launcher: one seat. The driver both drives the 8x8 and lays the launcher.
+    public static final int PHL191_DRIVER = 0;
+    public static final int PHL191_SEATS = 1;
+
+    // PLZ-05 howitzer: one seat. The driver drives and lays the gun.
+    public static final int PLZ05_DRIVER = 0;
+    public static final int PLZ05_SEATS = 1;
+
     private GroundSeat() {
     }
 
@@ -61,6 +69,14 @@ public final class GroundSeat {
     /** Passengers on the rear bench: they ride, they do not operate anything. */
     public static boolean isIfvPassenger(int seat) {
         return seat == IFV_PASSENGER_LEFT || seat == IFV_PASSENGER_RIGHT;
+    }
+
+    public static boolean isPhl191Driver(int seat) {
+        return seat == PHL191_DRIVER;
+    }
+
+    public static boolean isPlz05Driver(int seat) {
+        return seat == PLZ05_DRIVER;
     }
 
     public static boolean isBradleyDriver(int seat) {

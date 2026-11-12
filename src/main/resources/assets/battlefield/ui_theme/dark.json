@@ -1,0 +1,15 @@
+{
+  "panel_bg": "#C80C1210",
+  "header_bg": "#E00F1A16",
+  "border": "#6697E8A8",
+  "border_inner": "#2E97E8A8",
+  "accent": "#FF8AE6A0",
+  "accent_dim": "#558AE6A0",
+  "text": "#FFE6F0E2",
+  "muted": "#FF93A88F",
+  "gold": "#FFFFD479",
+  "warn": "#FFFF8A5A",
+  "danger": "#FFFF5A5A",
+  "ok": "#FF7BE08A",
+  "loading": "#FFFFC55A"
+}

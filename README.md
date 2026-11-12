@@ -34,7 +34,7 @@ that property to build without touching a game install.
 **Aircraft** — Little Bird light helicopter (four seats, collective/roll on the mouse, miniguns and
 70mm rocket pods) and AH-64 Apache (pilot/gunner, chain gun turret, rocket bay, TOW missiles).
 
-**Ground vehicles** — M1A5 main battle tank (120mm main gun with AP/HE shells, coaxial machine gun,
+**Ground vehicles** — M1A2 SEP v1 main battle tank (120mm main gun with AP/HE shells, coaxial machine gun,
 smoke discharger) and EBAA Wildcat IFV (30mm autocannon, ATGM).
 
 **Systems** — server-authoritative weapons with hitscan and projectile rounds, two-stage magazines

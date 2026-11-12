@@ -26,6 +26,10 @@ public final class GroundVehicleInput {
     private static GroundVehicleControls crewed;
     private static boolean sentTrigger;
     private static boolean reloadHeld;
+    private static boolean sentElevationUp;
+    private static boolean sentElevationDown;
+    private static boolean sentPlz05ElevationUp;
+    private static boolean sentPlz05ElevationDown;
     /** The camera the crew had before boarding, put back when they leave - as the aircraft do. */
     private static net.minecraft.client.CameraType cameraBeforeCrew;
 
@@ -75,8 +79,40 @@ public final class GroundVehicleInput {
         }
         controls.setClientControls(axes);
 
+        // PHL-191 lays its launcher with Z / X instead of the look pitch. The keys are held, so
+        // the server is only told when the pair changes state.
+        if (controls instanceof io.github.littlebird.entity.Plz05Entity) {
+            boolean up = controlsActive && LittleBirdKeyMappings.PHL191_UP.isDown();
+            boolean down = controlsActive && !minecraft.player.isShiftKeyDown()
+                    && LittleBirdKeyMappings.PHL191_DOWN.isDown();
+            if (up != sentPlz05ElevationUp || down != sentPlz05ElevationDown) {
+                ModNetwork.CHANNEL.sendToServer(new io.github.littlebird.network.Plz05ElevationPacket(
+                        up, down));
+                sentPlz05ElevationUp = up;
+                sentPlz05ElevationDown = down;
+            }
+        }
+        if (controls instanceof io.github.littlebird.entity.Phl191Entity) {
+            boolean up = controlsActive && LittleBirdKeyMappings.PHL191_UP.isDown();
+            boolean down = controlsActive && !minecraft.player.isShiftKeyDown()
+                    && LittleBirdKeyMappings.PHL191_DOWN.isDown();
+            if (up != sentElevationUp || down != sentElevationDown) {
+                ModNetwork.CHANNEL.sendToServer(new io.github.littlebird.network.Phl191ElevationPacket(
+                        up, down));
+                sentElevationUp = up;
+                sentElevationDown = down;
+            }
+        }
+
         if (minecraft.screen == null) {
             while (LittleBirdKeyMappings.EXIT.consumeClick()) {
+                // X doubles as "lower the launcher" in the PHL-191, so its dismount is Shift+X and
+                // a bare X is swallowed here instead of throwing the crew out every press.
+                if ((controls instanceof io.github.littlebird.entity.Phl191Entity
+                        || controls instanceof io.github.littlebird.entity.Plz05Entity)
+                        && !minecraft.player.isShiftKeyDown()) {
+                    continue;
+                }
                 ModNetwork.CHANNEL.sendToServer(new LittleBirdExitPacket());
             }
             // The cockpit key doubles as the turret interior toggle for the ground hulls: the
@@ -124,6 +160,8 @@ public final class GroundVehicleInput {
         }
         sentTrigger = false;
         reloadHeld = false;
+        sentElevationUp = false;
+        sentElevationDown = false;
     }
 
     /**

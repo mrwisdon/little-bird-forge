@@ -21,6 +21,14 @@ import io.github.littlebird.entity.LittleBirdGeometry;
 import io.github.littlebird.entity.MainBattleTankEntity;
 import io.github.littlebird.entity.MainBattleTankGeometry;
 import io.github.littlebird.entity.MainGunShellEntity;
+import io.github.littlebird.entity.Phl191Entity;
+import io.github.littlebird.entity.Phl191Geometry;
+import io.github.littlebird.entity.Phl191RocketEntity;
+import io.github.littlebird.entity.Plz05Entity;
+import io.github.littlebird.entity.Plz05Geometry;
+import io.github.littlebird.entity.Plz05ShellEntity;
+import io.github.littlebird.entity.SmokeCloudEntity;
+import io.github.littlebird.entity.SmokeGrenadeEntity;
 import io.github.littlebird.entity.LittleBirdRocketEntity;
 import io.github.littlebird.entity.LockOnMissileEntity;
 import net.minecraft.world.entity.EntityType;
@@ -163,6 +171,70 @@ public final class ModEntities {
                     .clientTrackingRange(48)
                     .updateInterval(1)
                     .build("incendiary_bomb"));
+
+    /** PHL-191 box launcher: an 8x8 with eight 370mm tubes. */
+    public static final RegistryObject<EntityType<Phl191Entity>> PHL191 =
+            ENTITY_TYPES.register("phl191", () -> EntityType.Builder
+                    .<Phl191Entity>of(Phl191Entity::new, MobCategory.MISC)
+                    .sized(Phl191Geometry.aabbWidthBlocks(), Phl191Geometry.aabbHeightBlocks())
+                    .clientTrackingRange(24)
+                    .updateInterval(1)
+                    .build("phl191"));
+
+    /** One 370mm rocket: watched from far away, so it is tracked far. */
+    public static final RegistryObject<EntityType<Phl191RocketEntity>> PHL191_ROCKET =
+            ENTITY_TYPES.register("phl191_rocket", () -> EntityType.Builder
+                    .<Phl191RocketEntity>of(Phl191RocketEntity::new, MobCategory.MISC)
+                    .sized(0.8F, 0.8F)
+                    .clientTrackingRange(150)
+                    .updateInterval(1)
+                    .build("phl191_rocket"));
+
+    /** PLZ-05 self-propelled howitzer: a tracked hull with one 155mm gun. */
+    public static final RegistryObject<EntityType<Plz05Entity>> PLZ05 =
+            ENTITY_TYPES.register("plz05", () -> EntityType.Builder
+                    .<Plz05Entity>of(Plz05Entity::new, MobCategory.MISC)
+                    .sized(Plz05Geometry.aabbWidthBlocks(), Plz05Geometry.aabbHeightBlocks())
+                    .clientTrackingRange(24)
+                    .updateInterval(1)
+                    .build("plz05"));
+
+    /** One 155mm shell: watched from far away, so it is tracked far. */
+    public static final RegistryObject<EntityType<Plz05ShellEntity>> PLZ05_SHELL =
+            ENTITY_TYPES.register("plz05_shell", () -> EntityType.Builder
+                    .<Plz05ShellEntity>of(Plz05ShellEntity::new, MobCategory.MISC)
+                    .sized(0.6F, 0.6F)
+                    .clientTrackingRange(150)
+                    .updateInterval(1)
+                    .build("plz05_shell"));
+
+    /**
+     * The thrown canister: a small fast moving entity, only ever in flight for a second or two, so
+     * it is tracked at short range and updated every tick.
+     */
+    public static final RegistryObject<EntityType<SmokeGrenadeEntity>> SMOKE_GRENADE =
+            ENTITY_TYPES.register("smoke_grenade", () -> EntityType.Builder
+                    .<SmokeGrenadeEntity>of(SmokeGrenadeEntity::new, MobCategory.MISC)
+                    .sized(0.25F, 0.25F)
+                    .clientTrackingRange(64)
+                    .updateInterval(1)
+                    .build("smoke_grenade"));
+
+    /**
+     * The cloud the canister leaves behind. It is a point entity as far as the game is concerned -
+     * each client paints the visible cloud out of the puffs it spawns itself, from the synced radius
+     * and lifetime - so its box stays tiny and the tracking range only has to cover the cloud.
+     *
+     * <p>{@code updateInterval(10)} is the performance claim made concrete: a cloud sends its
+     * radius and lifetime twice a second, not twenty times, and nothing else about it is networked.
+     */
+    public static final RegistryObject<EntityType<SmokeCloudEntity>> SMOKE_CLOUD =
+            ENTITY_TYPES.register("smoke_cloud", () -> EntityType.Builder
+                    .<SmokeCloudEntity>of(SmokeCloudEntity::new, MobCategory.MISC)
+                    .sized(0.4F, 0.4F)
+                    .clientTrackingRange(64)
+                    .updateInterval(10)
+                    .build("smoke_cloud"));
 
     private ModEntities() {
     }

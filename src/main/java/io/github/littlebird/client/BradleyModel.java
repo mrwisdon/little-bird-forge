@@ -1349,7 +1349,7 @@ public final class BradleyModel extends EntityModel<BradleyEntity> {
         // The turret only traverses: elevation is the gun's alone, on its own trunnion.
         turret.xRot = 0.0F;
         gun.xRot = ApacheModelMath.turretPitchRadians(
-                entity.renderTurretPitchDeg(partialTick), entity.getXRot());
+                entity.renderTurretPitchDeg(partialTick), headPitch);
     }
 
     @Override

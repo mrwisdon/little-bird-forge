@@ -2,13 +2,12 @@ package io.github.littlebird.entity;
 
 import io.github.littlebird.LittleBirdConfig;
 import io.github.littlebird.client.GroundViewMath;
-import io.github.littlebird.entity.ground.GroundContact;
 import io.github.littlebird.entity.ground.GroundDrive;
 import io.github.littlebird.entity.ground.GroundMover;
-import io.github.littlebird.entity.ground.HullPose;
-import io.github.littlebird.entity.ground.SlopeTracker;
+import io.github.littlebird.entity.ground.GroundSuspension;
 import io.github.littlebird.entity.ground.GroundVehicleControls;
 import io.github.littlebird.entity.ground.GroundWeapons;
+import io.github.littlebird.entity.ground.SlopeTracker;
 import io.github.littlebird.entity.seat.GroundSeat;
 import io.github.littlebird.entity.weapon.AmmoPool;
 import io.github.littlebird.entity.weapon.AmmoSupply;
@@ -100,18 +99,14 @@ public class InfantryFightingVehicleEntity extends Entity
     private boolean driverTrigger;
     private boolean gunnerTrigger;
     private int supplyTick;
-    /** Smoothed hull pitch and roll fitted from the four-corner contact plane. */
-    private final HullPose hullPose = new HullPose(60.0D, 35.0D, 4.0D, 0.75D, 0.35D);
-    /** Travelled slope, kept as the fallback for when no contact plane can be fitted. */
+    private final GroundSuspension suspension = new GroundSuspension(
+            InfantryFightingVehicleGeometry.axleForwardUnits(),
+            InfantryFightingVehicleGeometry.WHEEL_LATERAL_UNITS, 0.18D);
     private final SlopeTracker slopeTracker = new SlopeTracker();
-    /** Client-side hull roll for the renderer; positive when the right side is lower. */
-    private float hullRollDeg;
 
     public InfantryFightingVehicleEntity(
             EntityType<? extends InfantryFightingVehicleEntity> type, Level level) {
         super(type, level);
-        // Entity.move ignores maxUpStep (only LivingEntity reads it), so the climb is done by
-        // GroundMover.stepUp from tickClient, capped by LittleBirdConfig.ifvStepHeightBlocks().
     }
 
     @Override
@@ -129,6 +124,10 @@ public class InfantryFightingVehicleEntity extends Entity
         super.tick();
         if (level().isClientSide) {
             tickClient();
+            GroundMover.updateSuspension(this, suspension);
+            if (clientDrive != null) {
+                setXRot(-suspension.pose(1.0F).pitchDegrees());
+            }
         } else {
             tickServer();
         }
@@ -210,16 +209,15 @@ public class InfantryFightingVehicleEntity extends Entity
                 vector(aim), ChainGunTurret.spreadDegrees(turret.heat()),
                 random.nextDouble(), random.nextDouble()));
         GroundWeapons.fireHitscan(server, this, driver, muzzle(), direction,
-                LittleBirdConfig.ifvAutocannonDamage(),
-                LittleBirdConfig.ifvAutocannonVehicleDamage(),
-                LittleBirdConfig.ifvAutocannonHeavyDamage(), AUTOCANNON_SPLASH_RADIUS, SPLASH_DAMAGE_FRACTION, 0.9F, io.github.littlebird.entity.weapon.DamageType.SHELL);
+                io.github.littlebird.entity.weapon.VehicleDamageTable.Weapon.IFV_AUTOCANNON,
+                AUTOCANNON_SPLASH_RADIUS, SPLASH_DAMAGE_FRACTION, 0.9F);
     }
 
     /** One ATGM: the gunner's heavy punch, down the turret line with a two block blast. */
     private void fireAtgm(ServerLevel server, Player gunner) {
         GroundWeapons.fireHitscan(server, this, gunner, muzzle(), turretDirection(),
-                LittleBirdConfig.ifvAtgmDamage(), LittleBirdConfig.ifvAtgmVehicleDamage(),
-                LittleBirdConfig.ifvAtgmHeavyDamage(), LittleBirdConfig.ifvAtgmSplashRadius(), SPLASH_DAMAGE_FRACTION, 0.7F, io.github.littlebird.entity.weapon.DamageType.SHELL);
+                io.github.littlebird.entity.weapon.VehicleDamageTable.Weapon.IFV_ATGM,
+                LittleBirdConfig.ifvAtgmSplashRadius(), SPLASH_DAMAGE_FRACTION, 0.7F);
     }
 
     private Vec3 turretDirection() {
@@ -270,13 +268,6 @@ public class InfantryFightingVehicleEntity extends Entity
             clientDrive = null;
             return;
         }
-        // The contact plane only drives the render attitude. The drive's grade stays on the
-        // travelled slope, which cannot look at ground the hull has not reached, so the speed
-        // cannot lead the terrain. The probes sit inside the hull's own AABB footprint, so the
-        // sample is the surface it is standing on rather than the one ahead.
-        GroundContact.Sample surface = GroundMover.sampleSurface(this,
-                getBbWidth() * 0.5D, getBbWidth() * 0.5D);
-        hullPose.update(surface);
         double grade = slopeTracker.gradeDegrees();
 
         GroundDrive.State prior = new GroundDrive.State(
@@ -288,17 +279,8 @@ public class InfantryFightingVehicleEntity extends Entity
         setYHeadRot(getYRot());
         double dy = onGround() ? -GROUND_CONTACT_PROBE
                 : Math.max(getDeltaMovement().y - FALL_GRAVITY, -MAX_FALL_SPEED);
-        double startY = getY();
-        double requestedDistance = Math.sqrt(step.dx() * step.dx() + step.dz() * step.dz());
         Vec3 drive = new Vec3(step.dx(), dy, step.dz());
-        setDeltaMovement(drive);
-        move(MoverType.SELF, drive);
-        GroundMover.stepUp(this, drive, LittleBirdConfig.ifvStepHeightBlocks());
-        // Travelled slope: the drive's grade, and the fallback for the pose when no plane fits.
-        slopeTracker.update(onGround() ? getY() - startY : 0.0D,
-                onGround() ? requestedDistance : 0.0D);
-        setXRot((float) -hullPose.pitchDegrees());
-        hullRollDeg = (float) hullPose.rollDegrees();
+        GroundMover.moveDrive(this, drive, LittleBirdConfig.ifvStepHeightBlocks(), slopeTracker);
         entityData.set(DATA_TURRET_YAW, driver.getYRot());
         entityData.set(DATA_TURRET_PITCH, driver.getXRot());
     }
@@ -312,14 +294,12 @@ public class InfantryFightingVehicleEntity extends Entity
     public void resetClientPrediction() {
         this.clientDrive = null;
         this.clientControls = 0;
-        this.hullPose.reset();
         this.slopeTracker.reset();
-        this.hullRollDeg = 0.0F;
     }
 
-    /** Client only: hull roll from the contact plane, positive when the right side is lower. */
-    public float getHullRollDeg() {
-        return hullRollDeg;
+    /** Local suspension pose used by the renderer. */
+    public GroundSuspension suspension() {
+        return suspension;
     }
 
     @Override
@@ -483,6 +463,16 @@ public class InfantryFightingVehicleEntity extends Entity
     public boolean hurt(DamageSource source, float amount) {
         if (level().isClientSide || isRemoved() || source.is(DamageTypeTags.IS_FALL)
                 || isInvulnerableTo(source) || !destruction.acceptsDamage()) {
+            return false;
+        }
+        if (source.is(net.minecraft.tags.DamageTypeTags.IS_EXPLOSION)) {
+            // A hull never takes a blast price: warheads settle their damage through
+            // VehicleDamageTable (direct hit and the priced splash in WarheadSplash), so a near
+            // miss can never out-damage a direct hit. Keep the JDAM check below for its own blast.
+            return false;
+        }
+        if (JdamBombEntity.isWarheadBlast(source)) {
+            // The warhead settles its anti-vehicle damage itself; its blast must not stack on it.
             return false;
         }
         float remaining = getHealth() - amount;

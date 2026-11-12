@@ -135,10 +135,12 @@ final class B2BombRulesAdversarialTest {
     void bombKindFiguresMatchTheFrozenContract() {
         assertTrue(BombKind.JDAM.guided(), "the JDAM steers");
         assertFalse(BombKind.INCENDIARY.guided(), "the canister does not");
-        assertEquals(120.0F, BombKind.JDAM.damage(), 1.0E-6F);
-        assertEquals(6.0F, BombKind.JDAM.blastRadius(), 1.0E-6F);
-        assertEquals(45.0F, BombKind.INCENDIARY.damage(), 1.0E-6F);
-        assertEquals(4.0F, BombKind.INCENDIARY.blastRadius(), 1.0E-6F);
+        assertEquals(240.0F, BombKind.JDAM.damage(), 1.0E-6F);
+        assertEquals(60.0F, BombKind.JDAM.groundVehicleDamage(), 1.0E-6F);
+        assertEquals(0.0F, BombKind.INCENDIARY.groundVehicleDamage(), 1.0E-6F);
+        assertEquals(10.0F, BombKind.JDAM.blastRadius(), 1.0E-6F);
+        assertEquals(90.0F, BombKind.INCENDIARY.damage(), 1.0E-6F);
+        assertEquals(7.0F, BombKind.INCENDIARY.blastRadius(), 1.0E-6F);
         assertTrue(BombKind.JDAM.massKg() > BombKind.INCENDIARY.massKg(), "2000 lb vs a canister");
         for (BombKind kind : BombKind.values()) {
             assertTrue(kind.damage() > 0.0F, kind + " damage");

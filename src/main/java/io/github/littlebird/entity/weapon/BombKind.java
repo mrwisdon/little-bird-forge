@@ -11,19 +11,22 @@ package io.github.littlebird.entity.weapon;
  * <p>Pure rules: no Minecraft classes.
  */
 public enum BombKind {
-    /** GBU-31 JDAM: a 2000 lb class guided bomb - heavy, slick and steerable. */
-    JDAM(120.0F, 6.0F, 0.985D, true, 907.0D),
+    /** GBU-31 JDAM: a 2000 lb class guided bomb - heavy, slick, homing and steerable. */
+    JDAM(240.0F, 60.0F, 10.0F, 0.985D, true, 907.0D),
     /** Incendiary canister: lighter, blunter and unguided; it sets the impact area alight. */
-    INCENDIARY(45.0F, 4.0F, 0.970D, false, 340.0D);
+    INCENDIARY(90.0F, 0.0F, 7.0F, 0.970D, false, 340.0D);
 
     private final float damage;
+    private final float groundVehicleDamage;
     private final float blastRadius;
     private final double drag;
     private final boolean guided;
     private final double massKg;
 
-    BombKind(float damage, float blastRadius, double drag, boolean guided, double massKg) {
+    BombKind(float damage, float groundVehicleDamage, float blastRadius, double drag,
+             boolean guided, double massKg) {
         this.damage = damage;
+        this.groundVehicleDamage = groundVehicleDamage;
         this.blastRadius = blastRadius;
         this.drag = drag;
         this.guided = guided;
@@ -33,6 +36,15 @@ public enum BombKind {
     /** Damage dealt to the entity a direct hit lands on. */
     public float damage() {
         return damage;
+    }
+
+    /**
+     * Damage a direct hit deals to a tracked hull or an IFV. Kept apart from {@link #damage()}
+     * because a penetrator warhead is priced against armour, not against flesh: the JDAM cracks a
+     * hull over two hits, and the incendiary cannot mark one at all.
+     */
+    public float groundVehicleDamage() {
+        return groundVehicleDamage;
     }
 
     /** Splash radius of the warhead, in blocks. */

@@ -1,5 +1,6 @@
 package io.github.littlebird.entity.ground;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.level.ClipContext;
@@ -8,14 +9,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
-/**
- * Ground contact and step assist for the pack's Entity based ground vehicles.
- *
- * <p>Minecraft only applies step height inside {@code LivingEntity}; a plain Entity that calls
- * {@code move} drives into every one block lip and stops. These hulls are not LivingEntity, so the
- * climb is done here. Nothing in this class teleports the hull: every position change is a real,
- * collision-clipped {@code move}, so a tick can never start from a penetrated or airborne state.
- */
+/** Ground contact and collision-aware movement for ground vehicles. */
 public final class GroundMover {
     /** Extra clearance above the steepest reachable corner ground before the ray starts. */
     private static final double PROBE_UP = 1.5D;
@@ -23,6 +17,89 @@ public final class GroundMover {
     private static final double PROBE_DOWN = 4.0D;
 
     private GroundMover() {
+    }
+
+    /**
+     * Moves the hull once, with step assist enabled for forward travel. Forge's Entity collision
+     * solver handles ground contact, clearance and settling with the original movement request.
+     * The step height is scoped to this move. The resolved rise feeds the next drive tick.
+     */
+    public static void moveDrive(
+            Entity vehicle, Vec3 requested, double stepHeightBlocks, SlopeTracker slopeTracker) {
+        double startY = vehicle.getY();
+        float previousStepHeight = vehicle.maxUpStep();
+        vehicle.setDeltaMovement(requested);
+        vehicle.setMaxUpStep(driveStepHeight(requested, vehicle.getYRot(), stepHeightBlocks));
+        try {
+            vehicle.move(MoverType.SELF, requested);
+        } finally {
+            vehicle.setMaxUpStep(previousStepHeight);
+        }
+        boolean grounded = vehicle.onGround();
+        slopeTracker.update(grounded ? vehicle.getY() - startY : 0.0D,
+                grounded ? requested.horizontalDistance() : 0.0D);
+    }
+
+    static float driveStepHeight(Vec3 requested, float yawDegrees, double stepHeightBlocks) {
+        double yaw = Math.toRadians(yawDegrees);
+        double forwardDistance = requested.z * Math.cos(yaw) - requested.x * Math.sin(yaw);
+        float stepHeight = (float) stepHeightBlocks;
+        return forwardDistance > 0.0D && Float.isFinite(stepHeight) && stepHeight > 0.0F
+                ? stepHeight : 0.0F;
+    }
+
+    /** Samples the terrain around the model's current running gear once per tick. */
+    public static void updateSuspension(Entity vehicle, GroundSuspension suspension) {
+        AABB box = vehicle.getBoundingBox();
+        AABB support = new AABB(box.minX, box.minY - 0.08D, box.minZ,
+                box.maxX, box.minY, box.maxZ);
+        if (!vehicle.onGround()
+                && !vehicle.level().getBlockCollisions(vehicle, support).iterator().hasNext()) {
+            suspension.update(null);
+            return;
+        }
+
+        double yaw = Math.toRadians(vehicle.getYRot());
+        double sin = Math.sin(yaw);
+        double cos = Math.cos(yaw);
+        double x = vehicle.getX();
+        double y = vehicle.getY();
+        double z = vehicle.getZ();
+        GroundSuspension.Pose pose = suspension.pose(1.0F);
+        double pitch = Math.toRadians(pose.pitchDegrees());
+        double along = Math.tan(pitch);
+        double across = Math.tan(Math.toRadians(pose.rollDegrees())) / Math.cos(pitch);
+        suspension.update((forward, lateral) -> {
+            double px = x - forward * sin - lateral * cos;
+            double pz = z + forward * cos - lateral * sin;
+            double expected = y + pose.liftBlocks() + forward * along - lateral * across;
+            if (!vehicle.level().hasChunkAt(BlockPos.containing(px, expected, pz))) {
+                return Double.NaN;
+            }
+            return groundHeight(vehicle, px, pz, expected + 1.45D, expected - 1.35D) - y;
+        });
+    }
+
+    /**
+     * World-space displacement of a centreline mount as the hull tilts. The weapon can
+     * retain its world bearing and elevation by counter-rotating about the displaced mount.
+     */
+    public static Vec3 suspensionMountOffset(GroundSuspension.Pose pose, float yaw,
+                                              double pivotForwardBlocks, double pivotHeightBlocks) {
+        double pitch = Math.toRadians(pose.pitchDegrees());
+        double roll = Math.toRadians(pose.rollDegrees());
+        double yawRadians = Math.toRadians(180.0D - yaw);
+        // Match the model's Y yaw, X pitch, then negative Z roll, in matrix order.
+        double lateral = pivotHeightBlocks * Math.sin(roll);
+        double rolledHeight = pivotHeightBlocks * Math.cos(roll);
+        double vertical = rolledHeight * Math.cos(pitch)
+                + pivotForwardBlocks * Math.sin(pitch) + pose.liftBlocks() - pivotHeightBlocks;
+        double depth = rolledHeight * Math.sin(pitch)
+                + pivotForwardBlocks * (1.0D - Math.cos(pitch));
+        double yawSin = Math.sin(yawRadians);
+        double yawCos = Math.cos(yawRadians);
+        return new Vec3(lateral * yawCos + depth * yawSin, vertical,
+                depth * yawCos - lateral * yawSin);
     }
 
     /**
@@ -70,77 +147,13 @@ public final class GroundMover {
             double lateral, double sin, double cos, double top, double bottom) {
         double px = x + forward * -sin + lateral * -cos;
         double pz = z + forward * cos + lateral * -sin;
+        return groundHeight(vehicle, px, pz, top, bottom);
+    }
+
+    private static double groundHeight(Entity vehicle, double px, double pz, double top, double bottom) {
         BlockHitResult hit = vehicle.level().clip(new ClipContext(
                 new Vec3(px, top, pz), new Vec3(px, bottom, pz),
                 ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, vehicle));
         return hit.getType() == HitResult.Type.MISS ? Double.NaN : hit.getLocation().y;
-    }
-
-    /**
-     * Call right after the drive move(). {@code requested} is the movement the drive asked for;
-     * move() clips its own delta against the blocking lip, so the caller must pass the request
-     * rather than re-reading getDeltaMovement().
-     *
-     * <p>The smallest rung of the step ladder that clears the lip is lifted over, stepped across
-     * and settled back down, all with real collision-clipped moves. If even the top rung is
-     * blocked the hull is left exactly where the drive put it, so a wall taller than the step
-     * height stops the vehicle as before.
-     */
-    public static void stepUp(Entity vehicle, Vec3 requested, double stepHeightBlocks) {
-        if (!vehicle.horizontalCollision || !vehicle.onGround()) {
-            return;
-        }
-        if (!(stepHeightBlocks > 0.0D) || requested.horizontalDistanceSqr() <= 0.0D) {
-            return;
-        }
-        // Only climb while driving forward. In reverse, or while a too steep grade is sliding the
-        // hull back, the step assist must not fight the drive and haul it up anyway.
-        double radians = Math.toRadians(vehicle.getYRot());
-        Vec3 forward = new Vec3(-Math.sin(radians), 0.0D, Math.cos(radians));
-        if (requested.dot(forward) <= 0.0D) {
-            return;
-        }
-        Vec3 flat = new Vec3(requested.x, 0.0D, requested.z);
-        double clear = clearance(vehicle, flat, stepHeightBlocks);
-        if (clear < 0.0D) {
-            return; // Too tall: leave the hull blocked.
-        }
-        // Real moves only. Lift clear of the lip, step across, then settle straight back down so
-        // the hull is grounded again. Collision clips each move, so the hull never ends up inside
-        // the step the way a teleport would, and it is never left hovering mid-climb.
-        vehicle.setDeltaMovement(0.0D, clear, 0.0D);
-        vehicle.move(MoverType.SELF, new Vec3(0.0D, clear, 0.0D));
-        vehicle.setDeltaMovement(flat);
-        vehicle.move(MoverType.SELF, flat);
-        vehicle.setDeltaMovement(flat);
-        vehicle.move(MoverType.SELF, new Vec3(0.0D, -clear, 0.0D));
-    }
-
-    /** How far ahead the clearance probe reaches: just enough to feel the lip the hull is on. */
-    private static final double PROBE_FORWARD = 0.1D;
-
-    /**
-     * The smallest rung of the step ladder whose lifted bounding box clears the lip directly
-     * ahead, or -1 when even the top rung is blocked. Purely reads the world: the hull is never
-     * touched, so probing cannot leave collision or ground state behind.
-     *
-     * <p>The probe only reaches {@link #PROBE_FORWARD} ahead, not the whole requested step. Using
-     * the whole step made this speed dependent: the faster the hull, the further the lifted box
-     * reached and the more likely it already overlapped the next tread up, so every rung looked
-     * blocked and the hull simply stopped. The real step across is a collision-clipped move, so
-     * the clearance test only has to feel the immediate lip.
-     */
-    private static double clearance(Entity vehicle, Vec3 flat, double stepHeightBlocks) {
-        AABB box = vehicle.getBoundingBox();
-        double length = flat.length();
-        Vec3 probe = length <= 1.0E-9D ? Vec3.ZERO
-                : flat.scale(Math.min(1.0D, PROBE_FORWARD / length));
-        for (double rise : GroundDrive.stepRises(stepHeightBlocks)) {
-            AABB target = box.move(0.0D, rise, 0.0D).move(probe.x, 0.0D, probe.z);
-            if (!vehicle.level().getBlockCollisions(vehicle, target).iterator().hasNext()) {
-                return rise;
-            }
-        }
-        return -1.0D;
     }
 }

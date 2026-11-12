@@ -2,12 +2,11 @@ package io.github.littlebird.entity;
 
 import io.github.littlebird.LittleBirdConfig;
 import io.github.littlebird.client.GroundViewMath;
-import io.github.littlebird.entity.ground.GroundContact;
 import io.github.littlebird.entity.ground.GroundDrive;
 import io.github.littlebird.entity.ground.GroundMover;
+import io.github.littlebird.entity.ground.GroundSuspension;
 import io.github.littlebird.entity.ground.GroundVehicleControls;
 import io.github.littlebird.entity.ground.GroundWeapons;
-import io.github.littlebird.entity.ground.HullPose;
 import io.github.littlebird.entity.ground.SlopeTracker;
 import io.github.littlebird.entity.seat.GroundSeat;
 import io.github.littlebird.entity.weapon.AmmoPool;
@@ -112,8 +111,9 @@ public class BradleyEntity extends Entity
     private boolean driverTrigger;
     private boolean gunnerTrigger;
     private int supplyTick;
-    private float hullRollDeg;
-    private final HullPose hullPose = new HullPose(60.0D, 35.0D, 4.0D, 0.75D, 0.35D);
+    private final GroundSuspension suspension = new GroundSuspension(
+            BradleyGeometry.roadWheelForwardUnits(),
+            BradleyGeometry.TRACK_LATERAL_UNITS, 0.0D);
     private final SlopeTracker slopeTracker = new SlopeTracker();
 
     public BradleyEntity(EntityType<? extends BradleyEntity> type, Level level) {
@@ -140,6 +140,10 @@ public class BradleyEntity extends Entity
         super.tick();
         if (level().isClientSide) {
             tickClient();
+            GroundMover.updateSuspension(this, suspension);
+            if (clientDrive != null) {
+                setXRot(-suspension.pose(1.0F).pitchDegrees());
+            }
         } else {
             tickServer();
         }
@@ -268,10 +272,8 @@ public class BradleyEntity extends Entity
         AutocannonShellEntity round = new AutocannonShellEntity(
                 io.github.littlebird.registry.ModEntities.AUTOCANNON_SHELL.get(), server);
         round.setPos(origin.x, origin.y, origin.z);
-        round.configure(LittleBirdConfig.bradleyAutocannonDamage(),
-                LittleBirdConfig.bradleyAutocannonVehicleDamage(),
-                LittleBirdConfig.bradleyAutocannonHeavyDamage(),
-                LittleBirdConfig.bradleyAutocannonSplashRadius());
+        round.configure(io.github.littlebird.entity.weapon.VehicleDamageTable.Weapon
+                        .BRADLEY_AUTOCANNON, LittleBirdConfig.bradleyAutocannonSplashRadius());
         round.launch(direction, LittleBirdConfig.bradleyAutocannonShellSpeed(), driver);
         server.addFreshEntity(round);
         // The muzzle flash is pushed a little way down the bore: at five rounds a second the
@@ -318,9 +320,8 @@ public class BradleyEntity extends Entity
                 LittleBirdConfig.bradleyM2SpreadDegrees(),
                 random.nextDouble(), random.nextDouble()));
         GroundWeapons.fireHitscan(server, this, gunner, m2Muzzle(gunner), spread,
-                LittleBirdConfig.bradleyM2Damage(),
-                LittleBirdConfig.bradleyM2VehicleDamage(),
-                0.0F, 0.0F, 0.0F, 0.8F, io.github.littlebird.entity.weapon.DamageType.BULLET);
+                io.github.littlebird.entity.weapon.VehicleDamageTable.Weapon.BRADLEY_M2,
+                0.0D, 0.0F, 0.8F);
     }
 
     /**
@@ -425,9 +426,6 @@ public class BradleyEntity extends Entity
             clientDrive = null;
             return;
         }
-        GroundContact.Sample surface = GroundMover.sampleSurface(this,
-                getBbWidth() * 0.5D, getBbWidth() * 0.5D);
-        hullPose.update(surface);
         double grade = slopeTracker.gradeDegrees();
 
         GroundDrive.State prior = new GroundDrive.State(
@@ -439,16 +437,8 @@ public class BradleyEntity extends Entity
         setYHeadRot(getYRot());
         double dy = onGround() ? -GROUND_CONTACT_PROBE
                 : Math.max(getDeltaMovement().y - FALL_GRAVITY, -MAX_FALL_SPEED);
-        double startY = getY();
-        double requestedDistance = Math.sqrt(step.dx() * step.dx() + step.dz() * step.dz());
         Vec3 drive = new Vec3(step.dx(), dy, step.dz());
-        setDeltaMovement(drive);
-        move(MoverType.SELF, drive);
-        GroundMover.stepUp(this, drive, LittleBirdConfig.bradleyStepHeightBlocks());
-        slopeTracker.update(onGround() ? getY() - startY : 0.0D,
-                onGround() ? requestedDistance : 0.0D);
-        setXRot((float) -hullPose.pitchDegrees());
-        hullRollDeg = (float) hullPose.rollDegrees();
+        GroundMover.moveDrive(this, drive, LittleBirdConfig.bradleyStepHeightBlocks(), slopeTracker);
         entityData.set(DATA_TURRET_YAW, driver.getYRot());
         entityData.set(DATA_TURRET_PITCH, driver.getXRot());
     }
@@ -462,14 +452,12 @@ public class BradleyEntity extends Entity
     public void resetClientPrediction() {
         this.clientDrive = null;
         this.clientControls = 0;
-        this.hullPose.reset();
         this.slopeTracker.reset();
-        this.hullRollDeg = 0.0F;
     }
 
-    /** Client only: hull roll from the contact plane, positive when the right side is lower. */
-    public float getHullRollDeg() {
-        return hullRollDeg;
+    /** Local suspension pose used by the renderer. */
+    public GroundSuspension suspension() {
+        return suspension;
     }
 
     @Override
@@ -634,6 +622,16 @@ public class BradleyEntity extends Entity
     public boolean hurt(DamageSource source, float amount) {
         if (level().isClientSide || isRemoved() || source.is(DamageTypeTags.IS_FALL)
                 || isInvulnerableTo(source) || !destruction.acceptsDamage()) {
+            return false;
+        }
+        if (source.is(net.minecraft.tags.DamageTypeTags.IS_EXPLOSION)) {
+            // A hull never takes a blast price: warheads settle their damage through
+            // VehicleDamageTable (direct hit and the priced splash in WarheadSplash), so a near
+            // miss can never out-damage a direct hit. Keep the JDAM check below for its own blast.
+            return false;
+        }
+        if (JdamBombEntity.isWarheadBlast(source)) {
+            // The warhead settles its anti-vehicle damage itself; its blast must not stack on it.
             return false;
         }
         float remaining = getHealth() - amount;

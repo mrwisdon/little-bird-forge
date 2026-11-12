@@ -14,12 +14,22 @@ public final class MainGunShellBallistics {
      * tank round, slow enough that the player actually sees the shell leave the barrel.
      */
     public static final double MUZZLE_SPEED = 5.0D;
+    private static final double AP_MUZZLE_SPEED = 9.0D;
     /** A slight drop, so a very long shot wants a touch of lead. */
     public static final double GRAVITY = 0.02D;
     public static final int LIFETIME_TICKS = 60;
 
+    /** The AP dart is faster than the HE shell. Canister follows its own hitscan model. */
+    public static double muzzleSpeed(MainGunAmmoType ammo) {
+        return ammo == MainGunAmmoType.AP ? AP_MUZZLE_SPEED : MUZZLE_SPEED;
+    }
+
+    public static Vector3 launchVelocity(Vector3 direction, MainGunAmmoType ammo) {
+        return direction.normalize().scale(muzzleSpeed(ammo));
+    }
+
     public static Vector3 launchVelocity(Vector3 direction) {
-        return direction.normalize().scale(MUZZLE_SPEED);
+        return launchVelocity(direction, MainGunAmmoType.HE);
     }
 
     /** One tick of flight: the heading is kept, gravity pulls the round down. */

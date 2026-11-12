@@ -6,6 +6,7 @@ import io.github.littlebird.registry.ModBlocks;
 import io.github.littlebird.registry.ModCreativeTabs;
 import io.github.littlebird.registry.ModEntities;
 import io.github.littlebird.registry.ModItems;
+import io.github.littlebird.registry.ModParticles;
 import io.github.littlebird.registry.ModSounds;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -29,6 +30,7 @@ public final class LittleBird {
         ModBlocks.register(modBus);
         ModBlockEntities.register(modBus);
         ModItems.register(modBus);
+        ModParticles.register(modBus);
         ModCreativeTabs.register(modBus);
         ModSounds.register(modBus);
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, LittleBirdConfig.CLIENT_SPEC);

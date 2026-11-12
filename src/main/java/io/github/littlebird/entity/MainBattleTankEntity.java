@@ -133,15 +133,13 @@ public class MainBattleTankEntity extends Entity
     private int supplyTick;
     /** Smoothed hull pitch and roll fitted from the four-corner contact plane. */
     private final HullPose hullPose = new HullPose(60.0D, 35.0D, 4.0D, 0.75D, 0.35D);
-    /** Travelled slope, kept as the fallback for when no contact plane can be fitted. */
+    /** Travelled slope used to adjust the drive's speed. */
     private final SlopeTracker slopeTracker = new SlopeTracker();
     /** Client-side hull roll for the renderer; positive when the right side is lower. */
     private float hullRollDeg;
 
     public MainBattleTankEntity(EntityType<? extends MainBattleTankEntity> type, Level level) {
         super(type, level);
-        // Entity.move ignores maxUpStep (only LivingEntity reads it), so the climb is done by
-        // GroundMover.stepUp from tickClient, capped by LittleBirdConfig.tankStepHeightBlocks().
     }
 
     @Override
@@ -318,18 +316,17 @@ public class MainBattleTankEntity extends Entity
      */
     private void fireMainGun(ServerLevel server, Player driver) {
         MainGunAmmoType shell = mainGunAmmo.selected();
-        Vec3 muzzle = muzzle();
+        Vec3 muzzle = mainGunMuzzle(turret.aimYawDegrees(), turret.aimPitchDegrees());
         if (shell == MainGunAmmoType.CANISTER) {
-            // Canister is a muzzle burst, not a travelling shell: forty pellet hitscans down the
+            // Canister is a muzzle burst: pellet hitscans fan out around the
             // turret's attitude. The same muzzle flash and report wrap it as a main gun round.
             GroundWeapons.fireCanister(server, this, driver, muzzle, turretDirection(),
                     LittleBirdConfig.tankCanisterPellets(),
                     LittleBirdConfig.tankCanisterSpreadHorizontalDegrees(),
                     LittleBirdConfig.tankCanisterSpreadVerticalDegrees(),
-                    LittleBirdConfig.tankCanisterPelletDamage(),
-                    LittleBirdConfig.tankCanisterPelletVehicleDamage(),
-                    0.0F,
-                    LittleBirdConfig.tankCanisterRange());
+                    io.github.littlebird.entity.weapon.VehicleDamageTable.Weapon.TANK_CANISTER_PELLET,
+                    LittleBirdConfig.tankCanisterRange(),
+                    LittleBirdConfig.tankCanisterPelletRadius());
             MainGunShellEntity.muzzleFlash(server, muzzle, LittleBirdConfig.mainGunParticleScale());
             server.playSound(null, getX(), getY(), getZ(), ModSounds.GUN_SHOT.get(),
                     SoundSource.PLAYERS, 1.6F, 0.5F);
@@ -339,11 +336,15 @@ public class MainBattleTankEntity extends Entity
         }
         MainGunShellEntity round = new MainGunShellEntity(ModEntities.MAIN_GUN_SHELL.get(), server);
         round.setPos(muzzle.x, muzzle.y, muzzle.z);
-        round.configure(shell, LittleBirdConfig.tankMainGunDamage(shell),
-                LittleBirdConfig.tankMainGunVehicleDamage(shell),
-                LittleBirdConfig.tankMainGunHeavyDamage(shell),
+        var gunRow = io.github.littlebird.entity.weapon.VehicleDamageTable.row(switch (shell) {
+            case HE -> io.github.littlebird.entity.weapon.VehicleDamageTable.Weapon.TANK_MAIN_GUN_HE;
+            case CANISTER -> io.github.littlebird.entity.weapon.VehicleDamageTable.Weapon
+                    .TANK_MAIN_GUN_CANISTER;
+            default -> io.github.littlebird.entity.weapon.VehicleDamageTable.Weapon.TANK_MAIN_GUN_AP;
+        });
+        round.configure(shell, gunRow.flesh(), gunRow.aircraft(), gunRow.heavy(),
                 LittleBirdConfig.tankMainGunSplashRadius(shell));
-        round.launch(turretDirection(), MainGunShellBallistics.MUZZLE_SPEED, driver);
+        round.launch(turretDirection(), MainGunShellBallistics.muzzleSpeed(shell), driver);
         server.addFreshEntity(round);
         MainGunShellEntity.muzzleFlash(server, muzzle, LittleBirdConfig.mainGunParticleScale());
         // The cannon report is two existing clips layered: a sharp crack plus a low boom, with the
@@ -360,9 +361,8 @@ public class MainBattleTankEntity extends Entity
     private void fireCoax(ServerLevel server, Player shooter, boolean cupola) {
         GroundWeapons.fireHitscan(server, this, shooter, machineGunMuzzle(cupola),
                 turretDirection(),
-                LittleBirdConfig.tankCoaxDamage(), LittleBirdConfig.tankCoaxVehicleDamage(),
-                0.0F, COAX_SPLASH_RADIUS, SPLASH_DAMAGE_FRACTION, 0.9F,
-                io.github.littlebird.entity.weapon.DamageType.BULLET);
+                io.github.littlebird.entity.weapon.VehicleDamageTable.Weapon.TANK_COAX,
+                COAX_SPLASH_RADIUS, SPLASH_DAMAGE_FRACTION, 0.9F);
     }
 
     /**
@@ -374,7 +374,10 @@ public class MainBattleTankEntity extends Entity
     private Vec3 machineGunMuzzle(boolean cupola) {
         MainBattleTankGeometry.MachineGunMuzzle mg =
                 MainBattleTankGeometry.machineGunMuzzle(cupola);
-        Vec3 ring = position().add(0.0D, MainBattleTankGeometry.turretPivotHeightBlocks(), 0.0D);
+        Vec3 hullForward = Vec3.directionFromRotation(0.0F, getYRot());
+        Vec3 ring = position()
+                .add(hullForward.scale(MainBattleTankGeometry.turretRingForwardBlocks()))
+                .add(0.0D, MainBattleTankGeometry.turretPivotHeightBlocks(), 0.0D);
         Vec3 aimRight = vec(MainGun.aimDirection(turret.aimYawDegrees() - 90.0D, 0.0D));
         if (aimRight.lengthSqr() > 1.0E-9D) {
             ring = ring.add(aimRight.normalize().scale(mg.lateralBlocks()));
@@ -387,18 +390,20 @@ public class MainBattleTankEntity extends Entity
         return vec(MainGun.aimDirection(turret.aimYawDegrees(), turret.aimPitchDegrees()));
     }
 
-    private Vec3 muzzle() {
+    /** World-space main gun muzzle for the supplied aim angles in degrees. */
+    public Vec3 mainGunMuzzle(double aimYaw, double aimPitch) {
         Vec3 hullForward = Vec3.directionFromRotation(0.0F, getYRot());
         // The barrel pivots on its trunnion at the mantlet, so the muzzle is the trunnion plus the
         // barrel reach along the gun line - not the ring plus the whole barrel. The trunnion turns
         // with the turret, hence the turret's own forward rather than the hull's.
-        Vec3 turretForward = Vec3.directionFromRotation(0.0F, (float) turret.aimYawDegrees());
-        return vec(MainGun.muzzleOrigin(vector(position()), vector(turretForward),
+        Vec3 turretForward = Vec3.directionFromRotation(0.0F, (float) aimYaw);
+        Vec3 ring = position()
+                .add(hullForward.scale(MainBattleTankGeometry.turretRingForwardBlocks()));
+        return vec(MainGun.muzzleOrigin(vector(ring), vector(turretForward),
                 new LittleBirdBallistics.Vector3(0.0D, 1.0D, 0.0D),
                 MainBattleTankGeometry.gunTrunnionHeightBlocks(),
                 MainBattleTankGeometry.gunTrunnionForwardBlocks(),
-                MainBattleTankGeometry.barrelReachBlocks(),
-                turret.aimYawDegrees(), turret.aimPitchDegrees()));
+                MainBattleTankGeometry.barrelReachBlocks(), aimYaw, aimPitch));
     }
 
     /** Ammunition comes back only from an ammunition crate parked next to the tank. */
@@ -458,15 +463,8 @@ public class MainBattleTankEntity extends Entity
         setYHeadRot(getYRot());
         double dy = onGround() ? -GROUND_CONTACT_PROBE
                 : Math.max(getDeltaMovement().y - FALL_GRAVITY, -MAX_FALL_SPEED);
-        double startY = getY();
-        double requestedDistance = Math.sqrt(step.dx() * step.dx() + step.dz() * step.dz());
         Vec3 drive = new Vec3(step.dx(), dy, step.dz());
-        setDeltaMovement(drive);
-        move(MoverType.SELF, drive);
-        GroundMover.stepUp(this, drive, LittleBirdConfig.tankStepHeightBlocks());
-        // Travelled slope: the drive's grade, and the fallback for the pose when no plane fits.
-        slopeTracker.update(onGround() ? getY() - startY : 0.0D,
-                onGround() ? requestedDistance : 0.0D);
+        GroundMover.moveDrive(this, drive, LittleBirdConfig.tankStepHeightBlocks(), slopeTracker);
         setXRot((float) -hullPose.pitchDegrees());
         hullRollDeg = (float) hullPose.rollDegrees();
         // No local turret preview. The server slews and clamps the barrel with MainGun and
@@ -676,6 +674,16 @@ public class MainBattleTankEntity extends Entity
     public boolean hurt(DamageSource source, float amount) {
         if (level().isClientSide || isRemoved() || source.is(DamageTypeTags.IS_FALL)
                 || isInvulnerableTo(source) || !destruction.acceptsDamage()) {
+            return false;
+        }
+        if (source.is(net.minecraft.tags.DamageTypeTags.IS_EXPLOSION)) {
+            // A hull never takes a blast price: warheads settle their damage through
+            // VehicleDamageTable (direct hit and the priced splash in WarheadSplash), so a near
+            // miss can never out-damage a direct hit. Keep the JDAM check below for its own blast.
+            return false;
+        }
+        if (JdamBombEntity.isWarheadBlast(source)) {
+            // The warhead settles its anti-vehicle damage itself; its blast must not stack on it.
             return false;
         }
         float remaining = getHealth() - amount;

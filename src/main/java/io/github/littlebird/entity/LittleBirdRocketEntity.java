@@ -157,11 +157,15 @@ public class LittleBirdRocketEntity extends Entity {
                 LittleBirdBallistics.Airframe airframe = AirframeTargets.classify(directHit);
                 // Rockets are an anti-personnel round: against a tracked or wheeled hull they only
             // scratch, and the launcher's damage scale does not change that.
-            float damage = io.github.littlebird.entity.AirframeTargets.armorClass(directHit)
-                    == io.github.littlebird.entity.weapon.ArmorClass.HEAVY_ARMOR
-                            ? LittleBirdConfig.rocketHeavyDamage() : rocketDamageTo(airframe);
+            var armor = io.github.littlebird.entity.AirframeTargets.armorClass(directHit);
+            float damage = (armor == io.github.littlebird.entity.weapon.ArmorClass.HEAVY_ARMOR
+                    || armor == io.github.littlebird.entity.weapon.ArmorClass.LIGHT_ARMOR)
+                    ? io.github.littlebird.entity.weapon.VehicleDamageTable.damage(
+                            io.github.littlebird.entity.weapon.VehicleDamageTable.Weapon
+                                    .LITTLE_BIRD_ROCKET, directHit)
+                    : rocketDamageTo(airframe);
                 boolean applied = directHit.hurt(
-                        server.damageSources().explosion(owner, owner), damage);
+                        io.github.littlebird.entity.weapon.WarheadSplash.source(server, owner), damage);
                 if (applied && owner instanceof ServerPlayer serverPlayer) {
                     HitFeedback.report(serverPlayer, directHit);
                 }
@@ -184,13 +188,15 @@ public class LittleBirdRocketEntity extends Entity {
      * not change what a hit on a hull is worth - while a Little Bird keeps the scaled price.
      */
     protected float rocketDamageTo(LittleBirdBallistics.Airframe airframe) {
+        var row = io.github.littlebird.entity.weapon.VehicleDamageTable.row(
+                io.github.littlebird.entity.weapon.VehicleDamageTable.Weapon.LITTLE_BIRD_ROCKET);
         if (airframe == LittleBirdBallistics.Airframe.APACHE) {
-            return LittleBirdConfig.rocketDamageApache();
+            return row.apache();
         }
         return LittleBirdBallistics.damageTo(
                 airframe != LittleBirdBallistics.Airframe.NONE,
-                LittleBirdConfig.rocketDirectHitDamage() * damageScale,
-                LittleBirdConfig.rocketDamageAircraft() * damageScale);
+                row.flesh() * damageScale,
+                row.aircraft() * damageScale);
     }
 
     private static LittleBirdBallistics.Vector3 vector(Vec3 value) {

@@ -13,6 +13,8 @@ public record LittleBirdTracerPacket(
         double endX, double endY, double endZ,
         int impactType, int station) {
 
+    public static final int STATION_CANISTER = 2;
+
     public static final int IMPACT_MISS = 0;
     public static final int IMPACT_BLOCK = 1;
     public static final int IMPACT_ENTITY = 2;
@@ -29,11 +31,16 @@ public record LittleBirdTracerPacket(
     }
 
     public static LittleBirdTracerPacket decode(FriendlyByteBuf buffer) {
-        return new LittleBirdTracerPacket(
-                buffer.readDouble(), buffer.readDouble(), buffer.readDouble(),
-                buffer.readDouble(), buffer.readDouble(), buffer.readDouble(),
-                sanitizeImpact(buffer.readUnsignedByte()),
-                Math.max(0, Math.min(1, buffer.readUnsignedByte())));
+        double startX = buffer.readDouble();
+        double startY = buffer.readDouble();
+        double startZ = buffer.readDouble();
+        double endX = buffer.readDouble();
+        double endY = buffer.readDouble();
+        double endZ = buffer.readDouble();
+        int impact = sanitizeImpact(buffer.readUnsignedByte());
+        int station = buffer.readUnsignedByte();
+        return new LittleBirdTracerPacket(startX, startY, startZ, endX, endY, endZ,
+                impact, station <= STATION_CANISTER ? station : 1);
     }
 
     private static int sanitizeImpact(int impactType) {

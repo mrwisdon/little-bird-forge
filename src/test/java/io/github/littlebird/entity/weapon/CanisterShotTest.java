@@ -5,18 +5,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
-/** The 120mm canister load: forty forty-damage pellets, 5 degrees wide and 2 degrees tall. */
+/** Default load and spread bounds for the 120mm canister round. */
 final class CanisterShotTest {
     private static final LittleBirdBallistics.Vector3 AIM =
             new LittleBirdBallistics.Vector3(0.0D, 0.0D, 1.0D);
 
     @Test
-    void theLoadIsFortyPelletsAtFortyDamage() {
-        assertEquals(40, CanisterShot.PELLETS);
+    void theDefaultLoadHasEightyFortyDamagePellets() {
+        assertEquals(80, CanisterShot.PELLETS);
         assertEquals(40.0F, CanisterShot.PELLET_DAMAGE, 1.0E-6F);
         assertEquals(40.0F, CanisterShot.PELLET_VEHICLE_DAMAGE, 1.0E-6F);
-        assertEquals(5.0D, CanisterShot.HORIZONTAL_HALF_DEGREES, 1.0E-9D);
-        assertEquals(2.0D, CanisterShot.VERTICAL_HALF_DEGREES, 1.0E-9D);
+        assertEquals(6.0D, CanisterShot.HORIZONTAL_HALF_DEGREES, 1.0E-9D);
+        assertEquals(3.0D, CanisterShot.VERTICAL_HALF_DEGREES, 1.0E-9D);
+        assertEquals(64.0D, CanisterShot.RANGE_BLOCKS, 1.0E-9D);
+        assertEquals(0.50D, CanisterShot.PELLET_RADIUS_BLOCKS, 1.0E-9D);
     }
 
     @Test
@@ -30,12 +32,12 @@ final class CanisterShotTest {
     @Test
     void theWidestPelletsSitOnTheBounds() {
         LittleBirdBallistics.Vector3 wide = CanisterShot.direction(AIM, 1.0D, 0.5D);
-        assertEquals(5.0D, CanisterShot.horizontalAngleDegrees(AIM, wide), 1.0E-6D);
+        assertEquals(6.0D, CanisterShot.horizontalAngleDegrees(AIM, wide), 1.0E-6D);
         assertEquals(0.0D, CanisterShot.verticalAngleDegrees(AIM, wide), 1.0E-6D);
 
         LittleBirdBallistics.Vector3 tall = CanisterShot.direction(AIM, 0.5D, 1.0D);
         assertEquals(0.0D, CanisterShot.horizontalAngleDegrees(AIM, tall), 1.0E-6D);
-        assertEquals(2.0D, CanisterShot.verticalAngleDegrees(AIM, tall), 1.0E-6D);
+        assertEquals(3.0D, CanisterShot.verticalAngleDegrees(AIM, tall), 1.0E-6D);
     }
 
     @Test

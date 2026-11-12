@@ -127,6 +127,14 @@ public final class LittleBirdBallistics {
         public static WeaponDamage flat(float value) {
             return new WeaponDamage(value, value, value);
         }
+
+        /**
+         * An incendiary row: fire kills flesh and airframes, and a tracked hull does not care.
+         * The canister is an area weapon, not an anti-tank one.
+         */
+        public static WeaponDamage incendiary(float damage) {
+            return new WeaponDamage(damage, damage, 0.0F);
+        }
     }
 
     /**

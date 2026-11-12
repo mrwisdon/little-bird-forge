@@ -1,5 +1,9 @@
 package io.github.littlebird.entity;
 
+import io.github.littlebird.entity.weapon.CraterShape;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import io.github.littlebird.LittleBirdConfig;
 import io.github.littlebird.entity.weapon.BombBallistics;
 import io.github.littlebird.entity.weapon.BombKind;
@@ -12,6 +16,7 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -54,6 +59,8 @@ public class JdamBombEntity extends Entity {
     /** Who let go of it, so it cannot detonate on its own aircraft or its own pilot. */
     private int releaseEntityId = -1;
     private int releaseVehicleId = -1;
+    /** The ground vehicle terminal homing is locked on this tick, or -1. */
+    private int lockedEntityId = -1;
 
     public JdamBombEntity(EntityType<? extends JdamBombEntity> type, Level level) {
         super(type, level);
@@ -98,13 +105,50 @@ public class JdamBombEntity extends Entity {
         return hasTarget;
     }
 
-    /** True when this tick actually steers: the fuse is guided and there is somewhere to aim. */
-    private boolean steering() {
-        return guided && BombKind.JDAM.guided() && hasTarget;
+    /**
+     * The ground vehicle this round is homing on, or null when none is close enough. Terminal
+     * homing is automatic: the JDAM does not need the crew's fuse or a pod designation to attack
+     * the last hull it falls past, and it never homes on the aircraft that released it.
+     */
+    private Entity terminalLock() {
+        double radius = LittleBirdConfig.jdamTerminalLockRadius();
+        if (radius <= 0.0D) {
+            return null;
+        }
+        Entity best = null;
+        double bestDistance = Double.MAX_VALUE;
+        var near = level().getEntities(this, getBoundingBox().inflate(radius),
+                candidate -> candidate.isAlive() && !candidate.isSpectator()
+                        && candidate.getId() != releaseEntityId
+                        && candidate.getId() != releaseVehicleId
+                        && AirframeTargets.isGroundVehicle(candidate));
+        for (Entity candidate : near) {
+            double distance = candidate.distanceToSqr(this);
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                best = candidate;
+            }
+        }
+        return best;
     }
 
-    private double[] targetOrNull() {
-        return steering() ? new double[]{targetX, targetY, targetZ} : null;
+    /**
+     * Where this tick steers. Terminal homing outranks the pod designation, because it is the
+     * round's last chance to correct; the designation keeps working when no hull is in reach.
+     */
+    private double[] aimPoint() {
+        Entity lock = terminalLock();
+        if (lock != null) {
+            lockedEntityId = lock.getId();
+            return BombBallistics.leadAimPoint(
+                    new double[]{getX(), getY(), getZ()},
+                    new double[]{velocity.x, velocity.y, velocity.z},
+                    new double[]{lock.getX(), lock.getY() + lock.getBbHeight() * 0.5D, lock.getZ()},
+                    new double[]{lock.getDeltaMovement().x, lock.getDeltaMovement().y,
+                            lock.getDeltaMovement().z});
+        }
+        lockedEntityId = -1;
+        return guided && hasTarget ? new double[]{targetX, targetY, targetZ} : null;
     }
 
     /** Points the model down the launch velocity, so the fins trail the fall. */
@@ -125,10 +169,14 @@ public class JdamBombEntity extends Entity {
         }
         ageTicks++;
         Vec3 start = position();
+        double[] aim = aimPoint();
+        double authority = lockedEntityId >= 0
+                ? BombBallistics.TERMINAL_GUIDANCE_AUTHORITY
+                : BombBallistics.GUIDANCE_AUTHORITY;
         double[] state = BombBallistics.step(
                 new double[]{start.x, start.y, start.z},
                 new double[]{velocity.x, velocity.y, velocity.z},
-                BombKind.JDAM, targetOrNull(), steering());
+                BombKind.JDAM, aim, aim != null, authority);
         velocity = new Vec3(state[3], state[4], state[5]);
         setDeltaMovement(velocity);
         // The step's position output is the same segment, but the move below has to do the
@@ -180,6 +228,21 @@ public class JdamBombEntity extends Entity {
         return server.getPlayerByUUID(ownerUuid);
     }
 
+    /**
+     * True when a damage source is one of the B-2 warheads' own blasts - the JDAM's or the
+     * incendiary's. A ground vehicle ignores both: their anti-vehicle damage is settled by the
+     * priced direct hit each bomb applies itself, and the incendiary is not allowed to mark a hull
+     * at all. Letting the vanilla explosion pile 43-71 raw damage on top would make those figures
+     * meaningless. Blasts from anything else - TNT, shells, rockets - are untouched.
+     */
+    public static boolean isWarheadBlast(DamageSource source) {
+        if (source == null) {
+            return false;
+        }
+        return source.getDirectEntity() instanceof JdamBombEntity
+                || source.getDirectEntity() instanceof IncendiaryBombEntity;
+    }
+
     /** Direct hit damage, then the 2000 lb warhead, then the report back to the crew. */
     private void detonate(Entity directHit) {
         if (level() instanceof ServerLevel server) {
@@ -189,10 +252,13 @@ public class JdamBombEntity extends Entity {
             if (directHit != null) {
                 float damage = LittleBirdBallistics.damageTo(DamageType.SHELL,
                         AirframeTargets.armorClass(directHit),
-                        LittleBirdBallistics.WeaponDamage.flat(
-                                (float) LittleBirdConfig.jdamDamage()));
+                        io.github.littlebird.entity.weapon.VehicleDamageTable.row(
+                                io.github.littlebird.entity.weapon.VehicleDamageTable.Weapon.JDAM)
+                                .prices());
+                // A null direct entity is deliberate: a hull ignores the warhead's own blast (see
+                // isWarheadBlast), so the priced hit must not look like that blast.
                 boolean applied = directHit.hurt(
-                        server.damageSources().explosion(this, owner), damage);
+                        io.github.littlebird.entity.weapon.WarheadSplash.source(server, owner), damage);
                 if (applied && credit != null) {
                     HitFeedback.report(credit, directHit);
                 }
@@ -204,6 +270,8 @@ public class JdamBombEntity extends Entity {
                     : java.util.List.of();
             server.explode(this, getX(), getY(), getZ(), blastRadius, false,
                     Level.ExplosionInteraction.NONE);
+            // Entity damage above, terrain damage below: two knobs, two balances.
+            carveCrater(server);
             java.util.List<String> killed =
                     io.github.littlebird.entity.AirframeTargets.kills(owner, directHit, around);
             if (credit != null && !killed.isEmpty()) {
@@ -216,6 +284,50 @@ public class JdamBombEntity extends Entity {
                     SoundSource.PLAYERS, 1.4F, 0.9F);
         }
         discard();
+    }
+
+    /**
+     * Tears the crater. The vanilla explosion above is entity damage only (interaction NONE), so
+     * the hole is carved here instead: that keeps the terrain radius a separate knob from the kill
+     * radius, and a huge hole can never widen the blast that already hurt the crew of the aircraft
+     * that dropped the bomb. Unbreakable and very tough material is left standing, and the whole
+     * pass is capped so a carpet of sixteen bombs cannot stall the server.
+     */
+    private void carveCrater(ServerLevel server) {
+        if (!LittleBirdConfig.jdamBreaksBlocks()) {
+            return;
+        }
+        double radius = LittleBirdConfig.jdamCraterRadius();
+        if (radius <= 0.0D) {
+            return;
+        }
+        int reach = Mth.ceil(radius);
+        BlockPos centre = blockPosition();
+        int broken = 0;
+        for (int dx = -reach; dx <= reach; dx++) {
+            for (int dy = -reach; dy <= reach; dy++) {
+                for (int dz = -reach; dz <= reach; dz++) {
+                    if (broken >= CraterShape.MAX_BLOCKS) {
+                        return;
+                    }
+                    if (!CraterShape.isCracked(dx, dy, dz, radius)) {
+                        continue;
+                    }
+                    BlockPos pos = centre.offset(dx, dy, dz);
+                    if (!server.isLoaded(pos)) {
+                        continue;
+                    }
+                    BlockState state = server.getBlockState(pos);
+                    if (state.isAir()
+                            || !CraterShape.isBreakable(state.getBlock().getExplosionResistance(),
+                                    CraterShape.MAX_RESISTANCE)) {
+                        continue;
+                    }
+                    server.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+                    broken++;
+                }
+            }
+        }
     }
 
     @Override

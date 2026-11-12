@@ -1,0 +1,11 @@
+{
+  "panel_bg": "#C8101408",
+  "header_bg": "#E0141A0C",
+  "border": "#66B8C48A",
+  "accent": "#FFC8D89A",
+  "accent_dim": "#55C8D89A",
+  "text": "#FFF0F4E2",
+  "muted": "#FFA8B48F",
+  "gold": "#FFFFE0A0",
+  "ok": "#FFB8E08A"
+}

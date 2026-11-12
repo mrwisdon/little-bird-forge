@@ -21,6 +21,8 @@ public final class BombBallistics {
     public static final double GUIDANCE_AUTHORITY = 0.02D;
     /** Furthest a designation can be and still steer: past this the round is ballistic. */
     public static final double GUIDANCE_RANGE_BLOCKS = 64.0D;
+    /** How hard terminal homing may pull, blocks per tick squared: the last few blocks. */
+    public static final double TERMINAL_GUIDANCE_AUTHORITY = 0.06D;
     /** A bomb below this is under the build floor: it detonates instead of falling forever. */
     public static final double FLOOR_DETONATE_Y = -70.0D;
     /** Ticks a bomb may fly before it gives up and detonates in mid air. */
@@ -42,7 +44,18 @@ public final class BombBallistics {
      */
     public static double[] step(double[] pos, double[] vel, BombKind kind, double[] target,
                                 boolean guided) {
+        return step(pos, vel, kind, target, guided, GUIDANCE_AUTHORITY);
+    }
+
+    /**
+     * The same flight with a caller-chosen steering authority, so terminal homing can pull harder
+     * than a mid-course designation while the round falls. Passing {@link #GUIDANCE_AUTHORITY}
+     * reproduces the single-authority behaviour exactly.
+     */
+    public static double[] step(double[] pos, double[] vel, BombKind kind, double[] target,
+                                boolean guided, double authority) {
         BombKind round = kind == null ? BombKind.JDAM : kind;
+        double pull = Double.isFinite(authority) && authority > 0.0D ? authority : GUIDANCE_AUTHORITY;
         double px = pos == null ? 0.0D : pos[0];
         double py = pos == null ? 0.0D : pos[1];
         double pz = pos == null ? 0.0D : pos[2];
@@ -66,7 +79,7 @@ public final class BombBallistics {
                 double cz = dz / range * speed - vz;
                 double correction = Math.sqrt(cx * cx + cy * cy + cz * cz);
                 if (correction > 1.0E-9D) {
-                    double scale = Math.min(1.0D, GUIDANCE_AUTHORITY / correction);
+                    double scale = Math.min(1.0D, pull / correction);
                     vx += cx * scale;
                     vy += cy * scale;
                     vz += cz * scale;
@@ -101,17 +114,52 @@ public final class BombBallistics {
             return 0.0D;
         }
         BombKind round = kind == null ? BombKind.JDAM : kind;
-        double terminalHeight = TERMINAL_FALL_PER_TICK * TERMINAL_FALL_PER_TICK
-                / (2.0D * GRAVITY_BLOCKS_PER_TICK2);
-        double fallTicks = altitude <= terminalHeight
-                ? Math.sqrt(2.0D * altitude / GRAVITY_BLOCKS_PER_TICK2)
-                : TERMINAL_FALL_PER_TICK / GRAVITY_BLOCKS_PER_TICK2
-                        + (altitude - terminalHeight) / TERMINAL_FALL_PER_TICK;
+        double fallTicks = fallTicksFor(altitude);
         double drag = round.drag();
         if (drag >= 1.0D) {
             return speedBlocksPerTick * fallTicks;
         }
         // Sum of speed*drag^n over the fall: the geometric series of the decaying push.
         return speedBlocksPerTick * drag * (1.0D - Math.pow(drag, fallTicks)) / (1.0D - drag);
+    }
+
+    /**
+     * Ticks to fall {@code altitude} blocks from rest, in the same closed form the stepped flight
+     * follows: accelerating to terminal velocity, then at it.
+     */
+    public static double fallTicksFor(double altitude) {
+        if (!(altitude > 0.0D)) {
+            return 0.0D;
+        }
+        double terminalHeight = TERMINAL_FALL_PER_TICK * TERMINAL_FALL_PER_TICK
+                / (2.0D * GRAVITY_BLOCKS_PER_TICK2);
+        return altitude <= terminalHeight
+                ? Math.sqrt(2.0D * altitude / GRAVITY_BLOCKS_PER_TICK2)
+                : TERMINAL_FALL_PER_TICK / GRAVITY_BLOCKS_PER_TICK2
+                        + (altitude - terminalHeight) / TERMINAL_FALL_PER_TICK;
+    }
+
+    /**
+     * Where a terminal-homing round should aim: the target's position led by the time the round
+     * still needs to fall onto it, so the bomb flies at where the vehicle will be rather than at
+     * where it was when the seeker last saw it.
+     *
+     * <p>{@code bombPos}/{@code bombVel} are the round's {x, y, z} and {vx, vy, vz}; the target's
+     * velocity is led on all three axes (a ground vehicle's is almost purely horizontal). Null
+     * arrays and null entries read as zero, so a caller without a velocity still gets a point.
+     */
+    public static double[] leadAimPoint(double[] bombPos, double[] bombVel, double[] targetPos,
+                                        double[] targetVel) {
+        double px = bombPos == null ? 0.0D : bombPos[0];
+        double py = bombPos == null ? 0.0D : bombPos[1];
+        double pz = bombPos == null ? 0.0D : bombPos[2];
+        double tx = targetPos == null ? px : targetPos[0];
+        double ty = targetPos == null ? py : targetPos[1];
+        double tz = targetPos == null ? pz : targetPos[2];
+        double vx = targetVel == null ? 0.0D : targetVel[0];
+        double vy = targetVel == null ? 0.0D : targetVel[1];
+        double vz = targetVel == null ? 0.0D : targetVel[2];
+        double fall = fallTicksFor(py - ty);
+        return new double[]{tx + vx * fall, ty + vy * fall, tz + vz * fall};
     }
 }

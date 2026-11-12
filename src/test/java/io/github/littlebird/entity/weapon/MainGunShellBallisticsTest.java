@@ -19,6 +19,15 @@ class MainGunShellBallisticsTest {
     }
 
     @Test
+    void armourPiercingLeavesFasterThanHighExplosive() {
+        Vector3 direction = new Vector3(0.3D, 0.4D, 0.5D);
+        assertEquals(9.0D, MainGunShellBallistics.launchVelocity(direction, MainGunAmmoType.AP)
+                .length(), 1.0E-9D);
+        assertEquals(5.0D, MainGunShellBallistics.launchVelocity(direction, MainGunAmmoType.HE)
+                .length(), 1.0E-9D);
+    }
+
+    @Test
     void flightOnlyLosesHeightToGravity() {
         Vector3 velocity = MainGunShellBallistics.launchVelocity(new Vector3(0.0D, 0.0D, 1.0D));
         Vector3 after = MainGunShellBallistics.advance(velocity);

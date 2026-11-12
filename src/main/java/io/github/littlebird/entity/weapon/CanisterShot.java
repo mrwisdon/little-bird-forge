@@ -3,7 +3,7 @@ package io.github.littlebird.entity.weapon;
 /**
  * The 120mm canister round: a shotgun load of many small pellets instead of one shell.
  *
- * <p>40 pellets, each 40 damage, sprayed out to 40 blocks inside an elliptical cone measured
+ * <p>By default, 80 pellets deal 40 damage each out to 64 blocks. Their spread is measured
  * from the crosshair: up to {@link #HORIZONTAL_HALF_DEGREES} either side along the crosshair's
  * horizontal line and {@link #VERTICAL_HALF_DEGREES} up or down from it. Both axes are sampled
  * independently, so no pellet ever exceeds either bound. Close range is brutal; spread makes it
@@ -13,17 +13,19 @@ package io.github.littlebird.entity.weapon;
  */
 public final class CanisterShot {
     /** Pellets in one round. */
-    public static final int PELLETS = 40;
+    public static final int PELLETS = 80;
     /** Half-angle of the horizontal spread, along the crosshair's horizontal line. */
-    public static final double HORIZONTAL_HALF_DEGREES = 5.0D;
+    public static final double HORIZONTAL_HALF_DEGREES = 6.0D;
     /** Half-angle of the vertical spread, above and below the crosshair's horizontal line. */
-    public static final double VERTICAL_HALF_DEGREES = 2.0D;
+    public static final double VERTICAL_HALF_DEGREES = 3.0D;
     /** A pellet gives up past this range. */
-    public static final double RANGE_BLOCKS = 40.0D;
+    public static final double RANGE_BLOCKS = 64.0D;
+    /** Half-width of the volume swept by one pellet, in blocks. */
+    public static final double PELLET_RADIUS_BLOCKS = 0.50D;
     public static final float PELLET_DAMAGE = 40.0F;
     public static final float PELLET_VEHICLE_DAMAGE = 40.0F;
 
-    /** One pellet direction with the default 5 wide by 2 tall degree spread. */
+    /** One pellet direction using the default spread. */
     public static LittleBirdBallistics.Vector3 direction(
             LittleBirdBallistics.Vector3 aim, double horizontalSample, double verticalSample) {
         return direction(aim, HORIZONTAL_HALF_DEGREES, VERTICAL_HALF_DEGREES,

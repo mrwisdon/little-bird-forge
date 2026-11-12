@@ -59,8 +59,10 @@ public final class LittleBirdTracerRenderer {
         Vec3 direction = segment.scale(1.0D / length);
         TRACERS.add(new Tracer(start, end, direction, length, packet.impactType(),
                 packet.station(), currentTime(level, minecraft.getFrameTime())));
-        level.addParticle(ParticleTypes.SMOKE, start.x, start.y, start.z,
-                -direction.x * 0.01D, 0.012D, -direction.z * 0.01D);
+        if (packet.station() != LittleBirdTracerPacket.STATION_CANISTER) {
+            level.addParticle(ParticleTypes.SMOKE, start.x, start.y, start.z,
+                    -direction.x * 0.01D, 0.012D, -direction.z * 0.01D);
+        }
     }
 
     @SubscribeEvent
@@ -159,10 +161,13 @@ public final class LittleBirdTracerRenderer {
             Vec3 to = tracer.start.add(tracer.direction.scale(front));
             float fade = (float) LittleBirdTracerTimeline.arrivalFade(elapsed, tracer.length);
             int glow = tracer.station == 0 ? 0xFF9628 : 0xFF783C;
-            drawRibbon(vertices, matrix, from, to, side, GLOW_HALF_WIDTH, glow, alpha(70, fade));
-            drawRibbon(vertices, matrix, from, to, up, GLOW_HALF_WIDTH, glow, alpha(70, fade));
-            drawRibbon(vertices, matrix, from, to, side, CORE_HALF_WIDTH, 0xFFEEAA, alpha(235, fade));
-            drawRibbon(vertices, matrix, from, to, up, CORE_HALF_WIDTH, 0xFFEEAA, alpha(235, fade));
+            float widthScale = tracer.station == LittleBirdTracerPacket.STATION_CANISTER ? 2.0F : 1.0F;
+            float glowWidth = GLOW_HALF_WIDTH * widthScale;
+            float coreWidth = CORE_HALF_WIDTH * widthScale;
+            drawRibbon(vertices, matrix, from, to, side, glowWidth, glow, alpha(70, fade));
+            drawRibbon(vertices, matrix, from, to, up, glowWidth, glow, alpha(70, fade));
+            drawRibbon(vertices, matrix, from, to, side, coreWidth, 0xFFEEAA, alpha(235, fade));
+            drawRibbon(vertices, matrix, from, to, up, coreWidth, 0xFFEEAA, alpha(235, fade));
             tracer.renderedOnce = true;
         }
         buffers.endBatch(RenderType.lightning());
@@ -171,7 +176,7 @@ public final class LittleBirdTracerRenderer {
 
     private static void drawMuzzleFlash(VertexConsumer vertices, Matrix4f matrix,
                                         Tracer tracer, Vec3 side, Vec3 up, double elapsed) {
-        if (tracer.muzzleRendered) {
+        if (tracer.muzzleRendered || tracer.station == LittleBirdTracerPacket.STATION_CANISTER) {
             return;
         }
         float fade = (float) LittleBirdTracerTimeline.muzzleFlashFade(elapsed);

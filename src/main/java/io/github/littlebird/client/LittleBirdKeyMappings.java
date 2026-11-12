@@ -44,6 +44,34 @@ public final class LittleBirdKeyMappings {
             GLFW.GLFW_KEY_G,
             CATEGORY);
 
+    /** PHL-191: raise the launcher (held). */
+    /** Opens the scope palette picker. */
+    public static final KeyMapping HUD_SETTINGS = new KeyMapping(
+            "key.battlefield.hud_settings",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_F10,
+            "key.categories.battlefield");
+
+    public static final KeyMapping PHL191_UP = new KeyMapping(
+            "key.battlefield.phl191_up",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_Z,
+            CATEGORY);
+
+    /** PHL-191: lower the launcher (held). */
+    public static final KeyMapping PHL191_DOWN = new KeyMapping(
+            "key.battlefield.phl191_down",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_X,
+            CATEGORY);
+
+    /** PHL-191: toggle the impact recon image. */
+    public static final KeyMapping PHL191_RECON = new KeyMapping(
+            "key.battlefield.phl191_recon",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_M,
+            CATEGORY);
+
     /** Ground vehicles: step through the 120mm shell carousel. */
     public static final KeyMapping SHELL_SWITCH = new KeyMapping(
             "key.battlefield.shell_switch",
@@ -92,6 +120,9 @@ public final class LittleBirdKeyMappings {
             InputConstants.Type.KEYSYM,
             GLFW.GLFW_KEY_P,
             CATEGORY);
+
+    /** PLZ-05 driver: open the fire-mission screen and pick a target on the radar. */
+    public static final KeyMapping ARTILLERY_STRIKE = new KeyMapping("key.battlefield.artillery_strike", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_J, CATEGORY);
 
     private LittleBirdKeyMappings() {
     }

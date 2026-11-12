@@ -2,6 +2,7 @@ package io.github.littlebird.registry;
 
 import io.github.littlebird.LittleBird;
 import io.github.littlebird.item.LittleBirdDeployItem;
+import io.github.littlebird.item.SmokeGrenadeItem;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
@@ -56,6 +57,14 @@ public final class ModItems {
 
     public static final RegistryObject<Item> BRADLEY = ITEMS.register("bradley",
             () -> new io.github.littlebird.item.BradleyDeployItem(
+                    new Item.Properties().stacksTo(1)));
+
+    public static final RegistryObject<Item> PHL191 = ITEMS.register("phl191",
+            () -> new io.github.littlebird.item.Phl191DeployItem(
+                    new Item.Properties().stacksTo(1)));
+
+    public static final RegistryObject<Item> PLZ05 = ITEMS.register("plz05",
+            () -> new io.github.littlebird.item.Plz05DeployItem(
                     new Item.Properties().stacksTo(1)));
 
     // ------------------------------------------------------------------
@@ -147,6 +156,13 @@ public final class ModItems {
     /** Half finished IFV hull, before the turret and engine go on. */
     public static final RegistryObject<Item> IFV_HULL = ITEMS.register("ifv_hull",
             () -> new Item(new Item.Properties()));
+
+    // ------------------------------------------------------------------
+    // Infantry kit: thrown by hand, not carried by a vehicle.
+    // ------------------------------------------------------------------
+    /** Hand thrown smoke canister: lobs a cloud of smoke where it lands. */
+    public static final RegistryObject<Item> SMOKE_GRENADE = ITEMS.register("smoke_grenade",
+            () -> new SmokeGrenadeItem(new Item.Properties().stacksTo(8)));
 
     /** Ammunition crate: park next to one and it restocks the aircraft. */
     public static final RegistryObject<Item> AMMO_CRATE = ITEMS.register("ammo_crate",

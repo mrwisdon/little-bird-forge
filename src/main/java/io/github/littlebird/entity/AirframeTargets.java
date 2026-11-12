@@ -44,10 +44,17 @@ public final class AirframeTargets {
         // for the light vehicles the expansion plan adds (LATV4, LCAA, M5C Bolte).
         if (entity instanceof MainBattleTankEntity
                 || entity instanceof InfantryFightingVehicleEntity
-                || entity instanceof BradleyEntity) {
+                || entity instanceof BradleyEntity
+                || entity instanceof Phl191Entity
+                || entity instanceof Plz05Entity) {
             return io.github.littlebird.entity.weapon.ArmorClass.HEAVY_ARMOR;
         }
         return io.github.littlebird.entity.weapon.ArmorClass.UNARMORED;
+    }
+
+    /** True for the two self-propelled launchers: other vehicles' guns do extra work on them. */
+    public static boolean isArtillery(Entity entity) {
+        return entity instanceof Phl191Entity || entity instanceof Plz05Entity;
     }
 
     /** True for a hull the air-to-ground missile may lock: armour and IFVs, not aircraft. */

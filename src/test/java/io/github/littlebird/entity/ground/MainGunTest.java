@@ -147,17 +147,18 @@ class MainGunTest {
 
     @Test
     void theMuzzleSitsOnTheTrunnionNotOnTheRing() {
-        // The tank's barrel elevates on its own pivot at the mantlet: trunnion 31.36 units (1.96
-        // blocks) above the hull floor and 30.72 units (1.92 blocks) ahead of the ring, with 62.16
-        // units (3.885 blocks) of barrel left to the muzzle. Level, the muzzle is 5.805 blocks
-        // ahead of the ring and 1.96 above it - the 0.52 block the old ring-based sum missed.
-        assertEquals(1.96D,
+        // The tank's barrel elevates on its own pivot at the mantlet: trunnion 32.32 units (2.02
+        // blocks) above the hull floor and 29.6 units (1.85 blocks) ahead of the ring, with 56.08
+        // units (3.505 blocks) of barrel left to the muzzle. Level, the muzzle is 5.355 blocks
+        // ahead of the ring and 2.02 above it - the muzzle sits 5.805 blocks ahead of the hull
+        // centre once the ring's own 0.45 block forward offset is added.
+        assertEquals(2.02D,
                 io.github.littlebird.entity.MainBattleTankGeometry.gunTrunnionHeightBlocks(),
                 1.0E-6D);
-        assertEquals(1.92D,
+        assertEquals(1.85D,
                 io.github.littlebird.entity.MainBattleTankGeometry.gunTrunnionForwardBlocks(),
                 1.0E-6D);
-        assertEquals(3.885D,
+        assertEquals(3.505D,
                 io.github.littlebird.entity.MainBattleTankGeometry.barrelReachBlocks(), 1.0E-6D);
         LittleBirdBallistics.Vector3 origin = new LittleBirdBallistics.Vector3(0.0D, 10.0D, 0.0D);
         LittleBirdBallistics.Vector3 muzzle = MainGun.muzzleOrigin(origin,
@@ -166,7 +167,7 @@ class MainGunTest {
                 io.github.littlebird.entity.MainBattleTankGeometry.gunTrunnionHeightBlocks(),
                 io.github.littlebird.entity.MainBattleTankGeometry.gunTrunnionForwardBlocks(),
                 io.github.littlebird.entity.MainBattleTankGeometry.barrelReachBlocks(), 0.0D, 0.0D);
-        assertEquals(5.805D, muzzle.z(), 1.0E-3D, "ring to muzzle along the barrel");
-        assertEquals(11.96D, muzzle.y(), 1.0E-3D, "trunnion height above the origin");
+        assertEquals(5.355D, muzzle.z(), 1.0E-3D, "ring to muzzle along the barrel");
+        assertEquals(12.02D, muzzle.y(), 1.0E-3D, "trunnion height above the origin");
     }
 }

@@ -1,0 +1,10 @@
+45cd04b76d50477a85803660661dbc2addb66507fedfc29fdc7bd8a6c4526ebb  ./src/main/resources/assets/battlefield/textures/entity/main_battle_tank.png
+b2acc54699e622a91ff8b1c986ace62ad5aa58f7ec8e9a3f432dd0f346a6ae53  ./src/main/resources/assets/battlefield/textures/item/main_battle_tank.png
+052a1bcf5e58020c39f28f13a0efe2c63e88f0d6729c9ad8b1cf749fb32c9431  ./src/main/resources/assets/battlefield/lang/zh_cn.json
+d76b23f55a2d3ee74cf48667c549394059ff61c89e026dd1d92a1fb5e97557d2  ./src/main/resources/assets/battlefield/lang/en_us.json
+87c44350e027e256e88beecce3ea519394d309ffefef3ca2e32f588d6d586f85  ./src/main/java/io/github/littlebird/client/MainBattleTankModel.java
+29902aa2c050c3c3a710b9c03118f281126ef9ce12de5b8a539760ebc32af8fc  ./src/main/java/io/github/littlebird/entity/MainBattleTankEntity.java
+5ee3b7689772b9b1781c0be315d6f1036a962551603bae213111bb4a667652d8  ./src/main/java/io/github/littlebird/entity/MainBattleTankGeometry.java
+83e6c671467c93c8a8529b0b75d7327b9cc5228b849c4ad399cee4fcb0b6dca0  ./src/test/java/io/github/littlebird/entity/TankMachineGunMuzzleTest.java
+a21ca10154de794442d8664a0ccb651a13415cb7b5f718d7b991e846485d9771  ./tools/generate_ground_unit_textures.py
+5c8f6e573d30c590058ea6f3ba3a7a82f01861567b704f2e0f63508888fc7034  ./tools/generate_ground_unit_model.py

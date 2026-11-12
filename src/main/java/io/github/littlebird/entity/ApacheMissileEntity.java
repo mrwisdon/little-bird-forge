@@ -312,7 +312,7 @@ public class ApacheMissileEntity extends Entity {
                 LittleBirdBallistics.Airframe airframe = AirframeTargets.classify(directHit);
                 float damage = damageFor(directHit, airframe);
                 boolean applied = directHit.hurt(
-                        server.damageSources().explosion(owner, owner), damage);
+                        io.github.littlebird.entity.weapon.WarheadSplash.source(server, owner), damage);
                 if (applied && owner instanceof ServerPlayer serverPlayer) {
                     HitFeedback.report(serverPlayer, directHit);
                 }
@@ -339,15 +339,19 @@ public class ApacheMissileEntity extends Entity {
                 && LittleBirdConfig.apacheMissileDirectHitKills()) {
             return ApacheMissileBallistics.directHitDamage(healthOf(target));
         }
+        if (warheadDamage < 0.0F && warheadAirframeDamage < 0.0F && warheadHeavyDamage < 0.0F) {
+            return io.github.littlebird.entity.weapon.VehicleDamageTable.damage(
+                    io.github.littlebird.entity.weapon.VehicleDamageTable.Weapon.APACHE_MISSILE,
+                    target);
+        }
+        var row = io.github.littlebird.entity.weapon.VehicleDamageTable.row(
+                io.github.littlebird.entity.weapon.VehicleDamageTable.Weapon.APACHE_MISSILE);
         return LittleBirdBallistics.damageTo(io.github.littlebird.entity.weapon.DamageType.SHELL,
                 io.github.littlebird.entity.AirframeTargets.armorClass(target),
                 new LittleBirdBallistics.WeaponDamage(
-                        warheadDamage >= 0.0F ? warheadDamage : LittleBirdConfig.apacheMissileDamage(),
-                        warheadAirframeDamage >= 0.0F
-                                ? warheadAirframeDamage
-                                : LittleBirdConfig.apacheMissileAirframeDamage(),
-                        warheadHeavyDamage >= 0.0F
-                                ? warheadHeavyDamage : LittleBirdConfig.apacheMissileHeavyDamage()));
+                        warheadDamage >= 0.0F ? warheadDamage : row.flesh(),
+                        warheadAirframeDamage >= 0.0F ? warheadAirframeDamage : row.aircraft(),
+                        warheadHeavyDamage >= 0.0F ? warheadHeavyDamage : row.heavy()));
     }
 
     /** Remaining airframe health, so the killing blow clears it on any aircraft. */

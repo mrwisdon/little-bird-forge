@@ -241,10 +241,12 @@ def paint_marking(px, r, c):
 
 
 TANK = {
-    "base": (75, 83, 48), "dark": (46, 52, 30), "camo": (58, 64, 36),
-    "light": (108, 116, 72), "line": (38, 44, 24), "rivet": (126, 132, 88),
-    "strap": (34, 34, 30), "track": (35, 37, 42), "tan": (138, 127, 92),
-    "lens": (232, 222, 170), "glass_dark": (30, 38, 46), "glass_light": (96, 120, 140),
+    # M1A2 SEP v1 desert CARC (sRGB): a warm sand base with slightly darker panel shading,
+    # so the box edges still read without the old olive camo pattern.
+    "base": (150, 138, 108), "dark": (110, 100, 76), "camo": (134, 122, 94),
+    "light": (176, 164, 134), "line": (96, 88, 66), "rivet": (190, 180, 152),
+    "strap": (52, 48, 40), "track": (38, 40, 44), "tan": (160, 146, 112),
+    "lens": (240, 232, 190), "glass_dark": (30, 38, 46), "glass_light": (96, 120, 140),
     "discharger": (90, 59, 51), "mark": (201, 201, 201),
 }
 

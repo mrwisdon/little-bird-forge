@@ -1,10 +1,14 @@
 package io.github.littlebird.client;
 
 import io.github.littlebird.LittleBird;
+import io.github.littlebird.client.particle.SmokePuffParticle;
 import io.github.littlebird.registry.ModEntities;
+import io.github.littlebird.registry.ModParticles;
+import net.minecraft.client.renderer.entity.NoopRenderer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
+import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -17,6 +21,7 @@ public final class ClientModEvents {
     @SubscribeEvent
     public static void registerKeyMappings(RegisterKeyMappingsEvent event) {
         event.register(LittleBirdKeyMappings.EXIT);
+        event.register(LittleBirdKeyMappings.HUD_SETTINGS);
         event.register(LittleBirdKeyMappings.SALVO);
         event.register(LittleBirdKeyMappings.COCKPIT);
         event.register(LittleBirdKeyMappings.B2_POD);
@@ -24,6 +29,10 @@ public final class ClientModEvents {
         event.register(LittleBirdKeyMappings.VTOL);
         event.register(LittleBirdKeyMappings.INVERT_PITCH);
         event.register(LittleBirdKeyMappings.TOGGLE_MOUSE_YAW);
+        event.register(LittleBirdKeyMappings.PHL191_UP);
+        event.register(LittleBirdKeyMappings.PHL191_DOWN);
+        event.register(LittleBirdKeyMappings.PHL191_RECON);
+        event.register(LittleBirdKeyMappings.ARTILLERY_STRIKE);
     }
 
     @SubscribeEvent
@@ -46,17 +55,19 @@ public final class ClientModEvents {
         event.registerLayerDefinition(BradleyModel.BRADLEY_LAYER, BradleyModel::createBodyLayer);
         event.registerLayerDefinition(AutocannonShellModel.SHELL_LAYER,
                 AutocannonShellModel::createBodyLayer);
+        event.registerLayerDefinition(Phl191Model.PHL191_LAYER, Phl191Model::createBodyLayer);
+        event.registerLayerDefinition(Phl191RocketModel.PHL191_ROCKET_LAYER,
+                Phl191RocketModel::createBodyLayer);
+        event.registerLayerDefinition(Plz05Model.PLZ05_LAYER, Plz05Model::createBodyLayer);
+        event.registerLayerDefinition(Plz05ShellModel.PLZ05_ROCKET_LAYER,
+                Plz05ShellModel::createBodyLayer);
     }
 
     @SubscribeEvent
     public static void registerGuiOverlays(
             net.minecraftforge.client.event.RegisterGuiOverlaysEvent event) {
-        event.registerAboveAll("little_bird_hud", new LittleBirdHud());
-        event.registerAboveAll("apache_hud", new ApacheHud());
-        event.registerAboveAll("ground_hud", new GroundHud());
-        event.registerAboveAll("jet_hud", new JetHud());
-        event.registerAboveAll("b2_hud", new B2Hud());
-        event.registerAboveAll("b2_pod_overlay", new B2PodOverlay());
+        // One overlay, dispatching to the HUD view that matches the vehicle.
+        event.registerAboveAll("hud", new io.github.littlebird.client.hud.HudOverlay());
     }
 
     @SubscribeEvent
@@ -73,6 +84,11 @@ public final class ClientModEvents {
         event.registerEntityRenderer(ModEntities.INFANTRY_FIGHTING_VEHICLE.get(),
                 InfantryFightingVehicleRenderer::new);
         event.registerEntityRenderer(ModEntities.BRADLEY.get(), BradleyRenderer::new);
+        event.registerEntityRenderer(ModEntities.PHL191.get(), Phl191Renderer::new);
+        event.registerEntityRenderer(ModEntities.PHL191_ROCKET.get(), Phl191RocketRenderer::new);
+        event.registerEntityRenderer(ModEntities.PLZ05.get(), Plz05Renderer::new);
+        event.registerEntityRenderer(ModEntities.PLZ05_SHELL.get(),
+                Plz05ShellRenderer::new);
         // The 25mm round is drawn by its tracer, but the type still needs a renderer.
         // Bombs share one generic casing renderer: no baked model, no extra texture.
         event.registerEntityRenderer(ModEntities.JDAM_BOMB.get(), BombRenderer::new);
@@ -91,5 +107,18 @@ public final class ClientModEvents {
         // The shell draws nothing (its fireball does), but the type still needs a renderer or the
         // render dispatcher nulls out and the client crashes on the frustum check.
         event.registerEntityRenderer(ModEntities.MAIN_GUN_SHELL.get(), MainGunShellRenderer::new);
+        // The canister is an ordinary thrown item: the vanilla renderer already draws it spinning.
+        event.registerEntityRenderer(ModEntities.SMOKE_GRENADE.get(),
+                net.minecraft.client.renderer.entity.ThrownItemRenderer::new);
+        // The cloud draws itself out of particles, so its entity is invisible scenery: the type
+        // still needs a renderer, or the render dispatcher is null and the client crashes on the
+        // frustum check (see the note above).
+        event.registerEntityRenderer(ModEntities.SMOKE_CLOUD.get(), NoopRenderer::new);
+    }
+
+    @SubscribeEvent
+    public static void registerParticleProviders(RegisterParticleProvidersEvent event) {
+        // Sixteen frames of cloudy wisp: the particle walks them over its life so the smoke boils.
+        event.registerSpriteSet(ModParticles.SMOKE_PUFF.get(), SmokePuffParticle.Provider::new);
     }
 }

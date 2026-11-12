@@ -609,18 +609,11 @@ public class LittleBirdEntity extends Entity implements GunshipRider {
                         && candidate.isAlive() && !candidate.isSpectator());
         if (entityHit != null) {
             impact = entityHit.getLocation();
-            // Every airframe is fair game now, and each one is priced on its own hull: a round
-            // costs an aircraft a fraction of a point instead of the full anti-personnel round.
-            LittleBirdBallistics.Airframe airframe =
-                    AirframeTargets.classify(entityHit.getEntity());
-            // These are machine gun rounds: they chew up aircraft and infantry, and a tracked hull
-            // absorbs them completely.
-            float damage = LittleBirdBallistics.damageTo(
-                    io.github.littlebird.entity.weapon.DamageType.BULLET,
-                    AirframeTargets.armorClass(entityHit.getEntity()), airframe,
-                    LittleBirdConfig.gunDamage(),
-                    LittleBirdConfig.gunDamageAircraft(),
-                    LittleBirdConfig.gunDamageApache());
+            // Machine gun rounds: the table prices flesh, aircraft and the Apache separately,
+            // and a tracked hull absorbs them completely.
+            float damage = io.github.littlebird.entity.weapon.VehicleDamageTable.damage(
+                    io.github.littlebird.entity.weapon.VehicleDamageTable.Weapon.LITTLE_BIRD_GUN,
+                    entityHit.getEntity());
             boolean applied = entityHit.getEntity()
                     .hurt(pilot.damageSources().playerAttack(pilot), damage);
             if (applied && pilot instanceof ServerPlayer serverPlayer) {
@@ -792,9 +785,9 @@ public class LittleBirdEntity extends Entity implements GunshipRider {
         }
         // A 70mm rocket bills an airframe once, on the hit itself: the warhead's own blast
         // must not charge the hull a second time, or one rocket would be worth several hits.
-        if (source.is(DamageTypeTags.IS_EXPLOSION)
-                && (source.getDirectEntity() instanceof LittleBirdRocketEntity
-                        || source.getDirectEntity() instanceof ApacheMissileEntity)) {
+        if (source.is(DamageTypeTags.IS_EXPLOSION)) {
+            // Splash never damages a vehicle, aircraft included: every warhead bills its hull
+            // once, on the direct hit, through VehicleDamageTable.
             return false;
         }
         float remaining = getHealth() - amount;

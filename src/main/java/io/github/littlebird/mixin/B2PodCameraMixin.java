@@ -2,6 +2,7 @@ package io.github.littlebird.mixin;
 
 import io.github.littlebird.client.B2BombCam;
 import io.github.littlebird.client.B2PodView;
+import io.github.littlebird.client.RocketCam;
 import io.github.littlebird.entity.B2Entity;
 import net.minecraft.client.Camera;
 import net.minecraft.world.entity.Entity;
@@ -30,6 +31,11 @@ public abstract class B2PodCameraMixin {
     @Inject(method = "setup", at = @At("TAIL"))
     private void battlefield_podCamera(BlockGetter level, Entity entity, boolean detached,
                                        boolean mirrored, float partialTick, CallbackInfo ci) {
+        if (entity instanceof Player && RocketCam.isActive()) {
+            double[] rocket = RocketCam.cameraPosition();
+            this.setPosition(rocket[0], rocket[1], rocket[2]);
+            return;
+        }
         if (entity instanceof Player && B2BombCam.isActive()) {
             double[] bomb = B2BombCam.cameraPosition();
             this.setPosition(bomb[0], bomb[1], bomb[2]);

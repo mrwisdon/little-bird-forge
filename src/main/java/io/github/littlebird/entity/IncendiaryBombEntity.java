@@ -7,7 +7,6 @@ import io.github.littlebird.entity.weapon.DamageType;
 import io.github.littlebird.entity.weapon.LittleBirdBallistics;
 import io.github.littlebird.registry.ModSounds;
 import java.util.UUID;
-import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -21,8 +20,6 @@ import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.BaseFireBlock;
-import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
@@ -40,9 +37,6 @@ import net.minecraftforge.network.NetworkHooks;
  * a fire in a lake reads as a bug rather than as a weapon.
  */
 public class IncendiaryBombEntity extends Entity {
-    /** Hard cap on the fire blocks one canister may place, so a big radius cannot lag the server. */
-    private static final int MAX_FIRE_BLOCKS = 48;
-
     private Vec3 velocity = Vec3.ZERO;
     private UUID ownerUuid;
     private boolean guided;
@@ -186,10 +180,10 @@ public class IncendiaryBombEntity extends Entity {
             if (directHit != null) {
                 float damage = LittleBirdBallistics.damageTo(DamageType.SHELL,
                         AirframeTargets.armorClass(directHit),
-                        LittleBirdBallistics.WeaponDamage.flat(
+                        LittleBirdBallistics.WeaponDamage.incendiary(
                                 (float) LittleBirdConfig.incendiaryDamage()));
                 boolean applied = directHit.hurt(
-                        server.damageSources().explosion(this, owner), damage);
+                        io.github.littlebird.entity.weapon.WarheadSplash.source(server, owner), damage);
                 if (applied && credit != null) {
                     HitFeedback.report(credit, directHit);
                 }
@@ -217,40 +211,19 @@ public class IncendiaryBombEntity extends Entity {
     }
 
     /**
-     * Lights the impact area: fire on the terrain surface under the canister, and the remaining
-     * burn time of everything still standing in the blast.
+     * Lights the impact area: fire on the terrain surface under the canister, the remaining burn
+     * time of everything still standing in the fire radius, and an {@link IncendiaryBurnZones} zone
+     * that keeps the ground alight and charges a per-second burn. The burning ground follows
+     * {@code incendiary_fire_radius} rather than the warhead, so the two can be tuned apart.
      */
     private void ignite(ServerLevel server) {
         int fireTicks = LittleBirdConfig.incendiaryFireTicks();
         if (fireTicks <= 0) {
             return;
         }
-        double radius = LittleBirdConfig.incendiaryBlastRadius();
-        int reach = Mth.ceil(radius);
-        BlockPos centre = blockPosition();
-        int placed = 0;
-        for (int dx = -reach; dx <= reach && placed < MAX_FIRE_BLOCKS; dx++) {
-            for (int dz = -reach; dz <= reach && placed < MAX_FIRE_BLOCKS; dz++) {
-                if (dx * dx + dz * dz > radius * radius) {
-                    continue;
-                }
-                BlockPos surface = server.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING,
-                        centre.offset(dx, 0, dz));
-                if (!server.isEmptyBlock(surface)) {
-                    continue;
-                }
-                BlockPos below = surface.below();
-                if (!server.getBlockState(below).isSolidRender(server, below)) {
-                    // Water, ice or a drop: nothing here would stay alight.
-                    continue;
-                }
-                if (server.isRainingAt(surface)) {
-                    continue;
-                }
-                server.setBlockAndUpdate(surface, BaseFireBlock.getState(server, surface));
-                placed++;
-            }
-        }
+        double radius = Math.max(LittleBirdConfig.incendiaryBlastRadius(),
+                LittleBirdConfig.incendiaryFireRadius());
+        IncendiaryBurnZones.light(server, getX(), getY(), getZ(), radius, fireTicks);
         AABB area = new AABB(getX() - radius, getY() - radius, getZ() - radius,
                 getX() + radius, getY() + radius, getZ() + radius);
         for (Entity entity : server.getEntities(this, area)) {

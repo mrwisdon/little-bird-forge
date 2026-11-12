@@ -22,7 +22,7 @@ import net.minecraftforge.fml.common.Mod;
  * HUD can put a marker on the predicted impact. The machine gun cross no longer follows
  * the impact: it is drawn fixed at the centre of the screen (see centreCrosshair).
  *
- * Nothing is drawn in the world: only the projected markers are handed to LittleBirdHud.
+ * Nothing is drawn in the world: only the projected markers are handed to HudAir.
  */
 @Mod.EventBusSubscriber(modid = LittleBird.MOD_ID,
         bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)

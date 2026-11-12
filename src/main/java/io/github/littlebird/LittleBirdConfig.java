@@ -2,6 +2,7 @@ package io.github.littlebird;
 
 import io.github.littlebird.entity.flight.FlightConfig;
 import io.github.littlebird.entity.ground.GroundDrive;
+import io.github.littlebird.entity.weapon.CanisterShot;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 /**
@@ -123,9 +124,41 @@ public final class LittleBirdConfig {
     private static final ForgeConfigSpec.IntValue APACHE_MISSILE_RESUPPLY_SECONDS;
     // COMMON - B-2 bomb bay
     private static final ForgeConfigSpec.DoubleValue JDAM_DAMAGE;
+    private static final ForgeConfigSpec.DoubleValue JDAM_GROUND_VEHICLE_DAMAGE;
     private static final ForgeConfigSpec.DoubleValue INCENDIARY_DAMAGE;
     private static final ForgeConfigSpec.DoubleValue JDAM_BLAST_RADIUS;
+    private static final ForgeConfigSpec.DoubleValue JDAM_TERMINAL_LOCK_RADIUS;
+    private static final ForgeConfigSpec.BooleanValue JDAM_BREAKS_BLOCKS;
+    private static final ForgeConfigSpec.DoubleValue JDAM_CRATER_RADIUS;
+    private static final ForgeConfigSpec.BooleanValue PHL191_BREAKS_BLOCKS;
+    private static final ForgeConfigSpec.DoubleValue PHL191_CRATER_RADIUS;
+    private static final ForgeConfigSpec.DoubleValue PHL191_SPREAD_RADIUS;
+    private static final ForgeConfigSpec.DoubleValue PHL191_PITCH_TOLERANCE;
+    private static final ForgeConfigSpec.DoubleValue PHL191_MAX_SPEED;
+    private static final ForgeConfigSpec.DoubleValue PHL191_ACCELERATION;
+    private static final ForgeConfigSpec.DoubleValue PHL191_BRAKING;
+    private static final ForgeConfigSpec.DoubleValue PHL191_TURN_RATE;
+    private static final ForgeConfigSpec.DoubleValue PHL191_TURN_STANDSTILL;
+    private static final ForgeConfigSpec.DoubleValue PHL191_MAX_GRADE;
+    private static final ForgeConfigSpec.BooleanValue PLZ05_BREAKS_BLOCKS;
+    private static final ForgeConfigSpec.DoubleValue PLZ05_CRATER_RADIUS;
+    private static final ForgeConfigSpec.DoubleValue PLZ05_MAX_SPEED;
+    private static final ForgeConfigSpec.DoubleValue PLZ05_ACCELERATION;
+    private static final ForgeConfigSpec.DoubleValue PLZ05_BRAKING;
+    private static final ForgeConfigSpec.DoubleValue PLZ05_TURN_RATE;
+    private static final ForgeConfigSpec.DoubleValue PLZ05_TURN_STANDSTILL;
+    private static final ForgeConfigSpec.DoubleValue PLZ05_MAX_GRADE;
+    private static final ForgeConfigSpec.BooleanValue ARTILLERY_STRIKE_ENABLED;
+    private static final ForgeConfigSpec.IntValue ARTILLERY_STRIKE_WARMUP_SECONDS;
+    private static final ForgeConfigSpec.IntValue ARTILLERY_STRIKE_DURATION_SECONDS;
+    private static final ForgeConfigSpec.IntValue ARTILLERY_STRIKE_SHELLS;
+    private static final ForgeConfigSpec.DoubleValue ARTILLERY_STRIKE_SPREAD_RADIUS;
+    private static final ForgeConfigSpec.IntValue ARTILLERY_STRIKE_COOLDOWN_SECONDS;
+    private static final ForgeConfigSpec.DoubleValue ARTILLERY_STRIKE_DROP_HEIGHT;
+    private static final ForgeConfigSpec.DoubleValue ARTILLERY_STRIKE_CRATER_RADIUS;
     private static final ForgeConfigSpec.DoubleValue INCENDIARY_BLAST_RADIUS;
+    private static final ForgeConfigSpec.DoubleValue INCENDIARY_FIRE_RADIUS;
+    private static final ForgeConfigSpec.DoubleValue INCENDIARY_BURN_DAMAGE_PER_SECOND;
     private static final ForgeConfigSpec.IntValue INCENDIARY_FIRE_TICKS;
     private static final ForgeConfigSpec.IntValue BOMB_BAY_CAPACITY_JDAM;
     private static final ForgeConfigSpec.IntValue BOMB_BAY_CAPACITY_INCENDIARY;
@@ -144,7 +177,9 @@ public final class LittleBirdConfig {
     private static final ForgeConfigSpec.DoubleValue TANK_MAIN_GUN_HE_DAMAGE;
     private static final ForgeConfigSpec.DoubleValue TANK_MAIN_GUN_HE_VEHICLE_DAMAGE;
     private static final ForgeConfigSpec.DoubleValue TANK_MAIN_GUN_HE_SPLASH_RADIUS;
+    private static final ForgeConfigSpec.DoubleValue TANK_MAIN_GUN_HE_FRAGMENT_RADIUS;
     private static final ForgeConfigSpec.IntValue TANK_MAIN_GUN_CANISTER_PELLETS;
+    private static final ForgeConfigSpec.DoubleValue TANK_MAIN_GUN_CANISTER_PELLET_RADIUS;
     private static final ForgeConfigSpec.DoubleValue TANK_MAIN_GUN_CANISTER_PELLET_DAMAGE;
     private static final ForgeConfigSpec.DoubleValue TANK_MAIN_GUN_CANISTER_PELLET_VEHICLE_DAMAGE;
     private static final ForgeConfigSpec.DoubleValue TANK_MAIN_GUN_CANISTER_SPREAD_HORIZONTAL_DEGREES;
@@ -210,6 +245,14 @@ public final class LittleBirdConfig {
     private static final ForgeConfigSpec.IntValue BRADLEY_SMOKE_COOLDOWN;
     private static final ForgeConfigSpec.IntValue BRADLEY_SMOKE_DURATION;
     private static final ForgeConfigSpec.IntValue BRADLEY_SMOKE_CHARGES;
+
+    // COMMON - thrown smoke
+    private static final ForgeConfigSpec.IntValue SMOKE_GRENADE_LIFETIME_SECONDS;
+    private static final ForgeConfigSpec.DoubleValue SMOKE_GRENADE_RADIUS;
+    private static final ForgeConfigSpec.IntValue SMOKE_GRENADE_MAX_CLOUDS;
+    private static final ForgeConfigSpec.IntValue SMOKE_GRENADE_PARTICLES_PER_TICK;
+    private static final ForgeConfigSpec.IntValue SMOKE_GRENADE_PARTICLE_LIFETIME;
+    private static final ForgeConfigSpec.DoubleValue SMOKE_GRENADE_PARTICLE_SIZE;
 
     static {
         ForgeConfigSpec.Builder client = new ForgeConfigSpec.Builder();
@@ -401,7 +444,7 @@ public final class LittleBirdConfig {
         client.comment("Ground vehicle handling. Motion is client authoritative, so this is a",
                         "client side feel setting just like the flight block above. Speeds are",
                         "blocks per tick: 0.45 is nine blocks a second.").push("ground");
-        client.comment("M1A5 main battle tank: heavy, slow, but it pivots on its tracks.").push("tank");
+        client.comment("M1A2 SEP v1 main battle tank: heavy, slow, but it pivots on its tracks.").push("tank");
         TANK_MAX_SPEED = client
                 .comment("Top speed in blocks per tick. 0.45 is nine blocks a second.")
                 .defineInRange("max_speed", 0.45D, 0.05D, 1.0D);
@@ -419,8 +462,7 @@ public final class LittleBirdConfig {
                         "pivot on the spot.")
                 .defineInRange("turn_at_standstill", 0.5D, 0.0D, 1.0D);
         TANK_STEP_HEIGHT = client
-                .comment("Tallest lip the tracks climb, in blocks. Vanilla only gives a",
-                        "LivingEntity step height, so GroundMover climbs for this hull.")
+                .comment("Tallest lip the tracks climb, in blocks.")
                 .defineInRange("step_height", 1.5D, 0.0D, 3.0D);
         TANK_MAX_GRADE = client
                 .comment("Grade at which the hull is down to its crawl speed, in degrees: about a",
@@ -643,7 +685,7 @@ public final class LittleBirdConfig {
         common.pop();
         common.comment("Ground vehicles: a 120mm main battle tank and a 30mm IFV. Values must",
                         "match on client and server.").push("ground");
-        common.comment("M1A5 main battle tank: 120mm main gun with a five round ready rack and",
+        common.comment("M1A2 SEP v1 main battle tank: 120mm main gun with a five round ready rack and",
                         "a coaxial machine gun.").push("main_battle_tank");
         TANK_MAIN_GUN_DAMAGE = common
                 .comment("Damage the 120mm round deals to an unarmoured target.")
@@ -688,7 +730,7 @@ public final class LittleBirdConfig {
         // server can tune the two shell types apart without touching this mod's defaults.
         TANK_MAIN_GUN_HE_DAMAGE = common
                 .comment("Damage the 120mm HE round deals to an unarmoured target.")
-                .defineInRange("main_gun_he_damage", 80.0D, 0.0D, 400.0D);
+                .defineInRange("main_gun_he_damage", 120.0D, 0.0D, 400.0D);
         TANK_MAIN_GUN_HE_VEHICLE_DAMAGE = common
                 .comment("Damage the 120mm HE round deals to a vehicle (less than AP).")
                 .defineInRange("main_gun_he_vehicle_damage", 25.0D, 0.0D, 400.0D);
@@ -698,28 +740,39 @@ public final class LittleBirdConfig {
         TANK_MAIN_GUN_HE_SPLASH_RADIUS = common
                 .comment("Blast radius of the 120mm HE round, in blocks (larger than AP).")
                 .defineInRange("main_gun_he_splash_radius", 4.0D, 0.0D, 12.0D);
+        TANK_MAIN_GUN_HE_FRAGMENT_RADIUS = common
+                .comment("Reach of the HE round's anti-personnel fragments in blocks. 0 disables it.")
+                .defineInRange("main_gun_he_fragment_radius", 10.0D, 0.0D, 24.0D);
         // Canister round: a shotgun load of pellets instead of one shell. No splash; the damage
         // is all in the pellets that hit.
         TANK_MAIN_GUN_CANISTER_PELLETS = common
                 .comment("Pellets fired by one 120mm canister round.")
-                .defineInRange("main_gun_canister_pellets", 40, 1, 200);
+                .defineInRange("main_gun_canister_pellets", CanisterShot.PELLETS, 1, 200);
+        TANK_MAIN_GUN_CANISTER_PELLET_RADIUS = common
+                .comment("Canister pellet collision half-width in blocks. 0 uses a thin ray.")
+                .defineInRange("main_gun_canister_pellet_radius", CanisterShot.PELLET_RADIUS_BLOCKS,
+                        0.0D, 1.0D);
         TANK_MAIN_GUN_CANISTER_PELLET_DAMAGE = common
                 .comment("Damage each canister pellet deals to an unarmoured target.")
-                .defineInRange("main_gun_canister_pellet_damage", 40.0D, 0.0D, 100.0D);
+                .defineInRange("main_gun_canister_pellet_damage",
+                        (double) CanisterShot.PELLET_DAMAGE, 0.0D, 100.0D);
         TANK_MAIN_GUN_CANISTER_PELLET_VEHICLE_DAMAGE = common
                 .comment("Damage each canister pellet deals to a vehicle hull.")
-                .defineInRange("main_gun_canister_pellet_vehicle_damage", 40.0D, 0.0D, 100.0D);
+                .defineInRange("main_gun_canister_pellet_vehicle_damage",
+                        (double) CanisterShot.PELLET_VEHICLE_DAMAGE, 0.0D, 100.0D);
         TANK_MAIN_GUN_CANISTER_SPREAD_HORIZONTAL_DEGREES = common
                 .comment("Half-angle of the canister spread along the crosshair's horizontal line,",
                         "in degrees. No pellet goes further than this to either side.")
-                .defineInRange("main_gun_canister_spread_horizontal_degrees", 5.0D, 0.0D, 45.0D);
+                .defineInRange("main_gun_canister_spread_horizontal_degrees",
+                        CanisterShot.HORIZONTAL_HALF_DEGREES, 0.0D, 45.0D);
         TANK_MAIN_GUN_CANISTER_SPREAD_VERTICAL_DEGREES = common
                 .comment("Half-angle of the canister spread above and below the crosshair's",
                         "horizontal line, in degrees. No pellet goes further than this up or down.")
-                .defineInRange("main_gun_canister_spread_vertical_degrees", 2.0D, 0.0D, 45.0D);
+                .defineInRange("main_gun_canister_spread_vertical_degrees",
+                        CanisterShot.VERTICAL_HALF_DEGREES, 0.0D, 45.0D);
         TANK_MAIN_GUN_CANISTER_RANGE = common
                 .comment("Maximum distance one canister pellet can travel, in blocks.")
-                .defineInRange("main_gun_canister_range", 40.0D, 1.0D, 128.0D);
+                .defineInRange("main_gun_canister_range", CanisterShot.RANGE_BLOCKS, 1.0D, 128.0D);
         TANK_MAIN_GUN_BREAKS_BLOCKS = common
                 .comment("Whether the 120mm shell destroys blocks where it lands.")
                 .define("main_gun_breaks_blocks", true);
@@ -915,26 +968,187 @@ public final class LittleBirdConfig {
                         "match on client and server.").push("b2");
         JDAM_DAMAGE = common
                 .comment("Damage a JDAM deals to the entity it directly hits.")
-                .defineInRange("jdam_damage", 120.0D, 0.0D, 400.0D);
+                .defineInRange("jdam_damage", 240.0D, 0.0D, 400.0D);
+        JDAM_GROUND_VEHICLE_DAMAGE = common
+                .comment("Damage a JDAM direct hit deals to a tracked hull or an IFV. A",
+                        "penetrator warhead is priced against armour, not against flesh.")
+                .defineInRange("jdam_ground_vehicle_damage", 60.0D, 0.0D, 400.0D);
         INCENDIARY_DAMAGE = common
                 .comment("Damage an incendiary canister deals to the entity it directly hits.")
-                .defineInRange("incendiary_damage", 45.0D, 0.0D, 400.0D);
+                .defineInRange("incendiary_damage", 90.0D, 0.0D, 400.0D);
         JDAM_BLAST_RADIUS = common
                 .comment("Splash radius of a JDAM warhead, in blocks.")
-                .defineInRange("jdam_blast_radius", 6.0D, 0.0D, 24.0D);
+                .defineInRange("jdam_blast_radius", 10.0D, 0.0D, 24.0D);
+        JDAM_TERMINAL_LOCK_RADIUS = common
+                .comment("A JDAM homes on the nearest ground vehicle inside this radius, in",
+                        "blocks. 0 turns terminal homing off and leaves the pod designation.")
+                .defineInRange("jdam_terminal_lock_radius", 12.0D, 0.0D, 64.0D);
+        JDAM_BREAKS_BLOCKS = common
+                .comment("Whether a JDAM tears a crater in the ground. On by default: it is a",
+                        "2000 lb bomb, and the hole is carved independently of the kill radius.")
+                .define("jdam_breaks_blocks", true);
+        JDAM_CRATER_RADIUS = common
+                .comment("Radius of the crater a JDAM leaves, in blocks. Separate from the blast",
+                        "radius so the hole can be huge without the kill radius growing with it.")
+                .defineInRange("jdam_crater_radius", 9.0D, 0.0D, 32.0D);
+        PHL191_BREAKS_BLOCKS = common
+                .comment("Whether a PHL-191 rocket tears a crater. The 370mm round is small, so the",
+                        "hole is a two block bowl rather than the JDAM's pit.")
+                .define("phl191_breaks_blocks", true);
+        PHL191_SPREAD_RADIUS = common
+                .comment("Radius of the salvo dispersion disc, in blocks. Each of the eight tubes",
+                        "lands on its own slot inside this disc, so a full ripple covers the",
+                        "whole circle instead of stacking on the aim point.")
+                .defineInRange("phl191_spread_radius", 6.0D, 0.0D, 16.0D);
+        PHL191_MAX_SPEED = common
+                .comment("PHL-191 top speed in blocks per tick. 0.58 is about eleven and a half",
+                        "blocks a second on a good road.")
+                .defineInRange("phl191_max_speed", 0.58D, 0.05D, 1.0D);
+        PHL191_ACCELERATION = common
+                .comment("PHL-191 speed gained per tick while the throttle is held.")
+                .defineInRange("phl191_acceleration", 0.024D, 0.001D, 0.2D);
+        PHL191_BRAKING = common
+                .comment("PHL-191 speed lost per tick when braking or coasting.")
+                .defineInRange("phl191_braking", 0.10D, 0.001D, 0.3D);
+        PHL191_TURN_RATE = common
+                .comment("PHL-191 heading change per tick at full speed, in degrees.")
+                .defineInRange("phl191_turn_rate_degrees_per_tick", 2.4D, 0.2D, 15.0D);
+        PHL191_TURN_STANDSTILL = common
+                .comment("Fraction of the turn rate available when stopped, so the hull can",
+                        "crawl around on the spot.")
+                .defineInRange("phl191_turn_at_standstill", 0.55D, 0.0D, 1.0D);
+        PHL191_MAX_GRADE = common
+                .comment("Grade the PHL-191 is reduced to crawl speed on, in degrees.")
+                .defineInRange("phl191_max_grade", 32.0D, 5.0D, 60.0D);
+        PHL191_PITCH_TOLERANCE = common
+                .comment("Firing elevation tolerance, in degrees. The high row of the salvo grid",
+                        "leaves this much above the laid angle and the low row this much below,",
+                        "which spreads the impacts slightly in depth. 0 keeps every tube level.")
+                .defineInRange("phl191_pitch_tolerance_deg", 0.4D, 0.0D, 5.0D);
+        PHL191_CRATER_RADIUS = common
+                .comment("Radius of the crater one PHL-191 rocket leaves, in blocks. Three by",
+                        "default: roughly three blocks across and two deep.")
+                .defineInRange("phl191_crater_radius", 5.0D, 0.0D, 8.0D);
+        PLZ05_BREAKS_BLOCKS = common
+                .comment("Whether a PLZ-05 155mm shell tears a crater. One shell is far heavier",
+                        "than one 370mm rocket, so the bowl is much wider and deeper.")
+                .define("plz05_breaks_blocks", true);
+        PLZ05_CRATER_RADIUS = common
+                .comment("Radius of the crater one 155mm shell leaves, in blocks. Eight by",
+                        "default: sixteen blocks across and deep enough to bury a tank.")
+                .defineInRange("plz05_crater_radius", 8.0D, 0.0D, 16.0D);
+        PLZ05_MAX_SPEED = common
+                .comment("PLZ-05 top speed in blocks per tick. Heavier than the rocket launcher,",
+                        "so it is a little slower (about nine blocks a second).")
+                .defineInRange("plz05_max_speed", 0.46D, 0.05D, 1.0D);
+        PLZ05_ACCELERATION = common
+                .comment("PLZ-05 speed gained per tick while the throttle is held.")
+                .defineInRange("plz05_acceleration", 0.018D, 0.001D, 0.2D);
+        PLZ05_BRAKING = common
+                .comment("PLZ-05 speed lost per tick when braking or coasting.")
+                .defineInRange("plz05_braking", 0.085D, 0.001D, 0.3D);
+        PLZ05_TURN_RATE = common
+                .comment("PLZ-05 heading change per tick at full speed, in degrees.")
+                .defineInRange("plz05_turn_rate_degrees_per_tick", 1.8D, 0.2D, 15.0D);
+        PLZ05_TURN_STANDSTILL = common
+                .comment("Fraction of the turn rate available when stopped.")
+                .defineInRange("plz05_turn_at_standstill", 0.45D, 0.0D, 1.0D);
+        PLZ05_MAX_GRADE = common
+                .comment("Grade the PLZ-05 is reduced to crawl speed on, in degrees.")
+                .defineInRange("plz05_max_grade", 28.0D, 5.0D, 60.0D);
+        ARTILLERY_STRIKE_ENABLED = common
+                .comment("Whether the PLZ-05 and PHL-191 can call a barrage on a radar point.")
+                .define("artillery_strike_enabled", true);
+        ARTILLERY_STRIKE_WARMUP_SECONDS = common
+                .comment("Warning time between the call and the first shell, in seconds. The",
+                        "marked point smokes during the warning, so this is the window to run.")
+                .defineInRange("artillery_strike_warmup_seconds", 5, 0, 30);
+        ARTILLERY_STRIKE_DURATION_SECONDS = common
+                .comment("Length of the PLZ-05 barrage in seconds.")
+                .defineInRange("artillery_strike_duration_seconds", 10, 1, 60);
+        ARTILLERY_STRIKE_SHELLS = common
+                .comment("Rounds in one PLZ-05 fire mission. Thirty over ten seconds is a round every",
+                        "0.33 s, scheduled on the server without any new entity type.")
+                .defineInRange("artillery_strike_shells", 30, 1, 200);
+        ARTILLERY_STRIKE_SPREAD_RADIUS = common
+                .comment("Radius of the PLZ-05 impact disc, in blocks. The first two rounds",
+                        "land near the marked point.",
+                        "Fifteen by default: a battery's beaten zone, not a single gun's group.")
+                .defineInRange("artillery_strike_spread_radius", 15.0D, 0.0D, 64.0D);
+        ARTILLERY_STRIKE_COOLDOWN_SECONDS = common
+                .comment("Wait after the last round before the battery will answer again, in",
+                        "seconds. The mission's cost is this cooldown, not the hull's magazine.")
+                .defineInRange("artillery_strike_cooldown_seconds", 120, 0, 600);
+        ARTILLERY_STRIKE_DROP_HEIGHT = common
+                .comment("Height above the ground the called-in rounds appear at, in blocks.",
+                        "They fall nearly vertically, so the fall is the incoming warning.")
+                .defineInRange("artillery_strike_drop_height", 90.0D, 20.0D, 256.0D);
+        ARTILLERY_STRIKE_CRATER_RADIUS = common
+                .comment("Crater radius one barrage round leaves, in blocks. Eight by default:",
+                        "the same bowl an aimed PLZ-05 shell tears, so a called-in round is not a",
+                        "weaker round. Lower it if thirty full craters in one disc cost too much.")
+                .defineInRange("artillery_strike_crater_radius", 8.0D, 0.0D, 16.0D);
         INCENDIARY_BLAST_RADIUS = common
                 .comment("Splash radius of an incendiary canister, in blocks. Also the radius of",
                         "the burning ground it leaves behind.")
-                .defineInRange("incendiary_blast_radius", 4.0D, 0.0D, 24.0D);
+                .defineInRange("incendiary_blast_radius", 7.0D, 0.0D, 24.0D);
+        INCENDIARY_FIRE_RADIUS = common
+                .comment("Radius of the burning ground an incendiary canister leaves behind, in",
+                        "blocks. Kept apart from the blast radius so the fire can grow on its own.")
+                .defineInRange("incendiary_fire_radius", 12.0D, 0.0D, 48.0D);
         INCENDIARY_FIRE_TICKS = common
                 .comment("how long the impact area burns, in ticks (0 disables the fire).")
-                .defineInRange("incendiary_fire_ticks", 600, 0, 24000);
+                .defineInRange("incendiary_fire_ticks", 200, 0, 24000);
+        INCENDIARY_BURN_DAMAGE_PER_SECOND = common
+                .comment("Damage the burning ground deals each second to everything standing in",
+                        "it, priced through the same armour rules as the other weapons.")
+                .defineInRange("incendiary_burn_damage_per_second", 8.0D, 0.0D, 200.0D);
         BOMB_BAY_CAPACITY_JDAM = common
                 .comment("JDAM stores in a full B-2 bay.")
                 .defineInRange("bomb_bay_capacity_jdam", 16, 0, 64);
         BOMB_BAY_CAPACITY_INCENDIARY = common
                 .comment("Incendiary canisters in a full B-2 bay.")
                 .defineInRange("bomb_bay_capacity_incendiary", 24, 0, 64);
+        common.pop();
+        common.comment("Hand thrown smoke canisters. Server and client must agree on these: the",
+                        "client draws the cloud from the radius and lifetime it is told, and the",
+                        "server decides how many puffs of particle dust sit around it.")
+                .push("smoke_grenade");
+        SMOKE_GRENADE_LIFETIME_SECONDS = common
+                .comment("How long a thrown cloud lasts, in seconds. The default is the length the",
+                        "canister is meant to screen a push for: 15s is a full crossing of open",
+                        "ground, and the cloud fades over the last quarter of it.")
+                .defineInRange("lifetime_seconds", 15, 1, 120);
+        SMOKE_GRENADE_RADIUS = common
+                .comment("Radius the cloud swells to, in blocks. Six blocks is wide enough to hide",
+                        "a tank hull with room to spare without blacking out a whole street.")
+                .defineInRange("radius", 6.0D, 1.0D, 24.0D);
+        SMOKE_GRENADE_MAX_CLOUDS = common
+                .comment("Most thrown clouds alive at once near one spot. When the cap is reached",
+                        "the oldest cloud of the neighbourhood is retired to make room, which is",
+                        "what stops a spawn point being permanently fogged in.")
+                .defineInRange("max_clouds", 12, 1, 64);
+        SMOKE_GRENADE_PARTICLES_PER_TICK = common
+                .comment("Smoke puffs a client spawns per tick for each cloud it can see. This is",
+                        "the density dial: a puff lives for particle_lifetime_ticks, so the cloud",
+                        "holds roughly particles_per_tick times that many puffs at once. The",
+                        "default pair is about three hundred puffs, which is the count an",
+                        "offline render needed before the cloud read as solid smoke rather",
+                        "than as a cluster of separate blobs.")
+                .defineInRange("particles_per_tick", 9, 0, 32);
+        SMOKE_GRENADE_PARTICLE_LIFETIME = common
+                .comment("How long one smoke puff lives, in ticks. Short lived puffs that are",
+                        "constantly replaced look like rolling smoke; long lived ones look like a",
+                        "heap of grey balloons. Raising this thickens the cloud and costs frames,",
+                        "because the puffs alive at once scale with it.")
+                .defineInRange("particle_lifetime_ticks", 34, 6, 100);
+        SMOKE_GRENADE_PARTICLE_SIZE = common
+                .comment("Width of one smoke puff in blocks. A puff has to be a good deal wider",
+                        "than the gap between puffs or the cloud shows sky through it, and the",
+                        "gap is the cloud volume divided by the puff count: about two and a half",
+                        "blocks is what closes it. Past roughly three the individual sprites",
+                        "start to read as flat cards.")
+                .defineInRange("particle_size", 2.4D, 0.5D, 4.0D);
         common.pop();
         COMMON_SPEC = common.build();
     }
@@ -1064,6 +1278,24 @@ public final class LittleBirdConfig {
         return HUD_SCALE.get();
     }
 
+    /** Sets the HUD scale multiplier and writes it back (the settings screen uses this). */
+    public static void setHudScale(int value) {
+        HUD_SCALE.set(Math.max(1, Math.min(4, value)));
+        CLIENT_SPEC.save();
+    }
+
+    /** Toggles the centre crosshair and writes it back. */
+    public static void setShowCenterCrosshair(boolean show) {
+        SHOW_CENTER_CROSSHAIR.set(show);
+        CLIENT_SPEC.save();
+    }
+
+    /** Chooses whether only the selected weapon's reticle is drawn, and writes it back. */
+    public static void setReticleFollowsWeapon(boolean follows) {
+        RETICLE_FOLLOWS_WEAPON.set(follows);
+        CLIENT_SPEC.save();
+    }
+
     /** Ticks the guided missile flies straight before its guidance takes over. */
     public static int towLaunchTicks() {
         return TOW_LAUNCH_TICKS.get();
@@ -1191,6 +1423,11 @@ public final class LittleBirdConfig {
         return JDAM_DAMAGE.get();
     }
 
+    /** Damage a JDAM direct hit deals to a ground vehicle. */
+    public static double jdamGroundVehicleDamage() {
+        return JDAM_GROUND_VEHICLE_DAMAGE.get();
+    }
+
     public static double incendiaryDamage() {
         return INCENDIARY_DAMAGE.get();
     }
@@ -1199,13 +1436,115 @@ public final class LittleBirdConfig {
         return JDAM_BLAST_RADIUS.get();
     }
 
+    /** Radius in which a JDAM takes over and homes on a ground vehicle; 0 disables it. */
+    public static double jdamTerminalLockRadius() {
+        return JDAM_TERMINAL_LOCK_RADIUS.get();
+    }
+
+    /** Whether a JDAM leaves a hole in the terrain. */
+    public static boolean jdamBreaksBlocks() {
+        return JDAM_BREAKS_BLOCKS.get();
+    }
+
+    /** Radius of the crater a JDAM tears, in blocks; 0 leaves the ground alone. */
+    public static double jdamCraterRadius() {
+        return JDAM_CRATER_RADIUS.get();
+    }
+
+    /** Whether a PHL-191 rocket leaves a hole in the terrain. */
+    public static boolean phl191BreaksBlocks() {
+        return PHL191_BREAKS_BLOCKS.get();
+    }
+
+    /** Whether a PLZ-05 shell leaves a hole in the terrain. */
+    public static boolean plz05BreaksBlocks() {
+        return PLZ05_BREAKS_BLOCKS.get();
+    }
+
+    /** Radius of the crater one 155mm shell leaves, in blocks. */
+    public static double plz05CraterRadius() {
+        return PLZ05_CRATER_RADIUS.get();
+    }
+
+    /** Drive spec of the PLZ-05: heavier and slower than the rocket launcher. */
+    public static GroundDrive.Spec plz05DriveSpec() {
+        return new GroundDrive.Spec(PLZ05_MAX_SPEED.get(), PLZ05_ACCELERATION.get(),
+                PLZ05_BRAKING.get(), PLZ05_TURN_RATE.get(), PLZ05_TURN_STANDSTILL.get(),
+                PLZ05_MAX_GRADE.get());
+    }
+
+    /** Whether the PLZ-05 can call a barrage at all. */
+    public static boolean artilleryStrikeEnabled() {
+        return ARTILLERY_STRIKE_ENABLED.get();
+    }
+
+    /** Warning time between the call and the first shell, in seconds. */
+    public static int artilleryStrikeWarmupSeconds() {
+        return ARTILLERY_STRIKE_WARMUP_SECONDS.get();
+    }
+
+    /** Length of the barrage itself, in seconds. */
+    public static int artilleryStrikeDurationSeconds() {
+        return ARTILLERY_STRIKE_DURATION_SECONDS.get();
+    }
+
+    /** Rounds in one fire mission. */
+    public static int artilleryStrikeShells() {
+        return ARTILLERY_STRIKE_SHELLS.get();
+    }
+
+    /** Radius of the disc the rounds land in, in blocks. */
+    public static double artilleryStrikeSpreadRadius() {
+        return ARTILLERY_STRIKE_SPREAD_RADIUS.get();
+    }
+
+    /** Wait after the last round before the battery answers again, in seconds. */
+    public static int artilleryStrikeCooldownSeconds() {
+        return ARTILLERY_STRIKE_COOLDOWN_SECONDS.get();
+    }
+
+    /** Height above the ground the called-in rounds appear at, in blocks. */
+    public static double artilleryStrikeDropHeight() {
+        return ARTILLERY_STRIKE_DROP_HEIGHT.get();
+    }
+
+    /** Crater radius one barrage round leaves, in blocks. */
+    public static double artilleryStrikeCraterRadius() {
+        return ARTILLERY_STRIKE_CRATER_RADIUS.get();
+    }
+
+    /** Radius of the salvo dispersion disc, in blocks; 0 fires every tube at the aim point. */
+    public static double phl191SpreadRadius() {
+        return PHL191_SPREAD_RADIUS.get();
+    }
+
+    /** Firing elevation tolerance for the salvo grid, in degrees. */
+    public static double phl191PitchToleranceDeg() {
+        return PHL191_PITCH_TOLERANCE.get();
+    }
+
+    /** Radius of the crater one PHL-191 rocket tears, in blocks: five wide, three deep. */
+    public static double phl191CraterRadius() {
+        return PHL191_CRATER_RADIUS.get();
+    }
+
     public static double incendiaryBlastRadius() {
         return INCENDIARY_BLAST_RADIUS.get();
+    }
+
+    /** Blocks of burning ground around the impact. Never smaller than the blast radius. */
+    public static double incendiaryFireRadius() {
+        return INCENDIARY_FIRE_RADIUS.get();
     }
 
     /** Ticks the incendiary impact area burns; 0 disables the fire. */
     public static int incendiaryFireTicks() {
         return INCENDIARY_FIRE_TICKS.get();
+    }
+
+    /** Damage per second the burning ground deals; 0 turns the burn into decoration. */
+    public static double incendiaryBurnDamagePerSecond() {
+        return INCENDIARY_BURN_DAMAGE_PER_SECOND.get();
     }
 
     /** Tightest pod field of view multiplier. */
@@ -1260,6 +1599,13 @@ public final class LittleBirdConfig {
     // ------------------------------------------------------------------
 
     /** Handling of the main battle tank, from the CLIENT ground section. */
+    /** The PHL-191 is a heavy 8x8: slower and wider turning than the tracked hulls. */
+    public static GroundDrive.Spec phl191DriveSpec() {
+        return new GroundDrive.Spec(PHL191_MAX_SPEED.get(), PHL191_ACCELERATION.get(),
+                PHL191_BRAKING.get(), PHL191_TURN_RATE.get(), PHL191_TURN_STANDSTILL.get(),
+                PHL191_MAX_GRADE.get());
+    }
+
     public static GroundDrive.Spec tankDriveSpec() {
         return new GroundDrive.Spec(TANK_MAX_SPEED.get(), TANK_ACCELERATION.get(),
                 TANK_BRAKING.get(), TANK_TURN_RATE.get(), TANK_TURN_STANDSTILL.get(),
@@ -1314,9 +1660,17 @@ public final class LittleBirdConfig {
         };
     }
 
+    public static double tankMainGunHeFragmentRadius() {
+        return TANK_MAIN_GUN_HE_FRAGMENT_RADIUS.get();
+    }
+
     /** Pellets one 120mm canister round fires. */
     public static int tankCanisterPellets() {
         return TANK_MAIN_GUN_CANISTER_PELLETS.get();
+    }
+
+    public static double tankCanisterPelletRadius() {
+        return TANK_MAIN_GUN_CANISTER_PELLET_RADIUS.get();
     }
 
     public static float tankCanisterPelletDamage() {
@@ -1600,6 +1954,37 @@ public final class LittleBirdConfig {
                 BRADLEY_SMOKE_CANISTERS.get(), BRADLEY_SMOKE_SPACING.get(),
                 BRADLEY_SMOKE_AHEAD.get(), BRADLEY_SMOKE_COOLDOWN.get(),
                 BRADLEY_SMOKE_DURATION.get(), BRADLEY_SMOKE_CHARGES.get());
+    }
+
+    /** Life of a thrown smoke cloud, in ticks, from the configured number of seconds. */
+    public static int smokeGrenadeLifetimeTicks() {
+        return io.github.littlebird.entity.weapon.SmokeGrenadeRules
+                .lifetimeTicks(SMOKE_GRENADE_LIFETIME_SECONDS.get());
+    }
+
+    /** Radius a thrown cloud swells to, in blocks. */
+    public static float smokeGrenadeRadius() {
+        return SMOKE_GRENADE_RADIUS.get().floatValue();
+    }
+
+    /** Most thrown clouds allowed at once near one spot. */
+    public static int smokeGrenadeMaxClouds() {
+        return SMOKE_GRENADE_MAX_CLOUDS.get();
+    }
+
+    /** Smoke puffs a client spawns per tick for each cloud it can see. */
+    public static int smokeGrenadeParticlesPerTick() {
+        return SMOKE_GRENADE_PARTICLES_PER_TICK.get();
+    }
+
+    /** Life of one smoke puff, in ticks. */
+    public static int smokeGrenadeParticleLifetimeTicks() {
+        return SMOKE_GRENADE_PARTICLE_LIFETIME.get();
+    }
+
+    /** Width of one smoke puff, in blocks. */
+    public static float smokeGrenadeParticleSize() {
+        return SMOKE_GRENADE_PARTICLE_SIZE.get().floatValue();
     }
 
     /** Heavy-armour column of the shared 70mm rocket. */

@@ -4,6 +4,8 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.github.littlebird.LittleBird;
 import io.github.littlebird.entity.InfantryFightingVehicleEntity;
+import io.github.littlebird.entity.InfantryFightingVehicleGeometry;
+import io.github.littlebird.entity.ground.GroundSuspension;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
@@ -34,9 +36,8 @@ public final class InfantryFightingVehicleModel extends EntityModel<InfantryFigh
     private static final int TEXTURE_SIZE = 512;
     private static final float DEG = (float) (Math.PI / 180.0D);
 
-    private static final int AXLES = 3;
-    private static final float AXLE_FRONT_Z = -30.0F;
-    private static final float AXLE_PITCH = 30.0F;
+    private static final int AXLES = InfantryFightingVehicleGeometry.AXLE_COUNT;
+    private static final float TYRE_WIDTH_UNITS = 5.0F;
     private static final int MISSILE_TUBES = 4;
     private static final int BULL_BAR_BARS = 4;
     private static final int ROOF_HATCHES = 2;
@@ -46,11 +47,17 @@ public final class InfantryFightingVehicleModel extends EntityModel<InfantryFigh
 
     private final ModelPart root;
     private final ModelPart turret;
+    private final ModelPart[] leftTyres = new ModelPart[AXLES];
+    private final ModelPart[] rightTyres = new ModelPart[AXLES];
 
     public InfantryFightingVehicleModel(ModelPart root) {
         this.root = root;
         ModelPart body = root.getChild("body");
         this.turret = body.getChild("turret");
+        for (int axle = 0; axle < AXLES; axle++) {
+            leftTyres[axle] = body.getChild("tyre_left_" + axle);
+            rightTyres[axle] = body.getChild("tyre_right_" + axle);
+        }
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -101,22 +108,25 @@ public final class InfantryFightingVehicleModel extends EntityModel<InfantryFigh
     }
 
     private static void addRunningGear(PartDefinition body) {
+        float halfTrack = InfantryFightingVehicleGeometry.WHEEL_LATERAL_UNITS;
+        float leftTyreX = -halfTrack - TYRE_WIDTH_UNITS * 0.5F;
+        float rightTyreX = halfTrack - TYRE_WIDTH_UNITS * 0.5F;
         for (int axle = 0; axle < AXLES; axle++) {
-            float z = AXLE_FRONT_Z + axle * AXLE_PITCH - 7.0F;
+            float z = -InfantryFightingVehicleGeometry.axleForwardUnits(axle) - 7.0F;
             body.addOrReplaceChild("tyre_left_" + axle, CubeListBuilder.create()
-                    .texOffs(320, 0).addBox(-30.0F, 0.0F, z, 5.0F, 14.0F, 14.0F)
-                    .texOffs(0, 192).addBox(-31.0F, 5.0F, z + 6.0F, 1.0F, 4.0F, 2.0F),
+                    .texOffs(320, 0).addBox(leftTyreX, 0.0F, z, TYRE_WIDTH_UNITS, 14.0F, 14.0F)
+                    .texOffs(0, 192).addBox(leftTyreX - 1.0F, 5.0F, z + 6.0F, 1.0F, 4.0F, 2.0F),
                     PartPose.offset(0.0F, 0.0F, 0.0F));
             body.addOrReplaceChild("tyre_right_" + axle, CubeListBuilder.create()
-                    .texOffs(320, 0).addBox(25.0F, 0.0F, z, 5.0F, 14.0F, 14.0F)
-                    .texOffs(0, 192).addBox(30.0F, 5.0F, z + 6.0F, 1.0F, 4.0F, 2.0F),
+                    .texOffs(320, 0).addBox(rightTyreX, 0.0F, z, TYRE_WIDTH_UNITS, 14.0F, 14.0F)
+                    .texOffs(0, 192).addBox(rightTyreX + TYRE_WIDTH_UNITS, 5.0F, z + 6.0F, 1.0F, 4.0F, 2.0F),
                     PartPose.offset(0.0F, 0.0F, 0.0F));
             // Wheel arch over each axle.
             body.addOrReplaceChild("arch_left_" + axle, CubeListBuilder.create()
-                    .texOffs(0, 128).addBox(-32.0F, 12.0F, z - 2.0F, 6.0F, 3.0F, 18.0F),
+                    .texOffs(0, 128).addBox(leftTyreX - 2.0F, 12.0F, z - 2.0F, 6.0F, 3.0F, 18.0F),
                     PartPose.offset(0.0F, 0.0F, 0.0F));
             body.addOrReplaceChild("arch_right_" + axle, CubeListBuilder.create()
-                    .texOffs(0, 128).addBox(26.0F, 12.0F, z - 2.0F, 6.0F, 3.0F, 18.0F),
+                    .texOffs(0, 128).addBox(rightTyreX + 1.0F, 12.0F, z - 2.0F, 6.0F, 3.0F, 18.0F),
                     PartPose.offset(0.0F, 0.0F, 0.0F));
         }
         body.addOrReplaceChild("bull_bar", CubeListBuilder.create()
@@ -319,10 +329,15 @@ public final class InfantryFightingVehicleModel extends EntityModel<InfantryFigh
                           float limbSwingAmount, float ageInTicks, float netHeadYaw,
                           float headPitch) {
         float partialTick = ageInTicks - entity.tickCount;
+        GroundSuspension suspension = entity.suspension();
+        for (int axle = 0; axle < AXLES; axle++) {
+            leftTyres[axle].y = suspension.wheelOffsetUnits(axle, true, partialTick);
+            rightTyres[axle].y = suspension.wheelOffsetUnits(axle, false, partialTick);
+        }
         turret.yRot = ApacheModelMath.turretYawRadians(
                 entity.renderTurretYawDeg(partialTick), entity.getYRot());
         turret.xRot = ApacheModelMath.turretPitchRadians(
-                entity.renderTurretPitchDeg(partialTick), entity.getXRot());
+                entity.renderTurretPitchDeg(partialTick), headPitch);
     }
 
     @Override

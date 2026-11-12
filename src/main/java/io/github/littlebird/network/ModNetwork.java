@@ -73,6 +73,18 @@ public final class ModNetwork {
                 .decoder(GroundWeaponInputPacket::decode)
                 .consumerMainThread(GroundWeaponInputPacket::handle)
                 .add();
+        CHANNEL.messageBuilder(Plz05ElevationPacket.class, 41,
+                        NetworkDirection.PLAY_TO_SERVER)
+                .encoder(Plz05ElevationPacket::encode)
+                .decoder(Plz05ElevationPacket::decode)
+                .consumerMainThread(Plz05ElevationPacket::handle)
+                .add();
+        CHANNEL.messageBuilder(Phl191ElevationPacket.class, 40,
+                        NetworkDirection.PLAY_TO_SERVER)
+                .encoder(Phl191ElevationPacket::encode)
+                .decoder(Phl191ElevationPacket::decode)
+                .consumerMainThread(Phl191ElevationPacket::handle)
+                .add();
         CHANNEL.messageBuilder(JetFlarePacket.class, 12, NetworkDirection.PLAY_TO_SERVER)
                 .encoder(JetFlarePacket::encode)
                 .decoder(JetFlarePacket::decode)
@@ -121,6 +133,13 @@ public final class ModNetwork {
                 .decoder(B2BombKillPacket::decode)
                 .consumerMainThread(B2BombKillPacket::handle)
                 .add();
+
+        CHANNEL.messageBuilder(ArtilleryStrikeCallPacket.class, 42,
+                        NetworkDirection.PLAY_TO_SERVER)
+                .encoder(ArtilleryStrikeCallPacket::encode)
+                .decoder(ArtilleryStrikeCallPacket::decode)
+                .consumerMainThread(ArtilleryStrikeCallPacket::handle)
+                .add();
     }
 
     /** Bullet traces go to everyone tracking the aircraft, shooter included. */
@@ -130,13 +149,16 @@ public final class ModNetwork {
     }
 
     /**
-     * Hit marker feedback for the shooter, carrying the target's remaining health so a hull hit
-     * can also refresh the target readout.
+     * Hit marker feedback for the shooter, carrying the target's name and remaining integrity so
+     * the readout under the crosshair can print "60 / 120" instead of only a percentage.
      */
     public static void sendHitFeedback(
-            net.minecraft.server.level.ServerPlayer player, boolean kill, boolean vehicle,
-            float healthFraction) {
+            net.minecraft.server.level.ServerPlayer player, boolean kill, String name,
+            float health, float maxHealth) {
+        if (player == null || player.connection == null) {
+            return;
+        }
         CHANNEL.send(net.minecraftforge.network.PacketDistributor.PLAYER.with(() -> player),
-                new LittleBirdHitFeedbackPacket(kill, vehicle, healthFraction));
+                new LittleBirdHitFeedbackPacket(kill, name, health, maxHealth));
     }
 }

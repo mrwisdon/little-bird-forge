@@ -56,8 +56,8 @@ public record B2WeaponSelectPacket(int weapon) {}                         // id 
 `message.battlefield.b2_no_bombs`、`message.battlefield.b2_designated`、`message.battlefield.b2_bay_open`、
 `entity.battlefield.jdam_bomb`、`entity.battlefield.incendiary_bomb`
 ### 0.7 配置键（写作用域 = b2-ordnance，加在 LittleBirdConfig）
-`jdam_damage`(默认 120) `incendiary_damage`(默认 45) `jdam_blast_radius`(6.0) `incendiary_blast_radius`(4.0)
-`incendiary_fire_ticks`(600) `bomb_bay_capacity_jdam`(16) `bomb_bay_capacity_incendiary`(24)
+`jdam_damage`(默认 **240**) `jdam_ground_vehicle_damage`(**60**，2026-10-01：JDAM 打地载) `jdam_terminal_lock_radius`(**12.0**，2026-10-01：末端制导锁定半径，0=关闭) `jdam_breaks_blocks`(**true**，2026-10-01：地形破坏开关) `jdam_crater_radius`(**9.0**，上限 32，独立于爆炸杀伤半径；`CraterShape`：垂直压扁 1.6、中心下沉 1 格、抗爆 ≤100 才破、单发上限 20000 格；`BombKind` 新增 `groundVehicleDamage()` 列：JDAM 60 / 燃烧弹 0) `incendiary_damage`(默认 **90**) `jdam_blast_radius`(**10.0**) `incendiary_blast_radius`(**7.0**) —— 2026-09-30 用户选「A 档」加强，旧值 120/45/6.0/4.0
+`incendiary_fire_radius`(**12.0**，2026-10-01 新增，独立于爆炸半径；上限 48) `incendiary_fire_ticks`(**200 = 10 秒**，2026-10-01 用户改定；旧 1200 → 2400 → 200) `incendiary_burn_damage_per_second`(**8.0**，2026-10-01 新增：火场每秒伤害脉冲，0=只烧不疼) `bomb_bay_capacity_jdam`(16) `bomb_bay_capacity_incendiary`(24)
 `pod_fov_min`(0.16) `pod_fov_max`(1.0) `pod_gimbal_yaw_limit`(110.0) `pod_gimbal_pitch_min`(-120.0) `pod_gimbal_pitch_max`(10.0)
 `cockpit_rigid_view`(true) —— 舱内视角"硬邦邦"：相机刚性锁在机体系（不做平滑/惯性）
 

@@ -22,6 +22,11 @@ public final class InfantryFightingVehicleGeometry {
     public static final float WHEEL_HEIGHT_UNITS = 10.0F;
     public static final float HULL_TOP_UNITS = 30.0F;
 
+    /** Axle centres measured forward of the hull centre, nose first. */
+    private static final float[] AXLE_FORWARD_UNITS = {30.0F, 0.0F, -30.0F};
+    public static final int AXLE_COUNT = AXLE_FORWARD_UNITS.length;
+    public static final float WHEEL_LATERAL_UNITS = 27.5F;
+
     /** Small one man turret on the roof. */
     public static final float TURRET_PIVOT_HEIGHT_UNITS = 30.0F;
     public static final float BARREL_LENGTH_UNITS = 40.0F;
@@ -41,6 +46,14 @@ public final class InfantryFightingVehicleGeometry {
     public static final float PASSENGER_SEAT_HEIGHT_UNITS = 18.0F;
 
     private InfantryFightingVehicleGeometry() {
+    }
+
+    public static float axleForwardUnits(int axle) {
+        return AXLE_FORWARD_UNITS[axle];
+    }
+
+    public static float[] axleForwardUnits() {
+        return AXLE_FORWARD_UNITS.clone();
     }
 
     public static float toBlocks(float units) {

@@ -201,6 +201,10 @@ public final class BradleyGeometry {
         return ROAD_WHEEL_FORWARD[Math.max(0, Math.min(ROAD_WHEELS_PER_SIDE - 1, index))];
     }
 
+    public static float[] roadWheelForwardUnits() {
+        return ROAD_WHEEL_FORWARD.clone();
+    }
+
     public static float returnRollerForwardUnits(int index) {
         return RETURN_ROLLER_FORWARD[Math.max(0, Math.min(RETURN_ROLLER_FORWARD.length - 1, index))];
     }

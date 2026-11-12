@@ -122,22 +122,6 @@ public final class GroundDrive {
         return new Step(new State(speed, yaw), dx, dz);
     }
 
-    /**
-     * Candidate step heights for a climb, smallest first, capped at the vehicle's limit. Half a
-     * block at a time so the hull rides the lip instead of popping to the top of the step.
-     */
-    public static double[] stepRises(double stepHeightBlocks) {
-        if (!Double.isFinite(stepHeightBlocks) || stepHeightBlocks <= 0.0D) {
-            return new double[0];
-        }
-        int steps = (int) Math.ceil(stepHeightBlocks / 0.5D);
-        double[] rises = new double[steps];
-        for (int i = 0; i < steps; i++) {
-            rises[i] = Math.min(stepHeightBlocks, (i + 1) * 0.5D);
-        }
-        return rises;
-    }
-
     /** Grades under this fraction of the vehicle's limit are free: tracks take them as flat. */
     public static final double FREE_GRADE_FRACTION = 0.15D;
     /** Fraction of top speed left AT the vehicle's own grade limit. A crawl, never a stop. */

@@ -23,5 +23,40 @@
     "sounds": [
       "battlefield:explosion"
     ]
+  },
+  "phl_launch": {
+    "sounds": [
+      "battlefield:phl_launch"
+    ]
+  },
+  "phl_fly": {
+    "sounds": [
+      "battlefield:phl_fly"
+    ]
+  },
+  "phl_impact": {
+    "sounds": [
+      "battlefield:phl_impact"
+    ]
+  },
+  "qte_tick": {
+    "sounds": [
+      "battlefield:qte_tick"
+    ]
+  },
+  "qte_hit": {
+    "sounds": [
+      "battlefield:qte_hit"
+    ]
+  },
+  "reload_clank": {
+    "sounds": [
+      "battlefield:reload_clank"
+    ]
+  },
+  "radar_ping": {
+    "sounds": [
+      "battlefield:radar_ping"
+    ]
   }
 }

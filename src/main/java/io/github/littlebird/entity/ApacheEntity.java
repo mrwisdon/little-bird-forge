@@ -718,8 +718,9 @@ public class ApacheEntity extends Entity implements GunshipRider, MissileSight {
         if (entityHit != null) {
             impact = entityHit.getLocation();
             applyChainGunDamage(server, gunner, entityHit.getEntity(),
-                    LittleBirdConfig.apacheChainGunDamage(),
-                    LittleBirdConfig.apacheChainGunAirframeDamage());
+                    io.github.littlebird.entity.weapon.VehicleDamageTable.damage(
+                            io.github.littlebird.entity.weapon.VehicleDamageTable.Weapon
+                                    .APACHE_CHAIN_GUN, entityHit.getEntity()));
         }
         splashChainGun(server, gunner, impact,
                 entityHit == null ? null : entityHit.getEntity());
@@ -749,27 +750,17 @@ public class ApacheEntity extends Entity implements GunshipRider, MissileSight {
                         && candidate.isAlive() && !candidate.isSpectator())) {
             double distance = nearby.position().distanceTo(impact);
             double falloff = Math.max(0.0D, 1.0D - distance / radius);
-            float damage = LittleBirdBallistics.damageTo(
-                    io.github.littlebird.entity.weapon.DamageType.SHELL,
-                    AirframeTargets.armorClass(nearby),
-                    new LittleBirdBallistics.WeaponDamage(
-                            LittleBirdConfig.apacheChainGunDamage(),
-                            LittleBirdConfig.apacheChainGunAirframeDamage(),
-                            LittleBirdConfig.apacheGunHeavyDamage()))
-                    * (float) (ChainGunTurret.SPLASH_DAMAGE_FRACTION * falloff);
+            float damage = io.github.littlebird.entity.weapon.VehicleDamageTable.damage(
+                    io.github.littlebird.entity.weapon.VehicleDamageTable.Weapon.APACHE_CHAIN_GUN,
+                    nearby) * (float) (ChainGunTurret.SPLASH_DAMAGE_FRACTION * falloff);
             if (damage > 0.0F) {
-                applyChainGunDamage(server, gunner, nearby, damage, damage);
+                applyChainGunDamage(server, gunner, nearby, damage);
             }
         }
     }
 
     private void applyChainGunDamage(
-            ServerLevel server, Player gunner, Entity target, float normal, float airframe) {
-        float damage = LittleBirdBallistics.damageTo(
-                io.github.littlebird.entity.weapon.DamageType.SHELL,
-                AirframeTargets.armorClass(target),
-                new LittleBirdBallistics.WeaponDamage(normal, airframe,
-                        LittleBirdConfig.apacheGunHeavyDamage()));
+            ServerLevel server, Player gunner, Entity target, float damage) {
         if (damage <= 0.0F) {
             return;
         }
@@ -995,9 +986,9 @@ public class ApacheEntity extends Entity implements GunshipRider, MissileSight {
                 || isInvulnerableTo(source) || !destruction.acceptsDamage()) {
             return false;
         }
-        if (source.is(DamageTypeTags.IS_EXPLOSION)
-                && (source.getDirectEntity() instanceof LittleBirdRocketEntity
-                        || source.getDirectEntity() instanceof ApacheMissileEntity)) {
+        if (source.is(DamageTypeTags.IS_EXPLOSION)) {
+            // Splash never damages a vehicle, aircraft included: every warhead bills its hull
+            // once, on the direct hit, through VehicleDamageTable.
             return false;
         }
         float remaining = getHealth() - amount;

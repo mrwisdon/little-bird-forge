@@ -12,4 +12,11 @@ package io.github.littlebird.entity;
 public interface GunshipRider {
     /** Remaining hull integrity as a 0..1 fraction, for the shooter's target readout. */
     float healthFraction();
+
+    /**
+     * Remaining hull integrity in points. Every hull in the pack already answers this, so the
+     * shooter's readout can print "60 / 120" beside the name instead of only a percentage, and a
+     * new vehicle keeps implementing exactly what it did before.
+     */
+    float getHealth();
 }

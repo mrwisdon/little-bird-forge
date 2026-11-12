@@ -2811,3 +2811,433 @@ io.github.littlebird.entity.ApacheEntity.destroyAircraft(ApacheEntity.java:877)
 - 验证：全量 **496 测试 0 失败**；`./gradlew build` BUILD SUCCESSFUL；JAR 850295 字节 sha256 `bf98f3fb…c9926d`，与实例一致且只有一份。
 - 待实测：连点（10 次/秒）时射速应稳定在 180 rpm；按住不放仍是 180 rpm；松扳机过热的冷却速度不变。
 
+### 68 B-2 炸弹威力加强（2026-10-01，用户选「A 档」）
+
+- 诊断（只读先行）：威力由三个旋钮决定 —— 直击伤害 / 溅射半径 / 燃烧时长，且**代码默认值与实例 toml 必须同改**（Forge 以实例文件为准，只改代码等于没改）。
+  - 直击：`damageTo(SHELL, armor, flat(jdamDamage))`，SHELL 走 flat 三列同值、**重甲不打折** → 旧值 120 就已经是「坦克满血 120 一发」（Bradley 110 / 小野猫 90 同理）；实战难见是因为弹体 AABB 小、要真撞上实体。
+  - 溅射：`server.explode(..., blastRadius, false, ExplosionInteraction.NONE)` 走 vanilla `Explosion`（交互类型只关方块破坏），中心伤害 = **7R+1**（反汇编该类确认 `7.0d`/`2.0d` 公式常量）→ 旧 R=6 时中心只有 **43**，坦克要 3 发近失。这才是「炸不动」的真身。
+- 改动（A 档，纯数值）：`jdam_damage` 120→**240**、`jdam_blast_radius` 6→**10**、`incendiary_damage` 45→**90**、`incendiary_blast_radius` 4→**7**、`incendiary_fire_ticks` 600→**1200**（中心溅射 43→71）。
+  - 落点：`LittleBirdConfig:918-931`、`entity/weapon/BombKind:15-17`（契约枚举）、契约测试 `B2BombRulesAdversarialTest:138-141`、实例 `config/battlefield-common.toml:391-404`、规格 `docs/plan/b2-systems-spec.md §0.7`。
+- 验证：全量 **618 测试 0 失败**（用例数不变，改的是断言值）；`./gradlew build` BUILD SUCCESSFUL（当时游戏在跑，故用 `-x syncLocalMods`）；`javap` 回读 JAR 确认 `240.0d / 90.0d / 10.0d` 已进常量池。JAR 1645698 字节 sha256 `feb2cb52…`；游戏退出后 `tools/sync-to-instance.sh` 部署成功，实例哈希一致且只有一份 battlefield JAR。
+- 待实测 + 副作用：近失 2 发打爆坦克的手感；燃烧弹 1200 tick 火场是否过强/晃屏；**半径 6→10 后低空投弹更容易炸到自己**（vanilla 爆炸对半径内所有实体结算，弹体只豁免了「直击」的自机判定，没有爆炸免疫）—— 若手感不对，可选做「投弹后 N tick 内自机免受本次爆炸」或要求投弹高度 >12 格。
+
+### 68.1 燃烧弹火场：范围独立放大 + 上限放开 + 烧更久（2026-10-01，用户：「让火焰范围更大，燃烧能力更强」）
+
+- 诊断（两个硬限制，都不是配置能解决的）：
+  1. `IncendiaryBombEntity.MAX_FIRE_BLOCKS = 48`：点火循环是行优先扫描、放满就 break；半径 7 的圆盘约 154 列，48 个方块只够铺**最前面几行**——实际火场是横条而不是圆盘，「调大半径」并不会让火场变大。
+  2. 火场半径与爆炸半径**共用** `incendiary_blast_radius`：想放大火场就得同时放大爆炸，等于推翻上一轮刚定的 A 档威力。
+- 改动：
+  - 新增配置键 `incendiary_fire_radius`（double，默认 **12.0**，范围 0–48）；点火半径改为 `max(爆炸半径, 火场半径)`，火场与爆炸解耦（`LittleBirdConfig:125-131 / 925-935 / 1206-1212`）。
+  - `MAX_FIRE_BLOCKS` 48 → **512**（12 格圆盘 ~452 列可整盘铺满）。
+  - `incendiary_fire_ticks` 1200 → **2400**（实体着火 60 → 120 秒）。
+  - 实例 toml 同步（保持 Forge 的 tab + CRLF 格式）：`incendiary_fire_radius = 12.0`、`incendiary_fire_ticks = 2400`；规格 `b2-systems-spec.md §0.7` 增补该键。
+- 验证：全量 **618 测试 0 失败**；`./gradlew build` BUILD SUCCESSFUL（16s，含 reobf + syncLocalMods）；JAR 1645845 字节 sha256 `193284d3…`，与实例一致且只有一份；`javap` 回读 JAR 确认 `incendiary_fire_radius=12.0d / 上限 48.0d` 已进常量池。
+- 已知边界（待实测/待决策）：① 地面火是 vanilla 火方块，**没有燃料会自己烧尽**，`incendiary_fire_ticks` 只管**实体**着火时长，不管地面火持续时间——要「地面持续烧 N 秒」需要续燃机制（新切片）；② vanilla 着火伤害约 1 点/20 tick，对 120 HP 的坦克近乎无害，「烧毁载具」需要额外 DoT；③ 512 个火方块/发，24 发连投的服务器块更新量需实测。
+
+### 68.2 火烧得更疼：火场每秒伤害脉冲 + 地面自动续燃（2026-10-01，用户：「让火烧的更疼可以吗」）
+
+- 诊断：vanilla 的着火伤害由 `Entity.baseTick` 结算，约 **1 点/20 tick（0.05 dps）**，而且**载具的 `hurt` 不走 vanilla 装甲/免疫帧**——旧火场对 120 HP 的坦克烧满 120 秒只掉约 6 点，等于装饰；这个数字没有任何配置旋钮，只能加代码。
+- 做法（新切片：2 新 + 3 改 + 1 测试）：
+  - 新纯规则 `entity/weapon/BurnZone`：一条倒计时配两条时钟 —— 伤害脉冲每 20 tick（1 秒）、续燃每 40 tick（2 秒），返回 `IDLE / RELIGHT / DAMAGE / DAMAGE_AND_RELIGHT / EXPIRE`；到期那一 tick 的动作仍要执行，调用方执行完再移除。
+  - 新服务端订阅者 `entity/IncendiaryBurnZones`（FORGE bus，`TickEvent.LevelTickEvent` END）：每个火场每秒对「落点为中心、水平半径 12、上下 3 格的板层」内所有实体结算一次伤害（走 `AirframeTargets.armorClass` + `LittleBirdBallistics.damageTo(SHELL, flat(dps))`，与其他武器同一入口），并每 2 秒重燃地面火（否则伤害看不见）；下雨、维度已卸载、火免疫目标直接跳过；火方块上限 512/发。
+  - 配置新增 `incendiary_burn_damage_per_second`（double，默认 **8.0**，范围 0–200，0 = 只烧不疼）；`IncendiaryBombEntity.ignite()` 改为委托 `IncendiaryBurnZones.light(...)`，原地点火循环与 48 上限迁入 zones 类；实例 toml 同步新增该键（tab+CRLF）。
+- 数字：8 dps → 无甲玩家 20 HP **2.5 秒**死；满血坦克 120 HP 停在火里 **15 秒**死；火场本身持续 120 秒。载具按 8/秒全额结算（其 `hurt` 无免疫帧），活体受 vanilla 10 tick 无敌帧影响通常只吃到同量级增量（实测约 7–8/秒）。
+- 验证：全量 **626 测试 0 失败**（新增 `BurnZoneTest` 8 例）；`./gradlew build` BUILD SUCCESSFUL（16s，含 reobf + syncLocalMods）；JAR 1652073 字节 sha256 `a9cb418f…`，与实例一致且只有一份；`javap` 回读确认 `8.0d / 200.0d` 已进常量池。
+- 待实测/已知取舍：① 火场**不区分敌我**，低空投弹后自己也站在火里会挨烧；② 燃烧致死**不计入** B-2 击杀提示（沿用 vanilla 火伤语义，提示仍只覆盖爆炸）；③ 24 发连投时每秒脉冲 × 24 个火场的实体扫描、以及每 2 秒 ×452 列重燃查表的服务器占用需实测；④ 火场不跨存档持久化，服务器重启即熄灭。
+
+### 68.3 火场改为烧 10 秒（2026-10-01，用户：「烧10秒」）
+
+- 改动：`incendiary_fire_ticks` 2400 → **200（10 秒）**，代码默认值与实例 toml 同步；实体着火时长与火场存续时长共用该键，所以两者一起变成 10 秒（续燃 5 次）。
+- 新的伤害上限：200 tick / 20 = **10 次脉冲 × 8 = 80 点**（站满全程）。玩家 20 HP 仍是 2.5 秒死；**满血坦克 120 HP 只掉到 40 HP，不再烧得死**——要"停在火里必死"需把 `incendiary_burn_damage_per_second` 提到约 15（10×15=150）或把时长放回 15 秒以上。
+- 验证：全量 **626 测试 0 失败**；`./gradlew build` BUILD SUCCESSFUL（15s，含 reobf + syncLocalMods）；JAR 1652074 字节 sha256 `60a87170…`，与实例一致且只有一份；`javap` 回读确认 `sipush 200` 已进常量池。
+### 68.4 JDAM 末端制导 + 对地载 60 点；燃烧弹对地载 0（2026-10-01，用户三条指令）
+
+- 三条需求：① JDAM 末端制导 —— 地面载具进入落点 12 格内时自动锁定；② 燃烧弹对地面载具不造成伤害；③ JDAM 对地面载具造成 60 点。
+- 实现：
+  - **末端制导**：`BombBallistics` 新增 `TERMINAL_GUIDANCE_AUTHORITY = 0.06`（普通制导 0.02）与 `step(..., authority)` 重载（5 参版原样委托，逐位不变）、`fallTicksFor(altitude)`（从 `dropLeadDistance` 抽出的同一闭式解）、`leadAimPoint(...)`（按剩余下落时间取提前量）。`JdamBombEntity` 每 tick 用 `AirframeTargets.isGroundVehicle` 在 `jdam_terminal_lock_radius`（默认 12）内选最近的地面载具（排除投放者与其载具），瞄准其质心 + 提前量并以末端权限转弯；锁定优先于吊舱标定，无锁定才回落到标定；**制导自动生效**，不看引信/标定开关。
+  - **燃烧弹对地载 0**：`WeaponDamage.incendiary(damage)` 工厂（heavy 列固定 0），直击与火场每秒脉冲共用 → 对 HEAVY_ARMOR 恒为 0，对玩家/空中载具不变。
+  - **JDAM 对地载 60**：新键 `jdam_ground_vehicle_damage`（默认 60）；`BombKind` 新增 `groundVehicleDamage` 列（JDAM 60 / 燃烧弹 0）；直击改用三分量行 `(jdamDamage, jdamDamage, jdamGroundVehicleDamage)`。
+  - **溅射不再叠加**：地载的 `hurt` 开头新增 `JdamBombEntity.isWarheadBlast(source)` 守卫（识别 JDAM 与燃烧弹两种爆炸直体），两种 B-2 弹的自身爆炸对地面载具**不计伤害**——否则 vanilla 爆炸会在半径内再叠 43–71 点，60 这个数字就没有意义，燃烧弹也做不到"不造成伤害"。代价：**JDAM 近失对地载为 0**（只有直击那 60 点）；其它爆炸源（TNT / 炮弹 / 火箭）完全不受影响。为此 JDAM 直击改用 `explosion(null, owner)`（direct entity 为空），否则会被自己的守卫吃掉。
+- 已知边界：末端权限 0.06 是"最后几块"的修正量（约 10 tick 横向能修 ~3 格），不会把炸弹变成导弹；地载在中段进入 12 格也会触发锁定，此时会放弃吊舱标定。
+- 验证：全量 **635 测试 0 失败**（新增 JdamTerminalHomingTest 9 例；B2BombRulesAdversarialTest 补 2 条契约钉）；`./gradlew build` BUILD SUCCESSFUL（16s，含 reobf + syncLocalMods）；JAR 1653931 字节 sha256 `b7393e31…`，与实例一致且只有一份；`javap` 回读确认 `60.0d`/`12.0d` 已进常量池、`BombKind.groundVehicleDamage()` 在产物中。
+
+### 68.5 命中提示 + 敌方剩余血量（2026-10-01，用户：「击中之后反馈命中提示和敌方单位剩余血量」）
+
+- 诊断：命中反馈链路本来就有（`HitFeedback.report` → `LittleBirdHitFeedbackPacket` → 命中火星 + 红色血条），但有三个缺口：① 只显示**百分比**（`LittleBirdHudMath.healthPercentLabel`），**没有剩余血量数字**；② 只对 `GunshipRider` 载具显示，玩家/生物不显示；③ **B-2 的 HUD 与光电吊舱界面完全没有接命中反馈**（`B2Hud` / `B2PodOverlay` 不调用火星与血条）——开 B-2 丢弹时看不到任何命中反馈。
+- 改动：
+  - 新纯规则 `entity/HitReadout`：`maxHealthFrom(health, fraction)`（载具只公布 fraction + 血量，上限由二者反推，因此 **6 个机型不必各加方法**）、`points()`、`healthText()`（"60 / 120"；击毁或上限未知时返回空串）、`targetName()`（去空白并截断 32 字符）。纯规则、可单测。
+  - `HitFeedback` 改报 名称 + 剩余 + 上限；`GunshipRider` 新增 `getHealth()` 抽象方法（6 个机型本来就有 `public float getHealth()`，**零改动即满足**）；`LittleBirdHitFeedbackPacket` 字段变为 `(kill, name, health, maxHealth)`，`ModNetwork.sendHitFeedback` 同步。
+  - `GunshipHudDraw`：命中即刷新火星与读数，血条下方画 **"M1A5  60 / 120"**；击毁时只留名字（火星转红），上限未知时按满条显示而不是空条。
+  - **B-2 两个界面补上反馈**：`B2Hud`（外部/舱内视角）与 `B2PodOverlay`（吊舱视角）各加火星 + 读数，与既有 4 个 HUD 行为一致。
+- 验证：全量 **641 测试 0 失败**（新增 HitReadoutTest 6 例）；`./gradlew build` BUILD SUCCESSFUL（18s，含 reobf + syncLocalMods）；JAR 1656218 字节 sha256 `9321d767…`，与实例一致且只有一份；`javap` 确认包结构为 `(boolean, String, float, float)`。
+- 待实测：反馈仍只发给开火者（沿用原语义）；击毁瞬间显示名字而无数字（有意，避免 "0 / 0"）；吊舱单色遮罩下红色读数是否够醒目。
+
+### 68.6 JDAM 地形破坏（2026-10-01，用户：「给 jdam 加入较大能力的地形破坏」）
+
+- 设计取舍：**弹坑与爆炸杀伤解耦**。原来 `server.explode(..., ExplosionInteraction.NONE)` 只结算实体伤害、不动方块；若直接换成 `TNT` 交互，弹坑半径就等于杀伤半径（R=10，中心 7R+1≈71 点、作用距离 20 格），会把上一轮那个尚未取证的「投弹自机溅射」风险一起放大。因此地形破坏走**独立半径 + 自己的破方块通道**。
+- 实现：
+  - 新纯规则 `entity/weapon/CraterShape`：`isCracked(dx,dy,dz,radius)`（垂直压扁 `VERTICAL_SQUASH = 1.6`，R=9 → 横向 9 格、深约 5.6 格，**爆心那一格恒在坑内**）、`isBreakable(resistance, limit)`（抗爆 <0 视为不可破坏；超过上限保留，默认上限 100 → 石头 6 / 木 2–3 / 铁块 10 会破，黑曜石 1200 / 铁砧 1200 / 基岩 -1 保留）、`scannedBlocks()`。
+  - 新配置键：`jdam_breaks_blocks`（默认 **true**）、`jdam_crater_radius`（默认 **9.0**，范围 0–32，**独立于** `jdam_blast_radius`）。
+  - `JdamBombEntity.carveCrater(ServerLevel)`：在 `explode` 之后按压扁球体破方块（跳过空气、未加载区块、抗爆过高），`setBlock(AIR, 3)`；单发上限 `MAX_BLOCKS = 20000` 兜底，避免地毯轰炸把服务器卡住。
+  - 实例 toml 同步两个键（tab+CRLF）；规格 `b2-systems-spec.md §0.7` 增补。
+- 代价与边界（待实测）：R=9 单发约 **1900 次方块更新**（扫描 19³ = 6859 格），**16 发齐投地毯轰炸 ≈ 3 万次方块更新**，需看服务器占用；`jdam_crater_radius` 调小或 `jdam_breaks_blocks=false` 可立即关掉；燃烧弹火场与弹坑互不影响。
+- 验证：全量 **648 测试 0 失败**（新增 `CraterShapeTest` 7 例；首版「中心下沉 1 格」会把爆心挤出小半径球面，改为纯垂直压扁后修正）；`./gradlew build` BUILD SUCCESSFUL（27s，含 reobf + syncLocalMods）；JAR 1658257 字节 sha256 `1f5794c2…`，与实例一致且只有一份。
+- 遗留：**「投弹有时空中自爆」仍未定案**（§68.4 之前的诊断：80 格高度已排除地面溅射，机体/投放者按 id 排除，需一次带日志的复现或直接上引信保险）；本切片按用户要求先做地形破坏。
+
+
+### 69 PHL-191 箱式远火（2026-10-20，用户：「做进 battlefield 工程：能发射、发射箱随抬射角抬升、火箭曳光、火箭跟随视角、瞄准落点提示」）
+
+- 用户纠正目标工程为 `/root/projects/little-bird-forge`（不是 Unity）。落地方案见 `docs/plan/phl191-plan.md`。
+- 新增（13 个源文件）：`entity/Phl191Geometry`（米制尺寸/耳轴/8 管炮口）、`entity/weapon/Phl191Ballistics`（初速 2.0、推力 0.06×12 tick、巡航 2.72、重力 0.05、5–65° 限位、6 tick 间隔、30 s 装填）、`entity/Phl191Entity`（1 席、复用 GroundDrive、服务端抬射/齐射/装填、160 HP）、`entity/Phl191RocketEntity`（真实弹道 + 256 格逐人曳光广播 + 半径 5 爆炸）、`client/Phl191Model|Phl191Renderer|Phl191RocketModel|Phl191RocketRenderer`（16 单位/格箱体模型，launcher 子部件枢轴=耳轴）、`client/Phl191Aim`（与服务器同一弹道步进求落点）、`client/Phl191Hud`（落点环 + 距离/飞行时间、仰角、余弹、装填）、`client/RocketCam`（火箭后 7 格/上 2.4 格，FOV 72，C 键取消）、`item/Phl191DeployItem`、贴图生成脚本、`Phl191BallisticsTest`（8 例）。
+- 改动（9 个文件）：`ModEntities`（phl191 / phl191_rocket，tracking 24/32）、`ModItems`、`ModCreativeTabs`、`ClientModEvents`（2 layer + 2 renderer + HUD）、`LittleBirdConfig.phl191DriveSpec()`、`GroundSeat`、`B2PodCameraMixin`（跟随相机位置）、en_us/zh_cn 各 11 键、物品模型 + 3 张贴图。
+- 验证：**656 测试 0 失败**（新增 8 例）；`./gradlew build` BUILD SUCCESSFUL（含 reobf + syncLocalMods）；JAR 1796679 字节 sha256 `137f2261…`，实例内一致且只有一份；独立服务器 `runServer` 启动到 “Done (2.048s)!” 无注册/加载异常。
+- 待实测：模型 UV/迷彩观感、跟随相机手感、落点标记与实际弹着的偏差、8 发齐射的节奏。
+- 已知简化：抬射直接跟随驾驶员俯仰；齐射间隔/装填固定；姿态不拟合斜坡；支腿等细节未进箱体模型。
+- 追加（用户：换成 z 上抬 x 下降，按 M 给出落点半径 5 格周围的成像）：抬射改为 Phl191ElevationPacket（id 40）+ PHL191_UP/DOWN（Z/X，按住，状态变化才发包）；裸 X 不再下车，改为 Shift+X；新增 client/Phl191Recon（M 开关，每 10 tick 采样落点 ±5 格顶部方块颜色/高度 + 实体 blip）与 Phl191Hud.drawRecon 右侧成像面板；ModNetworkRegistrationTest 注册包数 19→20。验证：656 测试 0 失败，build 成功并同步，JAR 1804757 字节 sha256 1ed4291… 与实例一致且只一份。
+- 修复（用户：这个成像没有正常呈现）：根因是 `Phl191Recon.capturedTick` 初值 Long.MIN_VALUE 参与 `gameTime - capturedTick` 差值比较，整型溢出为负 → 刷新门永远不通过，面板从未取到帧。改为“未取帧”单独判断；顺带：空列/无地图色改中性灰、加高度差浮雕（flat 沙地也有起伏）、每格 1px 网格、未取到帧时显示“等待落点…”占位面板，确认 M 开关有反馈。JAR 1804757 字节 sha256 1ed4291…，656 测试 0 失败。
+- 重做（用户：成像好难用，要的是图传，落点上方 10 格俯瞰）：弃用 HUD 小地图方案，`Phl191Recon` 改为**图传相机**——M 切换，相机在预测落点正上方 10 格、pitch 88.5° 垂直俯瞰，FOV 60，平滑跟随当前落点；位置走 B2PodCameraMixin，角度/FOV 走 ViewportEvent，火箭跟随相机优先。HUD 只保留图传框（黑边/四角/LIVE/ALT/5 格方框+十字/退出提示）。验证：656 测试 0 失败，JAR 1804757 字节 sha256 1ed4291… 与实例一致。待实测：图传画面是否随仰角/转向正确扫动、退出后视角复原、GUI 缩放下方框与 5 格是否对得上。
+- 再改（用户：左下角按键提示上方放小窗）：图传从全屏相机改为**画中画小窗**——`Phl191Recon` 在 `RenderGuiEvent.Pre` 把落点上方 10 格的俯瞰画面渲染进 176x132 `TextureTarget`（临时 anchor + 原版 Camera#setup + LevelRenderer#renderLevel，结束后恢复 framebuffer/投影/模型视图，每 2 帧刷新），`Phl191Hud` 用 POSITION_TEX 贴图在左下角键位提示上方画 160x120 小窗（绿框/LIVE/ALT/中心十字/5 格方框），失败显示 NO SIGNAL；删除全屏相机事件与 mixin 分支。JAR 1804757 字节 sha256 1ed4291…，656 测试 0 失败。待实测：小窗画面方向与 5 格方框比例、性能（二次渲染）、退出后 HUD 状态是否干净。
+- 修复（用户：小窗一直是黑的）：两个原因同时存在——① 二次渲染前没有调用 `LevelRenderer#prepareCullFrustum`，区块剔除仍旧用玩家主相机的视锥，无人机视角下几乎全部区块被剔除 → 画面全黑；现按 `prepareCullFrustum(pose, cameraPos, projection)` 重建视锥，并把无人机姿态 `push/mulPoseMatrix/applyModelViewMatrix` 应用到模型视图。② HUD 阶段的原始 `POSITION_TEX` 四边形没有关深度测试，叠加的是主世界深度缓冲，被世界像素挡掉 → 只剩黑色边框；现在绘制前 `disableDepthTest + depthMask(false)`，画完恢复。JAR 1804757 字节 sha256 1ed4291…，656 测试 0 失败。
+- 再修复（用户：还是全黑）：证据是 `LevelRenderer#renderLevel` 的字节码里多处 `Minecraft.getMainRenderTarget()` + `RenderTarget.bindWrite`——它的若干子 pass（天空/云/天气等）会**强行绑回主帧缓冲**，所以嵌套渲染到离屏 FBO 的方案注定只剩清屏色（全黑）。改为**预渲染 + 抓帧**：`RenderTickEvent.Start`（在正常帧之前）里强制无人机相机，调用 `GameRenderer#renderLevel` 让原版把世界画进主帧缓冲，再用 `glCopyTexSubImage2D` 整帧拷进 `TextureTarget` 纹理；正常帧随后清屏重绘，唯一痕迹是这张纹理。HUD 仍把小窗贴图 160x90 画在键位提示上方。相机姿态走 `B2PodCameraMixin`（位置）+ ComputeCameraAngles（角度），只在 `isFeedPass()` 时生效；每 5 帧刷新一次。JAR 1804757 字节 sha256 1ed4291…，656 测试 0 失败。
+- 再改（用户：换一种图传，按 M 显示车辆为中心 64 格内所有生物红点，并标记所需射击俯仰角）：彻底放弃 3D 图传/离屏抓帧（原版 renderLevel 会绑回主帧缓冲，多条路线均黑），改为纯 HUD 战术雷达：Phl191Recon 每 4 tick 采样 64 格内 LivingEntity/载具为红点、预测落点为金十字、车头 ±15° 最近目标给所需仰角；Phl191Hud.drawRadar 用 fill 画圆盘/环/点/连线/仰角条。新增纯规则 Phl191Ballistics.rangeAt/requiredElevation（3 个单测）。雷达打开时左侧面板移右避免遮挡。JAR 1807439 字节 sha256 864fbd7…，659 测试 0 失败。
+- 调整（用户：范围扩展到 140 格）：Phl191Recon.RADIUS 64→140，雷达面板最大 190px（矮窗口自适应），标题带半径参数，四环 35/70/105/140。JAR 1807458 字节 sha256 192b1f3…，659 测试 0 失败。
+- 调整（用户：装填缩短为 20 秒且可用 QTE 加速）：RELOAD_TICKS 600→200；新增 QTE 规则 qtePhase/qteWindowOpen/qteCut（周期 40 tick、窗口 6 tick、每次 -40 tick、下限 20 tick、冷却 12 tick），服务端 applyWeaponInput 在装填中校验并应用；HUD 增加装填进度条 + QTE 条（窗口绿块、白色指针）+「按 R 加速装填 / 现在按 R！」提示。2 个新单测。JAR 1808429 字节 sha256 6587428…，661 测试 0 失败。
+- 调整（用户：2 秒读条 QTE，1.6–1.8s 按 R 奖励 -10s，无动作正常装填，错误触发重读 20s）：RELOAD_TICKS 400；新增 QTE_TICKS=40 / QTE_WINDOW_START=32 / QTE_WINDOW_END=36 / QTE_REWARD_TICKS=200 与 qteElapsed/qteActive/qteInWindow/qteReward；Phl191Entity.applyWeaponInput 命中→qteReward、读条内失误→重置 400、读条后忽略；HUD drawReloadQte 画读条（绿窗口+指针）与普通进度条；4 个单测。JAR 1808532 字节 sha256 12dd08fa…，663 测试 0 失败。
+- 调整（用户：未按不要停读条，直到正确触发或重装填才消失；奖励提到 15 秒）：QTE 改为循环扫条（qtePhase = elapsed % 40），读条一直循环到被命中或装填结束；QTE_REWARD_TICKS=300（−15 秒）；新增同步位 DATA_QTE_DONE，命中后 HUD 停止画读条；命中后 reloadTicks 直接减 300（约 1.6s+3.4s 完成）；读条内按错仍重置 400。测试更新为循环窗口/15 秒奖励/UI 关闭条件。JAR 1808860 字节 sha256 c0e32fc…，663 测试 0 失败。
+- 新增（用户：火箭弹加地形破坏，约两格）：Phl191RocketEntity 爆炸后 carveCrater，复用 CraterShape（碗形、垂直压扁 1.6、上限 20000、跳过空气与抗爆>100）；配置 phl191_breaks_blocks=true、phl191_crater_radius=2.0（0–8）；与 JDAM 的独立半径设计一致，杀伤半径不变。JAR 1809929 字节 sha256 d6a471cf…，663 测试 0 失败。
+- 调整（用户：破坏效果再大一圈）：phl191_crater_radius 默认 2.0→3.0，并同步修改实例 config/battlefield-common.toml（现为 3.0）；CraterShape 垂直压扁 1.6，半径 3 约横向 7 格、深 4 格。JAR 1809933 字节 sha256 1e367b1…，663 测试 0 失败。
+- 新增（用户：火箭加散射，连射 8 发覆盖半径 6 格）：Phl191Ballistics 新增 salvoOffset（8 管各占 45° 扇区 + 半径 sqrt((i+0.5)/8) 错开 + 抖动）、yawTo、salvoCovers（验证 8 落点 + 5 格杀伤覆盖整个 6 格圆盘）；Phl191Entity.fireOne 把槽位反解成 yaw/仰角再发射，炮口位置仍用当前仰角；配置 phl191_spread_radius=6.0（0 关闭，0–16），实例 toml 已加。3 个单测。JAR 1812368 字节 sha256 18246f9d…，666 测试 0 失败。
+- 修正（用户：散射应来自出射角与车头航向的偏差，不是改仰角）：改为纯偏航散布——Phl191Ballistics.salvoYawOffset(tube,tubes,range,radius,jitter) 把 8 个横向槽位（±radius、带抖动、按 range 换算成偏角）给每根管；Phl191Entity.fireOne 只改 launchYaw，仰角保持装定值；新增 lateralImpact/yawTo；单测改为偏角随射程缩放、8 管互不相同且横向覆盖 ±radius。JAR 1810654 字节 sha256 92475260…，666 测试 0 失败。
+- 追加（用户：加上出射仰角公差）：齐射改为 4×2 网格——Phl191Ballistics.salvoLateralOffset（4 列 −radius…+radius）+ salvoPitchTrim（低行 −tol、高行 +tol，带抖动）+ salvoHighRow；Phl191Entity.fireOne 先按容差得 launchElevation，再用该仰角的实际射程把横向槽位换算成 yaw 偏移；配置 phl191_pitch_tolerance_deg=0.4（0 关闭），实例 toml 已加。单测改为 4 列 2 行、横向 ±radius、偏角随射程反比、容差可关。JAR 1811236 字节 sha256 1ddd93eb…，667 测试 0 失败。
+- 修复（用户：重装填 <15s 时 QTE 出现 0/8 装填完毕；火箭视角要按 C 才退出、下次发射再进入）：qteReward 改为下限 QTE_MIN_REMAINING=20，避免奖励把倒计时归零跳过补弹；tickServer 增 reloadTicks==0 && tubes<=0 的兜底补弹；RocketCam 重写为常驻模式——只抓 tickCount≤8 的新弹、落地后 holding 保持最后一帧不返回、C 退出并记录 dismissedId、下一个新弹再进入；HUD/lang 提示改为「火箭视角 · C 退出」。JAR 1811356 字节 sha256 fd836414…，667 测试 0 失败。
+- 追加（用户：更好的特效和音效）：① 新自研音效 7 个（tools/generate_phl191_sounds.py 用 numpy 合成、Windows ffmpeg 编 OGG，无第三方素材）：phl_launch（点火爆裂+低频轰鸣）、phl_fly（飞行马达循环）、phl_impact（次低频+爆裂+碎片+余震 3.2s）、qte_tick/qte_hit、reload_clank、radar_ping；sounds.json 与 ModSounds 已注册。② 接入：发射按管序变调播放 phl_launch、QTE 每轮进窗口 tick 一声、命中/失误/装填完成各有反馈、火箭飞行每 8 tick 播马达声、命中播 phl_impact + explosion 双层、M 键雷达 ping。③ 特效：炮口爆焰加量+LAVA+END_ROD 火星、车尾扬尘；火箭尾迹加 END_ROD 火花与更大烟雾柱；命中加 EXPLOSION_EMITTER、32 点冲击波尘环、上升烟柱。JAR 1917013 字节 sha256 00a0f693…，667 测试 0 失败。
+- 调整（用户：火箭破坏性太低，再加大两圈）：弹坑半径 3→**5 格**（深约 3 格，`phl191_crater_radius` 默认 5.0，实例 toml 已改）、爆炸杀伤/击退半径 5→**7 格**（SPLASH_RADIUS=7）。JAR 1917014 字节 sha256 2c8f7ab4…，667 测试 0 失败。
+- 调整（用户：音效和特效可见范围扩展到 150 格）：新增 Phl191Effects（RANGE=150；粒子逐玩家 sendParticles 广播；音效 volume=RANGE/16=9.375，即 150 格可闻）。发射炮口/后喷、命中全部粒子改走 Phl191Effects（150 格）；发射/命中/飞行马达音效同样 150 格；火箭实体 clientTrackingRange 32→150，模型本身也能在 150 格看见。JAR 1918313 字节 sha256 1813a1b9…，667 测试 0 失败。
+- 调整（用户：增加车辆机动性）：PHL-191 驾驶参数从硬编码改为 6 个可配置项（`phl191_max_speed` 0.40→0.58、`phl191_acceleration` 0.012→0.024、`phl191_braking` 0.05→0.10、`phl191_turn_rate_degrees_per_tick` 1.5→2.4、`phl191_turn_at_standstill` 0.35→0.55、`phl191_max_grade` 22→32），`phl191DriveSpec()` 读配置；实例 toml 已加。顶速约 11.6 格/秒（≈42 km/h），加速与刹车翻倍、转向更快。
+
+
+## 70. PLZ-05 155mm self-propelled howitzer (single shot, heavy crater)
+
+The Blender PLZ-05 is now a driveable ground vehicle modelled on the PHL-191 architecture: same
+GroundDrive client prediction, same Z/X laying keys, same QTE reload, same impact marker, same
+tactical radar and the same follow camera - with one shell in the breech instead of eight tubes.
+
+- Rules: entity/weapon/Plz05Ballistics - muzzle speed 3.6 blocks/tick, gravity 0.045, no motor
+  (a howitzer round is pure ballistic), 3..70 degrees, 3 deg/tick slew, one shell, 300 tick reload,
+  QTE window 1.6-1.8 s worth 200 ticks. Plz05BallisticsTest covers the range peak at 45 deg,
+  the >200 block reach, requiredElevation round trip, the QTE floor and the damage/crater ordering
+  against the rocket.
+- Destruction: SPLASH_RADIUS 10, EXPLOSION_POWER 9, crater config plz05_crater_radius (default 8,
+  cap 16) - deliberately far past the rocket's 5 block bowl, which is the far greater destructive
+  power the request asked for. plz05_breaks_blocks gates the carve.
+- Geometry: entity/Plz05Geometry - 11.60 x 3.38 x 3.55 m, trunnion (0.86, 2.42), 7.09 m barrel,
+  six road wheels, one seat at the hull front.
+- Rendering: client/Plz05Model (hull + turret + gun child pivoting on the trunnion),
+  Plz05Renderer, Plz05ShellModel (slim 155mm ogive, no fins), Plz05ShellRenderer, textures via
+  tools/generate_plz05_texture.py (1024 sheet + 128x64 shell + 32x32 icon).
+- Client systems cloned from the launcher and retargeted: Plz05Aim (marker from the muzzle),
+  Plz05Hud (SHELLS 1/1, elevation, reload/QTE, radar), Plz05Recon (M radar). The follow camera is
+  shared: ArtilleryPlatform / TrackedRound marker interfaces let RocketCam lock onto either a
+  370mm rocket or a 155mm shell.
+- Registration: entity types plz05 / plz05_shell, item plz05, creative tab, packet 41
+  (Plz05ElevationPacket), seat PLZ05_DRIVER, HUD overlay, model layers, language keys.
+- Evidence: full build 675 tests / 0 failures; runServer reached Done (2.266 s) with no mod
+  errors; JAR battlefield-0.1.0.jar 2068691 bytes sha256 4018e73e... synced to the instance
+  (single copy).
+- Model bug fixed after the first in-game report: the turret and gun boxes were declared in local
+  part space while addBox also subtracted the ring/trunnion pivot, so the turret sank 1.2 m into the
+  hull and the barrel sat at ground level. All turret/gun boxes now use the same world frame as the
+  hull; verified against a Blender box preview of the parsed model (57 boxes, turret on the deck,
+  gun about the trunnion).
+- Radar: search radius 250 blocks (Plz05Recon.RADIUS), contacts resampled every 4 ticks (0.2 s),
+  and the scope redrawn as a green phosphor display: a counter-clockwise beam (one turn per 3 s)
+  with a 33-degree afterglow, contacts that brighten as the beam passes and fade afterwards,
+  range rings labelled 63/125/188/250, and the measured range fed into the title (the old key had a
+  %s placeholder that was never filled). Rings are drawn scanline-wise to keep the fill count down.
+- Still needs in-game observation: gun elevation read on screen, shell visibility at range,
+  crater shape at radius 8 (carve cost on a full chunk), QTE feel at 15 s.
+
+## 71. HUD refactor, stage 1: one shared UI layer
+
+The eight overlays used to carry their own colours and chrome (thirteen hex literals, four panel
+sizes). Stage 1 introduces the client/ui package and moves every HUD onto it:
+
+- UiTheme: the single palette (panel, header, border, accent, text, muted, gold, warn, danger,
+  ok, loading) plus the metric scale (PAD 4, ROW 10, HEADER 12, BAR 5).
+- UiPanel: shadow + smoked body + header strip with an accent underline + one pixel border and
+  inner hairline; UiPanel.chip for weapon-slot style pills.
+- UiBar: plain fill, tick marks, and the reload quick-time bar (band, needle, progress).
+- UiText: label/value rows, right-aligned rows, plain lines, key hints.
+- UiRadar: the whole phosphor scope (disc, rim, labelled rings, counter-clockwise beam with
+  afterglow, fading contacts, impact cross, target circle, hull marker). Both artillery HUDs feed
+  it a Scope record instead of duplicating 100 lines of drawing.
+- Plz05Hud and Phl191Hud now draw their readout block as one UiPanel and their scope through
+  UiRadar; the shared draw class GunshipHudDraw maps its CYAN/TEXT/WARNING/DANGER constants to
+  the theme and routes panel/bar through UiPanel/UiBar, so the Little Bird, Apache, jet, B-2,
+  ground vehicle and pod overlays inherit the new chrome without their own rewrite. Remaining
+  hard-coded literals in those six overlays were mapped to theme names.
+
+Evidence: ./gradlew build green, 675 tests / 0 failures; JAR battlefield-0.1.0.jar 2077754 bytes
+sha256 3f7c6c40... synced (single copy). Not yet visually verified in game.
+
+Next stage: per-overlay information hierarchy (row ordering, priority of warnings), optional theme
+switching by JSON, and any new screens (settings, garage) the user wants.
+
+### Stage 2 (same section): hierarchy, themes, settings screen
+
+- Artillery HUDs reordered: status (READY / RELOADING + QTE bar) first, then ammunition, then
+  laying angle, then predicted range in gold. The old order put elevation first, so a reloading
+  crew read three numbers before learning they could not fire.
+- Palette is now runtime data: UiThemes loads assets/battlefield/ui_theme/{dark,olive,amber}.json
+  (flat name -> #AARRGGBB map, partial files allowed), applies it to UiTheme, and persists the
+  selection in config/battlefield-ui.properties. Loading happens in FMLClientSetupEvent.
+- New settings screen: F10 opens UiSettingsScreen, which lists the palettes, applies + saves on
+  click, and shows a live preview panel (rows + bar) drawn with the chosen colours.
+- Key: key.battlefield.hud_settings (F10), translated en/zh.
+
+Still to do: per-overlay hierarchy for the six air/ground HUDs (warnings pinned, secondary rows
+demoted), and any extra screens (garage, mission board) the user asks for.
+
+### Stage 3: per-overlay pass (Little Bird, B-2 pod)
+
+- LittleBirdHud weapon panel: single UiPanel with the weapon name in the header and its ammunition
+  right-aligned in the same strip; UiBar for heat / reload / ready; slots and the rotor-hull row
+  tightened back into the panel (height 86 -> 64). Alerts already draw last, so warnings stay on
+  top of the cluster.
+- B2PodOverlay: the pod readouts were fixed-position strings with a real bug - SIGHT and RANGE both
+  at top+36, so the range was always hidden under the gimbal window. They now live in one panel
+  with rows GIMBAL / SIGHT / ZOOM / RANGE / DESIGNATE / DROP / BOMB RUN, colours from the theme,
+  and the designator state drives the accent.
+- Apache, jet, B-2 cockpit and ground vehicle HUDs take the shared GunshipHudDraw chrome and
+  already draw the alert strip last; no per-file ordering change was needed.
+
+Evidence: build green, 675 tests / 0 failures, JAR 2088060 bytes sha256 9703b73a... synced.
+
+### Stage 4: ground crews and the settings screen
+
+- GroundHud: no alert strip existed for ground vehicles; the crew now gets the shared one
+  (low hull under 35%, and out-of-ammunition with the reloading / no-ammo wording). Drawn after
+  the panels so it sits on top, same as the aircraft HUDs.
+- UiSettingsScreen now covers the client toggles the crew actually changes: palette, HUD scale
+  (-/+ through LittleBirdConfig.setHudScale 1..4), centre crosshair, reticles-follow-weapon. Each
+  control writes the client config immediately and rebuilds the screen so the labels are live.
+- New setters in LittleBirdConfig (setHudScale / setShowCenterCrosshair / setReticleFollowsWeapon)
+  all save CLIENT_SPEC.
+
+Evidence: build green, 675 tests / 0 failures, JAR 2088060+ bytes sha256 4b0df0ec... synced.
+
+## 72. HUD rebuild: one framework, brand new skin
+
+The eight hand-written overlays (LittleBirdHud, ApacheHud, GroundHud, JetHud, B2Hud, B2PodOverlay,
+Phl191Hud, Plz05Hud) and the intermediate ui package (UiTheme/UiPanel/UiBar/UiText/UiRadar,
+UiThemes, UiSettingsScreen) were deleted. In their place:
+
+- client/hud/HudStyle: one palette (graphite panels, amber instrument accent, cyan for air
+  contacts) and one grid (PAD 4, ROW 10, HEADER 11, BAR 4).
+- HudCanvas: a chamfered panel with header strip and tag, tabular rows, bars, bracketed reticle,
+  heading chevron, alert ribbon and bottom hint. Nothing else draws rectangles by hand.
+- HudRadar: the scope (rings with block labels, amber beam with afterglow, contacts, impact cross,
+  target ring, hull chevron).
+- HudFeedback: hit marker and enemy airframe readout, fed by LittleBirdHitFeedbackPacket.
+- HudContext / HudView / HudOverlay: one registered overlay dispatches to the first matching
+  view - HudB2 (pod + cockpit), HudAir (Little Bird, Apache, jets), HudGround (M1A5, Wildcat,
+  Bradley), HudArtillery (PHL-191, PLZ-05).
+- HudSettingsScreen (F10): HUD scale, centre crosshair, reticles-follow-weapon, drawn on the new
+  canvas.
+
+Feature parity carried over: flight cluster, weapon/heat/rocket panels, rotor RPM and hull,
+projected reticles (gun spread, rocket brackets, turret/coax, optics), bomb bay and pod sight,
+kill feed, alerts, QTE reload bar, elevation/range/impact marker, radar, seat gating, pointer
+scale multiplier.
+
+Evidence: build green, 675 tests / 0 failures; old classes gone (grep clean); JAR synced.
+
+### Stage 5: aircraft instrumentation moved to the bottom-left, with radar
+
+- HudAir: the FLIGHT panel (heading/pitch/roll/speed/altitude) moved from the lower centre to the
+  bottom-left block, with the tactical scope immediately beside it (radar 140 px, flight panel
+  118x69, both bottom anchored). The weapon panel keeps the bottom-right corner.
+- New AirRadar: living entities and other aircraft within 200 blocks, sampled every four ticks,
+  hull-relative; the scope chevron shows the nose. Shared by Little Bird, Apache and both jets.
+
+## 73. Vehicle damage is one table now
+
+- New client-agnostic rule class io.github.littlebird.entity.weapon.VehicleDamageTable: every
+  vehicle weapon is a row (type + flesh/aircraft/apache/heavy prices), and damage(weapon, target)
+  resolves the price from the target's ArmorClass and Airframe. Config-backed rows are rebuilt per
+  lookup so a config edit applies live.
+- Wired through: ground hitscan choke point (tank coax/canister, Wildcat autocannon+ATGM, Bradley
+  M2, jet cannon), tank main gun shells (AP/HE/canister), little bird gun and rockets, Apache chain
+  gun and missile, PHL-191 rocket, PLZ-05 shell, JDAM. The numbers no longer live in the weapons.
+- Tests: VehicleDamageTableTest (5) - artillery rows equal the ballistics constants, howitzer
+  outpunches the rocket on armour, bullets never price armour but do hurt airframes, Apache has its
+  own airframe price, nothing negative. 680 tests total.
+- Full matrix documented in docs/plan/vehicle-damage-table.md.
+
+## 74. Splash no longer bypasses armour
+
+- Bug: every shell/rocket finished with a vanilla server.explode, and a vanilla explosion prices
+  entities by power and distance only - it knows nothing about the vehicle table. A near miss
+  could therefore out-damage a direct hit, and blasts stacked on top of the priced hit.
+- Armoured hulls (M1A5, Wildcat, Bradley, PHL-191, PLZ-05) now ignore explosion-tag damage
+  outright. Their damage always arrives as a table-priced direct hit.
+- Direct hits from shells, rockets, TOW/ATGM, JDAM and incendiary were moved off explosion
+  sources onto WarheadSplash.source (player attack when a crew is credited) so the armour rule
+  sees a real hit.
+- New WarheadSplash: blast damage = table row for the target x splash fraction x distance
+  falloff. PHL-191 and PLZ-05 blasts now use it instead of a vanilla explosion, so soft targets
+  still take the anti-personnel price, aircraft the airframe price, and a hull only a few points.
+- Tests: WarheadSplashTest (3) - falloff is monotonic and zero at the radius, a blast chips armour
+  far less than a direct hit, soft targets keep the flesh price.
+
+### 74.1 Splash is now zero against every vehicle
+
+- Requested: no splash damage against armour, and the same for aircraft rocket blasts.
+- WarheadSplash.damageAt returns 0 for HEAVY_ARMOR, LIGHT_ARMOR and AIRFRAME: a hull or airframe
+  is only ever hurt by a direct hit, priced through VehicleDamageTable.
+- LittleBirdEntity, ApacheEntity and JetEntity (and B2Entity, which extends JetEntity) now ignore
+  every explosion-tagged damage source, not just their own rockets' blasts. Aircraft rockets'
+  splash therefore hits players and mobs only.
+- Splash still stops at the blast radius and keeps its distance falloff for soft targets.
+
+### 74.2 Artillery damage numbers
+
+- 155mm (PLZ-05) direct hit on any vehicle: 60. 370mm (PHL-191) rocket: 40.
+- The two launchers are heavy armour now (Machinery armour class): machine guns do 0 to them.
+- Other vehicles' cannons and rockets deal +20% to a launcher (VehicleDamageTable.multiplier).
+- Tank main gun shells and Bradley autocannon shells now carry their table row, so the bonus
+  applies to them too; Apache missile uses the table price when no warhead override is set.
+- Tests: artilleryPricesEveryHullAtSixtyAndForty, otherVehiclesGunsHitArtilleryHarder.
+
+## 75. Thrown smoke grenade: a 15 s cloud made of short lived puffs
+
+Requested: a hand thrown smoke grenade whose cloud is dense enough to hide a push, lasts 15 s, and
+does not drop the frame rate. The smoke already in the mod (MainBattleTankEntity.emitSmoke, six
+CAMPFIRE_COSY_SMOKE per tick for 10 s; BradleyEntity.emitSmokeWall, eighteen per tick for 12 s) is
+the approach that fails this budget - permanent particles piled up fast - so the grenade does not
+copy it, and the two passes that tried to build the cloud out of large static quads were rejected on
+sight.
+
+### 75.1 Shape of the implementation
+
+- SmokeCloudEntity is a server side bookkeeper with no visual of its own: it holds the full radius,
+  the lifetime and an age, and it is what marks where the cloud is for the cap and for saving.
+- The visual is client only. Each tick the cloud asks its level for smokeGrenadeParticlesPerTick()
+  puffs, seeded inside a squat cylinder of its current radius; each puff lives
+  particle_lifetime_ticks and is drawn by SmokePuffParticle. Density comes from turnover: about
+  three hundred puffs are alive at any moment, none of them for more than two seconds.
+- Nothing but the full radius and the lifetime cross the wire, written once in open();
+  updateInterval(10). The swell (sqrt ease to full radius over 40 ticks), the fade in and the fade
+  out over the last quarter are derived on the client from its own age by SmokeGrenadeRules.
+- Server cap: smoke_grenade.max_clouds (12); the oldest cloud within 96 blocks is retired to make
+  room, so a spawn point cannot be permanently fogged in.
+- SmokeGrenadeEntity extends ThrowableItemProjectile: right click lobs it, it vents where it lands or
+  when the 5 s fuse runs out. No vehicle plumbing was touched.
+- SmokeGrenadeItem: 10 tick cooldown, stack of 8, not consumed in creative.
+
+### 75.2 Why three earlier versions failed
+
+1. **Campfire particles** (round vanilla sprite). The vanilla smoke sprite is a big soft disc, so a
+   ring of them reads as washing on a line. Rejected on sight.
+2. **Fourteen billboard quads** sampling cells of a 64x64 sheet. Gaps between quads, visible straight
+   edges, a black grey centre where they overlapped. Rejected on sight ("这个烟雾弹质量也太差了").
+3. **Seventy one billboard quads** in three alpha tiers, torn texture cells, depth sorted every
+   frame. Structurally sound and cheap, but still read as a pale veil rather than as smoke: judged
+   "还是很淡" and replaced.
+
+The lesson from the three: a dense cloud is not a matter of a bigger, softer sprite. It comes from
+many *small* overlapping sprites being replaced fast, which is exactly what the particle engine is
+built for. A reference smoke grenade's sprites were measured for a target: 16x16 frames, alpha mean
+0.36, a little over a third of the pixels above 0.8, i.e. mostly opaque clouds with holes, not
+transparent haze.
+
+### 75.3 The puff texture, and why shape mattered more than alpha
+
+The first puff texture was one smooth radial disc. Rendered offline at density it was a heap of
+grey balls: any sprite that keeps a round outline keeps reading as an object no matter how soft its
+edge is. The reference sprites are lumpy all the way through, so tools/generate_smoke_assets.py
+builds each frame as four to seven metaball lobes, thresholds the field into a near binary plateau
+with a narrow shoulder, punches holes with mid frequency noise, tears the rim, and mottles the
+brightness with broad patches. Measured on the sixteen frames: alpha mean 0.33, 26% above 0.8.
+
+The second measured lesson is that a puff has to be a good deal wider than the gap between puffs.
+The gap is the cloud volume divided by the puff count - about 1.4 blocks at three hundred puffs in a
+six block cylinder - so a 1.2 block puff leaves sky showing through, and 2.4 blocks is what closes
+it. Both numbers were tuned with tools/preview_smoke_particles.py, which renders the real textures
+as depth sorted billboards over sky, ground and a tank silhouette (build/smoke_particle_preview.png)
+so a candidate is judged before a build is spent on it.
+
+### 75.4 Configuration
+
+Config lives under [common] smoke_grenade: lifetime_seconds (15), radius (6.0), max_clouds (12),
+particles_per_tick (9), particle_lifetime_ticks (34), particle_size (2.4). Server and client must
+agree on the first three because the client draws from the synced radius and lifetime; the last
+three are client side dials, and they are the density/performance trade: about nine times thirty
+four, roughly three hundred live puffs per visible cloud. An instance config written by an earlier
+build still holds the retired edge_particles key; the new keys are written with their defaults.
+
+Recipe: shaped, gunpowder + iron ingot + paper (" G ", "PIP", " G "), two canisters. Icon and the
+sixteen puff frames are generated by tools/generate_smoke_assets.py, so both can be regenerated
+rather than retouched by hand.
+
+### 75.5 Verification
+
+- Tests: SmokeGrenadeRulesTest (8) - 15 s is 300 ticks, the fuse is 100 ticks, radius starts at a
+  fraction of full and never overshoots, opacity fades in and out and holds at 1 in between, the
+  puff radii stay inside the cloud and stay out of phase with each other.
+- Offline density preview (build/preview_c.png): 260 puffs at 2.4 blocks fill the volume and hide
+  the tank silhouette; 180 at 1.7 blocks left the cloud full of sky holes, which is what the two
+  rejected versions looked like in game.
+- Full build green, JAR synced to the instance, SHA-256 matches
+  (9c14085c...4b16aa, 2172220 bytes).
+- Not yet verified in game: how the puff cloud reads with fog, lighting and motion at the default
+  six block radius, and whether three hundred translucent quads per cloud hold the frame rate on the
+  target machine when several clouds overlap.
+
+
+### 76. Designated fire mission (155 mm, J key)
+
+The PLZ-05 keeps the same radar picture but gains a battery screen: J opens
+`client/ArtilleryCommandScreen` (full-screen `HudRadar` at radius 200, the pointer's twenty five
+block beaten zone drawn under the mouse), left click designates, ESC or right click backs out. The click
+is turned into a world point with the same scale the radar was drawn at, and sent by
+`network/ArtilleryStrikeCallPacket` (id 42, PLAY_TO_SERVER); the server re-checks the caller, the
+range (200 m) and the cooldown, so the screen is only a convenience.
+
+The mission itself lives on `entity/Plz05Entity` as synced entity data (state, elapsed, shells
+fired, point, cooldown): five seconds of warmup, then thirty rounds over ten seconds, one every
+six to seven ticks, then 120 s of cooldown. During warmup the marked point grows a
+reddish signal-smoke column and pings every second, which is the only warn the target gets. Rounds
+are `Plz05ShellEntity` in a new dropping mode: they spawn 90 blocks above the terrain heightmap at
+the scattered point, fall at 1.2 blocks/tick under the same gravity, and are aimed straight down,
+so no barrel or traverse is involved. Scatter is a golden-angle spiral of radius 15 (the battery's
+beaten zone) with the first two rounds inside 1.5 blocks. A called-in round is deliberately the
+same warhead as a fired one: identical blast, particles and eight block crater, so thirty of them
+are thirty real shells; only the motor flame of the launch trail is omitted, because nothing was
+launched.
+
+Rules are pure and tested: `entity/weapon/ArtilleryStrikeRules` (19 methods, no Minecraft types)
+and `ArtilleryStrikeRulesTest` (17 cases: salvo schedule, phase boundaries, scatter, range clamp,
+drop time). Config: [common] artillery_strike_enabled, warmup_seconds (5), duration_seconds (10),
+shells (30), spread_radius (15), cooldown_seconds (120), drop_height (90), crater_radius (8,
+same as an aimed shell; lower it if thirty full craters in one disc cost too much).
+
+Crash fix (in-game report, `crash-2026-11-06_19.47.13-server.txt`): a barrage round fired after
+the caller had left the driver seat carried `PlayerCredit(null)`, and `WarheadSplash` reported the
+hit to that null shooter — `PacketDistributor.PLAYER.with(() -> null)` NPEs inside Forge and kills
+the server tick. The mission now remembers the caller's UUID at `requestStrike` and resolves the
+credit from it per round (`Plz05Entity.strikeOwnerUuid`, cleared on DONE and on load), so a fire
+mission outlives the seat. Independent of that, `WarheadSplash` only reports when there is a live
+shooter, and `HitFeedback.report` / `ModNetwork.sendHitFeedback` treat a null recipient as a no-op
+rather than a crash.
+
+Retune (user: "加速炮弹在10秒内投放完毕，轰炸半径缩小至15格"): duration 20 s -> 10 s (rounds every
+6-7 ticks, up to six in the air at once), spread 25 -> 15 blocks; the instance
+`config/battlefield-common.toml` was edited too (Forge keeps a value already on disk, so changing
+only the code default would not have shown up).
+
+Verification: `./gradlew build` green, 710 tests, JAR synced and SHA-256 matched
+(8e581a0f...2504704, 2191038 bytes). Not yet verified in game: whether the click
+conversion lines up with the HUD radar point on a real screen, whether thirty shells in one
+disc hold the frame rate, and whether a barrage called in then abandoned still lands cleanly.
+

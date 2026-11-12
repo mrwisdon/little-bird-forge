@@ -22,6 +22,8 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.MAIN_BATTLE_TANK.get());
                         output.accept(ModItems.INFANTRY_FIGHTING_VEHICLE.get());
                         output.accept(ModItems.BRADLEY.get());
+                        output.accept(ModItems.PHL191.get());
+                        output.accept(ModItems.PLZ05.get());
                         output.accept(ModItems.F35.get());
                         output.accept(ModItems.F35_PREVIEW.get());
                         output.accept(ModItems.SU57.get());
@@ -45,6 +47,7 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.CANNON_BARREL.get());
                         output.accept(ModItems.TANK_HULL.get());
                         output.accept(ModItems.IFV_HULL.get());
+                        output.accept(ModItems.SMOKE_GRENADE.get());
                     })
                     .build());
 

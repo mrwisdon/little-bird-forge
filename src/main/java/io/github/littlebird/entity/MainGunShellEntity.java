@@ -7,8 +7,10 @@ import io.github.littlebird.entity.weapon.LittleBirdBallistics;
 import io.github.littlebird.entity.weapon.LittleBirdBallistics.Vector3;
 import io.github.littlebird.entity.weapon.MainGunAmmoType;
 import io.github.littlebird.entity.weapon.MainGunShellBallistics;
+import io.github.littlebird.entity.weapon.WarheadSplash;
 import io.github.littlebird.registry.ModSounds;
 import java.util.UUID;
+import javax.annotation.Nullable;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
@@ -18,10 +20,13 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -41,6 +46,9 @@ import net.minecraftforge.network.NetworkHooks;
  * the server allows it, breaks the blocks it lands on.
  */
 public class MainGunShellEntity extends Entity {
+    private static final float HE_FRAGMENT_DAMAGE_FRACTION = 0.55F;
+    private static final double FRAGMENT_FACE_OFFSET = 0.02D;
+
     private Vec3 velocity = Vec3.ZERO;
     private Vec3 heading = new Vec3(0.0D, 0.0D, 1.0D);
     private UUID ownerUuid;
@@ -49,6 +57,9 @@ public class MainGunShellEntity extends Entity {
     private float armoredDamage;
     private float heavyDamage;
     private double splashRadius = 3.0D;
+    /** Which table row this round bills: AP / HE / canister. */
+    private io.github.littlebird.entity.weapon.VehicleDamageTable.Weapon weapon =
+            io.github.littlebird.entity.weapon.VehicleDamageTable.Weapon.TANK_MAIN_GUN_AP;
 
     public MainGunShellEntity(EntityType<? extends MainGunShellEntity> type, Level level) {
         super(type, level);
@@ -71,6 +82,12 @@ public class MainGunShellEntity extends Entity {
     public void configure(MainGunAmmoType type, float direct, float armored, float heavy,
                           double splash) {
         this.shellType = type == null ? MainGunAmmoType.AP : type;
+        this.weapon = switch (this.shellType) {
+            case HE -> io.github.littlebird.entity.weapon.VehicleDamageTable.Weapon.TANK_MAIN_GUN_HE;
+            case CANISTER -> io.github.littlebird.entity.weapon.VehicleDamageTable.Weapon
+                    .TANK_MAIN_GUN_CANISTER;
+            default -> io.github.littlebird.entity.weapon.VehicleDamageTable.Weapon.TANK_MAIN_GUN_AP;
+        };
         this.directDamage = direct;
         this.armoredDamage = armored;
         this.heavyDamage = heavy;
@@ -107,19 +124,15 @@ public class MainGunShellEntity extends Entity {
         Vec3 end = start.add(velocity);
 
         // Sweep the whole tick so a ten block step cannot tunnel through a target or a thin wall.
-        EntityHitResult directHit = findEntityHit(start, end);
-        BlockHitResult blockHit = level().clip(new ClipContext(
-                start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
-        boolean blockIsNearer = blockHit.getType() != HitResult.Type.MISS
-                && (directHit == null
-                        || start.distanceToSqr(blockHit.getLocation())
-                                <= start.distanceToSqr(directHit.getLocation()));
-        if (blockIsNearer) {
+        Entity shooter = owner();
+        Entity shooterVehicle = shooter == null ? null : shooter.getVehicle();
+        HitResult hit = trace(level(), this, shooter, shooterVehicle, getBoundingBox(), start, end);
+        if (hit instanceof BlockHitResult blockHit && hit.getType() != HitResult.Type.MISS) {
             setPos(blockHit.getLocation());
             detonate(null, Vec3.atLowerCornerOf(blockHit.getDirection().getNormal()));
             return;
         }
-        if (directHit != null) {
+        if (hit instanceof EntityHitResult directHit) {
             setPos(directHit.getLocation());
             detonate(directHit.getEntity(), null);
             return;
@@ -137,16 +150,26 @@ public class MainGunShellEntity extends Entity {
         }
     }
 
-    /** Nearest live entity along this tick's flight segment, never the shooter or their hull. */
-    private EntityHitResult findEntityHit(Vec3 start, Vec3 end) {
-        Entity owner = owner();
-        Entity ownerVehicle = owner == null ? null : owner.getVehicle();
-        return ProjectileUtil.getEntityHitResult(level(), this, start, end,
-                getBoundingBox().expandTowards(end.subtract(start)).inflate(1.0D),
+    /**
+     * Nearest collision along one shell segment, with blocks winning ties. The bounds are the
+     * shell's AABB at the start of the segment. A prediction can pass no projectile entity.
+     */
+    public static HitResult trace(Level level, @Nullable Entity projectile,
+                                  @Nullable Entity owner, @Nullable Entity ownerVehicle,
+                                  AABB projectileBounds, Vec3 start, Vec3 end) {
+        EntityHitResult directHit = ProjectileUtil.getEntityHitResult(level, projectile, start, end,
+                projectileBounds.expandTowards(end.subtract(start)).inflate(1.0D),
                 candidate -> candidate.isAlive() && !candidate.isSpectator()
-                        && candidate != this && candidate != owner
+                        && candidate != projectile && candidate != owner
                         && candidate != ownerVehicle
                         && !(candidate instanceof MainGunShellEntity));
+        BlockHitResult blockHit = level.clip(new ClipContext(
+                start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, projectile));
+        boolean blockIsNearer = blockHit.getType() != HitResult.Type.MISS
+                && (directHit == null
+                        || start.distanceToSqr(blockHit.getLocation())
+                                <= start.distanceToSqr(directHit.getLocation()));
+        return blockIsNearer || directHit == null ? blockHit : directHit;
     }
 
     /** The player who fired this round, resolved from the stored UUID. */
@@ -189,10 +212,8 @@ public class MainGunShellEntity extends Entity {
     }
 
     /**
-     * Direct hit, then the hard impact package and the damage. Damage is resolved here so it is
-     * applied exactly once, whichever of the three ways the round ended; everything the player can
-     * see and hear is handed to {@link MainGunImpactFx}, which also carries the camera shock to
-     * nearby clients.
+     * Resolves the direct hit and any HE fragments before the impact effects and terrain blast.
+     * The effects also carry the camera shock to nearby clients.
      *
      * @param directHit the entity that was hit, or null for a block or a swept collision
      * @param normal    surface normal at the impact, or null for a hit with no face (an entity, or
@@ -202,20 +223,20 @@ public class MainGunShellEntity extends Entity {
         if (level() instanceof ServerLevel server) {
             Entity owner = owner();
             if (directHit != null && directHit != owner) {
-                float damage = LittleBirdBallistics.damageTo(io.github.littlebird.entity.weapon.DamageType.SHELL,
-                        io.github.littlebird.entity.AirframeTargets.armorClass(directHit),
-                        new LittleBirdBallistics.WeaponDamage(
-                                directDamage, armoredDamage, heavyDamage));
+                float damage = io.github.littlebird.entity.weapon.VehicleDamageTable.damage(
+                        weapon, directHit);
                 if (damage > 0.0F) {
                     // Credited to the gunner's player, the same way the rocket credits its pilot.
-                    boolean applied = directHit.hurt(
-                            server.damageSources().explosion(this, owner), damage);
+                    boolean applied = directHit.hurt(WarheadSplash.source(server, owner), damage);
                     if (applied && owner instanceof ServerPlayer serverPlayer) {
                         // The shell used to skip this, so a hit moved the target's bar and told
                         // the gunner nothing at all.
                         HitFeedback.report(serverPlayer, directHit);
                     }
                 }
+            }
+            if (shellType == MainGunAmmoType.HE) {
+                applyHeFragments(server, directHit, owner, normal);
             }
             // Shrapnel along the face that was hit, a dust column, the shock ring lying in the
             // impact plane, the crater and the layered report: one package, so a 120mm hit cannot
@@ -226,6 +247,21 @@ public class MainGunShellEntity extends Entity {
                     LittleBirdConfig.mainGunBreaksBlocks());
         }
         discard();
+    }
+
+    private void applyHeFragments(ServerLevel server, Entity directHit, Entity owner, Vec3 normal) {
+        Vec3 impact = position();
+        // Sample cover before the blast changes the terrain. Move the ray endpoint off the
+        // impact face so the struck block only counts as cover from the opposite side.
+        Vec3 fragmentOrigin = normal == null ? impact : impact.add(normal.scale(FRAGMENT_FACE_OFFSET));
+        Entity ownerVehicle = owner == null ? null : owner.getVehicle();
+        MainBattleTankEntity firingTank = ownerVehicle instanceof MainBattleTankEntity tank ? tank : null;
+        WarheadSplash.apply(server, this, directHit,
+                new WarheadSplash.PlayerCredit(owner instanceof ServerPlayer player ? player : null),
+                weapon, impact, LittleBirdConfig.tankMainGunHeFragmentRadius(),
+                HE_FRAGMENT_DAMAGE_FRACTION, target -> target instanceof LivingEntity
+                        && (firingTank == null || !firingTank.hasPassenger(target))
+                        ? Explosion.getSeenPercent(fragmentOrigin, target) : 0.0D);
     }
 
     /**

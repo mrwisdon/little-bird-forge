@@ -29,6 +29,14 @@ public final class GunSightDraw {
     /** Fire control colour: the predicted impact, deliberately not the reticle's green. */
     public static final int IMPACT_COLOUR = 0xFFFFC24A;
 
+    private static final int TANK_GRATICULE_COLOUR = 0xFFB6CDC3;
+    private static final int TANK_BORE_COLOUR = 0xFFE1EAF0;
+    private static final int TANK_LINE_SHADOW = 0xB00C1011;
+    private static final int TANK_CENTRE_GAP = 5;
+    private static final int TANK_WIRE_LENGTH = 12;
+    private static final int TANK_TICK_STEP_MILS = 10;
+    private static final int TANK_TICK_LIMIT_MILS = 60;
+
     /** The rim is a single pixel, the same weight as every other line in the HUD. */
     private static final int RIM_THICKNESS = 1;
     /** Half width of the gap the wires leave around the aim point. */
@@ -107,6 +115,117 @@ public final class GunSightDraw {
         drawCentreDot(graphics, x, y);
         drawTargetBox(graphics, opening, x, y);
         return tube;
+    }
+
+    /** Draws the MBT's optical line of sight and angular ruler inside the lens. */
+    public static GunSightMath.Tube tankSight(GuiGraphics graphics, int width, int height,
+            double fovMultiplier, double focalLengthPixels) {
+        GunSightMath.Tube tube = GunSightMath.tube(width, height, fovMultiplier);
+        drawTube(graphics, tube);
+        GunSightMath.Rect opening = tube.opening();
+        int x = width / 2;
+        int y = height / 2;
+        if (!insideWithMargin(opening, x, y, TANK_WIRE_LENGTH + 1)) {
+            return tube;
+        }
+
+        etchedLine(graphics, x - TANK_WIRE_LENGTH, y, x - TANK_CENTRE_GAP, y + 1,
+                TANK_GRATICULE_COLOUR);
+        etchedLine(graphics, x + TANK_CENTRE_GAP + 1, y, x + TANK_WIRE_LENGTH + 1, y + 1,
+                TANK_GRATICULE_COLOUR);
+        etchedLine(graphics, x, y - TANK_WIRE_LENGTH, x + 1, y - TANK_CENTRE_GAP,
+                TANK_GRATICULE_COLOUR);
+        etchedLine(graphics, x, y + TANK_CENTRE_GAP + 1, x + 1, y + TANK_WIRE_LENGTH + 1,
+                TANK_GRATICULE_COLOUR);
+
+        if (Double.isFinite(focalLengthPixels) && focalLengthPixels > 0.0D) {
+            drawTankTicks(graphics, opening, x, y, focalLengthPixels);
+        }
+        return tube;
+    }
+
+    /** Places a pale chevron with its tip on the projected gun line. */
+    public static void tankBore(GuiGraphics graphics, GunSightMath.Tube tube,
+            AimProjection.Screen screen) {
+        if (!projectedInside(tube, screen, 5)) {
+            return;
+        }
+        int x = (int) Math.round(screen.x());
+        int y = (int) Math.round(screen.y());
+        for (int row = 0; row <= 3; row++) {
+            etchedLine(graphics, x - row, y + row, x - row + 1, y + row + 1, TANK_BORE_COLOUR);
+            if (row > 0) {
+                etchedLine(graphics, x + row, y + row, x + row + 1, y + row + 1, TANK_BORE_COLOUR);
+            }
+        }
+    }
+
+    /** Draws the impact at its projected position if the whole marker fits inside the lens. */
+    public static boolean tankImpact(GuiGraphics graphics, GunSightMath.Tube tube,
+            AimProjection.Screen screen, boolean hitEntity) {
+        if (!projectedInside(tube, screen, 7)) {
+            return false;
+        }
+        int x = (int) Math.round(screen.x());
+        int y = (int) Math.round(screen.y());
+        if (hitEntity) {
+            for (int side = -5; side <= 5; side += 10) {
+                int left = Math.min(x + side, x + side / 2);
+                int right = Math.max(x + side, x + side / 2) + 1;
+                etchedLine(graphics, x + side, y - 5, x + side + 1, y + 6, IMPACT_COLOUR);
+                etchedLine(graphics, left, y - 5, right, y - 4, IMPACT_COLOUR);
+                etchedLine(graphics, left, y + 5, right, y + 6, IMPACT_COLOUR);
+            }
+        } else {
+            etchedLine(graphics, x - 5, y, x - 1, y + 1, IMPACT_COLOUR);
+            etchedLine(graphics, x + 2, y, x + 6, y + 1, IMPACT_COLOUR);
+            etchedLine(graphics, x, y - 5, x + 1, y - 1, IMPACT_COLOUR);
+            etchedLine(graphics, x, y + 2, x + 1, y + 6, IMPACT_COLOUR);
+        }
+        return true;
+    }
+
+    private static void drawTankTicks(GuiGraphics graphics, GunSightMath.Rect opening,
+            int x, int y, double focalLengthPixels) {
+        int previousOffset = TANK_CENTRE_GAP - 1;
+        int limit = Math.min(Math.min(x - opening.x(), opening.right() - 1 - x),
+                opening.bottom() - 1 - y) - 2;
+        for (int mils = TANK_TICK_STEP_MILS; mils <= TANK_TICK_LIMIT_MILS;
+                mils += TANK_TICK_STEP_MILS) {
+            double pixels = Math.tan(mils / 1000.0D) * focalLengthPixels;
+            if (pixels > limit) {
+                break;
+            }
+            int offset = (int) Math.round(pixels);
+            if (offset - previousOffset < 3) {
+                continue;
+            }
+            int half = mils % (2 * TANK_TICK_STEP_MILS) == 0 ? 3 : 1;
+            etchedLine(graphics, x - offset, y - half, x - offset + 1, y + half + 1,
+                    TANK_GRATICULE_COLOUR);
+            etchedLine(graphics, x + offset, y - half, x + offset + 1, y + half + 1,
+                    TANK_GRATICULE_COLOUR);
+            etchedLine(graphics, x - half, y + offset, x + half + 1, y + offset + 1,
+                    TANK_GRATICULE_COLOUR);
+            previousOffset = offset;
+        }
+    }
+
+    private static boolean projectedInside(GunSightMath.Tube tube, AimProjection.Screen screen,
+            int margin) {
+        return tube != null && screen != null && screen.visible()
+                && insideWithMargin(tube.opening(), screen.x(), screen.y(), margin);
+    }
+
+    private static boolean insideWithMargin(GunSightMath.Rect opening, double x, double y,
+            int margin) {
+        return x >= opening.x() + margin && x <= opening.right() - 1 - margin
+                && y >= opening.y() + margin && y <= opening.bottom() - 1 - margin;
+    }
+
+    private static void etchedLine(GuiGraphics graphics, int x1, int y1, int x2, int y2, int colour) {
+        fillBox(graphics, x1 + 1, y1 + 1, x2 + 1, y2 + 1, TANK_LINE_SHADOW);
+        fillBox(graphics, x1, y1, x2, y2, colour);
     }
 
     /** Four dark bands plus the rim: the whole tube, and nothing outside the viewport. */

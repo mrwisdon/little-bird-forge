@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "G": {
+      "item": "minecraft:gunpowder"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "P": {
+      "item": "minecraft:paper"
+    }
+  },
+  "pattern": [
+    " G ",
+    "PIP",
+    " G "
+  ],
+  "result": {
+    "count": 2,
+    "item": "battlefield:smoke_grenade"
+  },
+  "show_notification": true
+}

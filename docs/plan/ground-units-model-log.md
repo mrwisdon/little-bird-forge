@@ -275,3 +275,31 @@ generate_ground_unit_textures.py + SHA256SUMS。
 - 取舍：微件（螺栓/履带销/铆钉/铰链/潜望镜/鞭天线/伪装网）未进 MC 模型，MC 侧靠贴图与近似盒表达。
 - 未做：游戏内目视（WSL 起不了 runClient，LWJGL natives 只有 windows/x86）。
 
+
+---
+
+## 追加：M1A2 SEP v1 模型接入（2026-10-19）
+
+用户决策（三问三答）：范围 = **替换现有 M1A5 的外观模型**（保留实体/武器/HUD/物品）；保真度 = **沿用 LayerDefinition 盒模型流水线**；身份 = **改名 M1A2 SEP v1 + 沙色 CARC**。
+
+### 流水线
+- player 侧源：`/root/blender_m1a2sepv1`（真实 M1A2 SEP v1 比例，16 单位/格）。新增 `work/export_mc.py`：重建模型（不 join），逐部件导出 AABB；车体首上斜甲改为旋转装甲板，炮塔按 base plan 分 5 段（上段 0.9 宽）+ 左右各 2 块侧颊板，履带用空心环带（顶/底条 + 0.1 m 端盖）。Blender +X 车头 → MC -Z。
+- `tools/data/m1a2sepv1_boxes.json`（380 盒）→ `tools/generate_m1a2sepv1_model.py` → `client/MainBattleTankModel.java`（1183 行；body 284 / turret 86 / gun 10）+ `models/src/ground_units_tank_data.py` + `tools/data/m1a2sepv1_model_boxes.json`。
+- `tools/generate_ground_unit_textures.py`：TANK 调色板改沙色 CARC（base 150,138,108）；分区坐标不变，IFV 输出逐字节不变（sha256 一致）。
+- 几何（MainBattleTankGeometry）：TURRET_PIVOT 23.04→**25.28**（1.58 m 甲板）；新增 TURRET_RING_FORWARD **7.2**（炮塔环前移 0.45 m，对应模型 ring x=0.45 m）；BARREL_LENGTH 92.88→**85.68**；trunnion 31.36/30.72/62.16→**32.32/29.6/56.08**；座位 48/0/24 与 7.2/0/25.28；两挺机枪口 **-16.96/18.25/12.32**（M240，左）与 **13.6/20.64/15.2**（M2HB，右）。
+- MainBattleTankEntity：muzzle() 与 machineGunMuzzle() 加入炮塔环前移量（沿车体朝向），服务端炮口与客户端模型对齐。
+- 文案：entity/item/hud/advancement 与配置注释改为 M1A2 SEP v1（HUD 用 M1A2 SEP）；item id/entity id 不变。
+
+### 验证
+- compileJava BUILD SUCCESSFUL（仅既有 3 条 deprecation 警告）。
+- test：**648 tests / 0 failures**（TankMachineGunMuzzleTest、MainGunTest 期望值随新常量更新：ring→muzzle 5.355、muzzle y 12.02）。
+- build BUILD SUCCESSFUL + syncLocalMods；`build/libs/battlefield-0.1.0.jar` 与实例副本 sha256 一致 `a19f802d50d8e225a23dae8e20d5ad1bb98e9a1d1e07aaa98c51237f4780c1b1`（1,657,696 B），实例 mods 内仅 1 份 battlefield JAR；JAR 内 MainBattleTankModel.class 37,234 B、main_battle_tank.png 24,438 B。
+- 盒模型预览（Blender 按 Java 盒表逐盒重建，含旋转装甲板）：docs/plan/evidence/ground-units-model/m1a2_mc_hero.png、m1a2_mc_side.png。
+
+### 回退点
+docs/plan/backups/2026-10-19_pre_m1a2sepv1/（10 个文件 + SHA256SUMS）：MainBattleTankModel.java、MainBattleTankGeometry.java、MainBattleTankEntity.java（按改动前文本重建）、generate_ground_unit_model.py、generate_ground_unit_textures.py、两张 tank 贴图、en_us/zh_cn、TankMachineGunMuzzleTest.java。
+
+### 未做 / 已知取舍
+- 游戏内目视仍未做：WSL 下 runClient 受 LWJGL natives（仅 windows/x86）阻塞，证据为 Blender 重建的盒模型渲染。
+- 物品图标 textures/item/main_battle_tank.png 仍是绿色旧图（16×16），未重绘；实体贴图已是沙色。
+- 盒模型对炮塔顶部收窄、螺栓/履带销等微件仍按 1/16 格取舍；第一版炮塔 AABB 曾丢失楔形，已用分段+颊板修正。
