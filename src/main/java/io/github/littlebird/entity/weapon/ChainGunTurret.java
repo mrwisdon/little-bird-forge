@@ -21,6 +21,18 @@ public final class ChainGunTurret {
     /** -60 down / +11 up, the real mount's elevation stops. */
     public static final double MAX_ELEVATION_UP_DEG = 11.0D;
     public static final double MAX_ELEVATION_DOWN_DEG = 60.0D;
+    /**
+     * Elevation stops of one mount, in degrees. The shared chain gun mount is a low-angle one; a
+     * vehicle whose turret is built for high angle fire passes its own stops instead.
+     */
+    public record Stops(double upDeg, double downDeg) {
+        /** Apache chain gun and Bradley 25mm: the real low-angle mount. */
+        public static final Stops CHAIN_GUN =
+                new Stops(MAX_ELEVATION_UP_DEG, MAX_ELEVATION_DOWN_DEG);
+        /** The Wildcat's 30mm: a high-angle mount that can point almost straight up. */
+        public static final Stops WILDCAT = new Stops(85.0D, 10.0D);
+    }
+
     /** 600 rpm at 20 ticks per second. */
     public static final int FIRE_INTERVAL_TICKS = 2;
 
@@ -75,17 +87,31 @@ public final class ChainGunTurret {
      * airframe term, which is the whole point of a turret that aims independently.
      */
     public static Aim desiredAim(float gunnerYawDeg, float gunnerPitchDeg) {
-        return new Aim(normalize(gunnerYawDeg), clampPitch(gunnerPitchDeg));
+        return desiredAim(gunnerYawDeg, gunnerPitchDeg, Stops.CHAIN_GUN);
+    }
+
+    /** Where the gunner is asking the barrel to point, clamped by this mount's own stops. */
+    public static Aim desiredAim(float gunnerYawDeg, float gunnerPitchDeg, Stops stops) {
+        return new Aim(normalize(gunnerYawDeg), clampPitch(gunnerPitchDeg, stops));
     }
 
     /** Aims the barrel at the nose while nobody is in the front seat. */
     public static Aim parkedAim(float airframeYawDeg, float airframePitchDeg) {
-        return new Aim(normalize(airframeYawDeg), clampPitch(airframePitchDeg));
+        return parkedAim(airframeYawDeg, airframePitchDeg, Stops.CHAIN_GUN);
+    }
+
+    public static Aim parkedAim(float airframeYawDeg, float airframePitchDeg, Stops stops) {
+        return new Aim(normalize(airframeYawDeg), clampPitch(airframePitchDeg, stops));
     }
 
     /** Holds the turret on the requested aim, and fires if asked at the built-in cadence. */
     public static Step advance(State state, Aim desired, boolean trigger) {
         return advance(state, desired, trigger, FIRE_INTERVAL_TICKS);
+    }
+
+    /** Holds the turret within this mount's stops. */
+    public static Step advance(State state, Aim desired, boolean trigger, Stops stops) {
+        return advance(state, desired, trigger, FIRE_INTERVAL_TICKS, stops);
     }
 
     /**
@@ -106,13 +132,19 @@ public final class ChainGunTurret {
      * over any window instead of drifting slower.
      */
     public static Step advance(State state, Aim desired, boolean trigger, double intervalTicks) {
+        return advance(state, desired, trigger, intervalTicks, Stops.CHAIN_GUN);
+    }
+
+    /** Same, with the mount's own elevation stops instead of the shared chain gun's. */
+    public static Step advance(State state, Aim desired, boolean trigger, double intervalTicks,
+                               Stops stops) {
         double interval = Double.isFinite(intervalTicks)
                 ? Math.max(MIN_FIRE_INTERVAL_TICKS, intervalTicks)
                 : FIRE_INTERVAL_TICKS;
         // The barrel holds the gunner's own look directly: no slew delay, so a mouse move is on
         // the crosshair the same tick. Normalize keeps the held angle inside +/-180.
         double yaw = normalize(targetYaw(desired));
-        double pitch = targetPitch(desired);
+        double pitch = clampPitch(desired.pitchDeg(), stops);
 
         int heat = Math.max(0, state.heat());
         // Not clamped up to zero: a spent interval can leave a fraction of a tick owing, and that
@@ -160,8 +192,14 @@ public final class ChainGunTurret {
      */
     public static LittleBirdBallistics.Vector3 aimDirection(
             double aimYawDeg, double aimPitchDeg) {
+        return aimDirection(aimYawDeg, aimPitchDeg, Stops.CHAIN_GUN);
+    }
+
+    /** Direction for a mount with its own elevation stops. */
+    public static LittleBirdBallistics.Vector3 aimDirection(
+            double aimYawDeg, double aimPitchDeg, Stops stops) {
         double yaw = Math.toRadians(normalize(aimYawDeg));
-        double pitch = Math.toRadians(clampPitch(aimPitchDeg));
+        double pitch = Math.toRadians(clampPitch(aimPitchDeg, stops));
         double cosPitch = Math.cos(pitch);
         return new LittleBirdBallistics.Vector3(
                 -Math.sin(yaw) * cosPitch,
@@ -180,21 +218,37 @@ public final class ChainGunTurret {
             LittleBirdBallistics.Vector3 airframeUp,
             double pivotHeightBlocks, double pivotForwardBlocks, double barrelBlocks,
             double aimYawDeg, double aimPitchDeg) {
+        return muzzleOrigin(pivot, airframeForward, airframeUp, pivotHeightBlocks,
+                pivotForwardBlocks, barrelBlocks, aimYawDeg, aimPitchDeg, Stops.CHAIN_GUN);
+    }
+
+    /** Muzzle for a mount with its own elevation stops. */
+    public static LittleBirdBallistics.Vector3 muzzleOrigin(
+            LittleBirdBallistics.Vector3 pivot,
+            LittleBirdBallistics.Vector3 airframeForward,
+            LittleBirdBallistics.Vector3 airframeUp,
+            double pivotHeightBlocks, double pivotForwardBlocks, double barrelBlocks,
+            double aimYawDeg, double aimPitchDeg, Stops stops) {
         LittleBirdBallistics.Vector3 forward = unit(airframeForward);
         LittleBirdBallistics.Vector3 up = unit(airframeUp);
         LittleBirdBallistics.Vector3 ring = pivot
                 .add(up.scale(pivotHeightBlocks))
                 .add(forward.scale(pivotForwardBlocks));
-        return ring.add(aimDirection(aimYawDeg, aimPitchDeg).scale(barrelBlocks));
+        return ring.add(aimDirection(aimYawDeg, aimPitchDeg, stops).scale(barrelBlocks));
     }
 
     /** True when the barrel has run into the elevation stop on either axis. */
     public static boolean atElevationStop(double aimPitchDeg) {
+        return atElevationStop(aimPitchDeg, Stops.CHAIN_GUN);
+    }
+
+    /** True when the barrel has run into this mount's stop on either end. */
+    public static boolean atElevationStop(double aimPitchDeg, Stops stops) {
         if (!Double.isFinite(aimPitchDeg)) {
             return false;
         }
-        return aimPitchDeg >= MAX_ELEVATION_DOWN_DEG - ELEVATION_TOLERANCE_DEG
-                || aimPitchDeg <= -MAX_ELEVATION_UP_DEG + ELEVATION_TOLERANCE_DEG;
+        return aimPitchDeg >= stops.downDeg() - ELEVATION_TOLERANCE_DEG
+                || aimPitchDeg <= -stops.upDeg() + ELEVATION_TOLERANCE_DEG;
     }
 
     /** Dispersion grows linearly with heat, like the Little Bird's gun. */
@@ -230,10 +284,14 @@ public final class ChainGunTurret {
      * pitch of -11 and its 60 degrees of depression is a pitch of +60.
      */
     private static double clampPitch(double degrees) {
+        return clampPitch(degrees, Stops.CHAIN_GUN);
+    }
+
+    private static double clampPitch(double degrees, Stops stops) {
         if (!Double.isFinite(degrees)) {
             return 0.0D;
         }
-        return clamp(degrees, -MAX_ELEVATION_UP_DEG, MAX_ELEVATION_DOWN_DEG);
+        return clamp(degrees, -stops.upDeg(), stops.downDeg());
     }
 
     private static double clamp(double value, double minimum, double maximum) {

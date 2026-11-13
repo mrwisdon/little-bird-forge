@@ -50,6 +50,30 @@ public final class LittleBirdTracerRenderer {
         }
         ensureLevel(level);
         Vec3 start = new Vec3(packet.startX(), packet.startY(), packet.startZ());
+        // A tracked vehicle is drawn between its last two ticks; the server measured the muzzle at
+        // the newer of the two, so a tracer would start ahead of the model and the model would only
+        // catch up a moment later. Put the start where the barrel is actually being drawn.
+        if (packet.ownerId() >= 0
+                && level.getEntity(packet.ownerId())
+                instanceof io.github.littlebird.entity.MainBattleTankEntity tank) {
+            float partialTick = minecraft.getFrameTime();
+            Vec3 drawn = new Vec3(
+                    net.minecraft.util.Mth.lerp(partialTick, tank.xo, tank.getX()),
+                    net.minecraft.util.Mth.lerp(partialTick, tank.yo, tank.getY()),
+                    net.minecraft.util.Mth.lerp(partialTick, tank.zo, tank.getZ()));
+            float cupolaYaw = tank.getCupolaAimYawDeg();
+            float cupolaPitch = tank.getCupolaAimPitchDeg();
+            if (minecraft.player != null && minecraft.player.getVehicle() == tank
+                    && tank.seatOf(minecraft.player)
+                    == io.github.littlebird.entity.seat.GroundSeat.TANK_GUNNER) {
+                // The local gunner's gun is drawn from his own view; use the same angles here or the
+                // round would start at the synced (stepping) angle instead of the visible barrel.
+                cupolaYaw = minecraft.player.getViewYRot(partialTick);
+                cupolaPitch = minecraft.player.getViewXRot(partialTick);
+            }
+            start = tank.localMuzzleNear(start, cupolaYaw, cupolaPitch)
+                    .add(drawn.subtract(tank.position()));
+        }
         Vec3 end = new Vec3(packet.endX(), packet.endY(), packet.endZ());
         Vec3 segment = end.subtract(start);
         double length = segment.length();

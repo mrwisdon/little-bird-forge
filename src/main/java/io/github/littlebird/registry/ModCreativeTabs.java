@@ -48,6 +48,7 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.TANK_HULL.get());
                         output.accept(ModItems.IFV_HULL.get());
                         output.accept(ModItems.SMOKE_GRENADE.get());
+                        output.accept(ModItems.REPAIR_TORCH.get());
                     })
                     .build());
 

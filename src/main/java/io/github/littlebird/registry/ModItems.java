@@ -2,6 +2,7 @@ package io.github.littlebird.registry;
 
 import io.github.littlebird.LittleBird;
 import io.github.littlebird.item.LittleBirdDeployItem;
+import io.github.littlebird.item.RepairTorchItem;
 import io.github.littlebird.item.SmokeGrenadeItem;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -163,6 +164,10 @@ public final class ModItems {
     /** Hand thrown smoke canister: lobs a cloud of smoke where it lands. */
     public static final RegistryObject<Item> SMOKE_GRENADE = ITEMS.register("smoke_grenade",
             () -> new SmokeGrenadeItem(new Item.Properties().stacksTo(8)));
+
+    /** Field repair torch: hold right click on a damaged hull and weld it back up. */
+    public static final RegistryObject<Item> REPAIR_TORCH = ITEMS.register("repair_torch",
+            () -> new RepairTorchItem(new Item.Properties().stacksTo(1)));
 
     /** Ammunition crate: park next to one and it restocks the aircraft. */
     public static final RegistryObject<Item> AMMO_CRATE = ITEMS.register("ammo_crate",

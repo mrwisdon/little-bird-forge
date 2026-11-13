@@ -3241,3 +3241,317 @@ Verification: `./gradlew build` green, 710 tests, JAR synced and SHA-256 matched
 conversion lines up with the HUD radar point on a real screen, whether thirty shells in one
 disc hold the frame rate, and whether a barrage called in then abandoned still lands cleanly.
 
+
+## 77. Field repair torch (2026-11-12)
+
+Requested: a hand item like Battlefield 2042's repair tool — hold right click on a damaged vehicle and
+weld its hull back. Implemented as a held use, not a click: `RepairTorchItem.use` starts the use only
+when the crosshair already holds a damaged hull, and `onUseTick` does the work one server tick at a
+time, so vanilla's own "player is using an item" state is the only thing the client sends.
+
+- `entity/weapon/RepairTorch` (pure rules): 4.5 block reach, 15 points per second (0.75 per tick),
+  never past the hull's maximum, never below zero.
+- `GunshipRider` gained `maxHealth()` and `setHealth(float)`; all nine hulls implement them from their
+  existing `MAX_HEALTH` constants and synchronized health field.
+- `item/RepairTorchItem`: raycast from the eyes blocked by terrain, `ProjectileUtil` for the entity,
+  4 electric-spark particles per tick and a `FIRE_EXTINGUISH` hiss every 5 ticks.
+- Registration: `ModItems.REPAIR_TORCH` (stack 1), creative tab, generated item model, crafted from
+  copper + 4 iron + redstone (" C "/"IRI"/" I ").
+- Icon: `tools/generate_repair_torch_icon.py` (pure zlib PNG, 16x16).
+- Tests: `RepairTorchTest` (5) — rate, clamp at both ends, non-positive amounts, full-hull early out,
+  reach boundary. 735 tests total.
+- Build green; JAR 2,238,684 bytes, SHA-256 `1ad5f276…772cc`.
+- Not yet verified in game: hold-to-weld feel, spark placement on a moving hull, and whether the hiss
+  every 5 ticks is too busy next to the engine loop.
+
+## 78. Tank machine guns: rounds leave the modelled barrel, gunner aims his own (2026-11-12)
+
+Reported: the coaxial machine gun's rounds did not come out of its barrel and drifted; the coax and
+seat two's remote gun were not really separate.
+
+Root cause: both machine guns are children of the turret in `MainBattleTankModel`, and
+`setupAnim` only traverses the turret - `turret.xRot = 0`, the 120mm is the only part that elevates.
+The ballistics did the opposite: `machineGunMuzzle` added the barrel reach along `turretDirection()`
+(the main gun's yaw *and* pitch), so at any non-zero gun elevation the computed muzzle left the
+rendered barrel tip and the tracer flew off the barrel axis.
+
+Fix (no model change):
+- `machineGunMuzzle` now measures the barrel tip with the traverse only, so the spawn point is the
+  model's barrel mouth at every gun elevation.
+- `fireCoax` fires from that muzzle toward the shooter's own eye ray (128 blocks out), so a round
+  converges on the crosshair of the seat that pulled the trigger. The gunner's rounds follow the
+  gunner's view; the driver's follow the driver's. Belts and cooldowns were already separate.
+- Not yet verified in game: muzzle alignment at +10 / -30 elevation, and a two-player crew where the
+  gunner looks away from the turret while the driver traverses.
+- 735 tests, build green; JAR SHA-256 `cc293335…804fb`.
+
+## 79. Seat two's own cupola optic: first person, free 360 (2026-11-12)
+
+Seat two used to share the driver's turret interior: `GroundCamera` slaved every interior camera's yaw
+to the turret, and `HudGround` drew the 120mm optic for both seats, so the gunner could not look away
+from the driver's line even though his rounds now follow his own view.
+
+- `GroundCamera.drivesGunnerOptic` keeps the turret yaw slave for everyone except the tank's gunner,
+  so his interior view is first person and free to turn all the way round.
+- `HudGround.drawCupolaSight`: centre reticle, `HDG nnn` above it (his own heading, 0-359), `M2 nnn`
+  belt count and `RNG nnn` to the first collider below. No mil ladder, because the cupola gun is a
+  machine gun, not the 120mm.
+- Not yet verified in game: whether a free-yaw first person view through the tank's cupola has the
+  camera inside geometry when he turns to the rear, and whether the reticle sits on the tracer at
+  short range.
+- 735 tests, build green; JAR SHA-256 `8023ac5e…7c44e`.
+
+## 80. Tank crew seat switch: a lone player can take the cupola (2026-11-12)
+
+The tank's seats were pure boarding order: seat 0 for the first rider, seat 1 for the second, and no
+key to change it - so a single player could never reach the cupola, and the new gunner optic was
+unreachable without a second client.
+
+- `GroundSeat.tankSeatOf` / `tankIndexOf` mirror the Apache's swapped-seat mapping: a flag flips the
+  meaning of the two seats without touching the passenger list (tests added to `GroundSeatTest`).
+- `MainBattleTankEntity` carries `DATA_SEATS_SWAPPED` (synched, saved in NBT). `seatOf`, `driver()`
+  and `gunner()` resolve through it, so `positionRider`, the HUD seat branch, the weapon routing and
+  `getControllingPassenger` all follow the effective seat.
+- New `TankSeatSwitchPacket` (id 43, `ModNetworkRegistrationTest` now expects 23 packets). The key is
+  the existing seat-switch mapping (default H) and only fires from a crew seat, and only while the
+  hull is standing still (horizontal speed below 0.05 blocks/tick).
+- A lone player who switches to the cupola has no driver, so the tank stays parked: the turret holds
+  the hull's heading and the cupola gun, optic and trigger all work.
+- 736 tests, build green; JAR SHA-256 `609758f6…fef57`.
+
+## 81. The driver's coax now really is coaxial (2026-11-12)
+
+The model's big roof machine gun (the `240_*` parts) had been standing in as the driver's coax, so his
+rounds left a mount 1.1 blocks to the left of the turret ring while his sight was boresighted to the
+120mm. At any elevation the tracer and the optic disagreed.
+
+- `machineGunMuzzle(false)` returns `mainGunMuzzle(turret yaw, turret pitch)`: the driver's machine gun
+  shares the cannon's muzzle.
+- `fireCoax(..., cupola = false)` fires along `turretDirection()`, the same line the driver's optic is
+  laid on, so the MG hits what the sight covers at every elevation and traverse.
+- Seat two is untouched: his cupola gun starts at the `2_*` mount and follows his own view and optic.
+- The `240_*` roof gun stays in the model as decoration; nothing fires from it any more.
+- Not yet verified in game: whether tracers from inside the 120mm muzzle clip the barrel at full
+  depression, and whether the optic's shell-drop ladder still reads right for the flat MG round.
+- 736 tests, build green; JAR SHA-256 `2cf91c1e…0f7e0`.
+
+## 82. Seat two takes the roof M240; the driver keeps the coaxial muzzle (2026-11-12)
+
+Correction to §81: the request was about seat two, not the coax. Final mapping:
+
+- Driver's machine gun: coaxial with the 120mm. Muzzle `mainGunMuzzle(turret yaw, pitch)`, direction
+  `turretDirection()`; the driver's optic is correct for it at every elevation.
+- Seat two's remote gun: the roof M240 (the model's `240_*` parts) instead of the `2_*` cupola .50.
+  Muzzle measured at that barrel tip (turret traverse only), direction converging on the gunner's own
+  crosshair, so his free 360 first person optic stays correct.
+- The `2_*` cupola .50 is now unused decoration.
+- 736 tests, build green; JAR SHA-256 `6437d5ad…600c`.
+
+## 83. Seat two's gun folds onto the turret when the seat is empty (2026-11-12)
+
+Requested behaviour: the remote gun follows the turret while nobody is in seat two, and follows the
+gunner's own head the moment somebody is.
+
+- `MainBattleTankModel` is generated, so the change went into the generator and the box data, not the
+  Java: `tools/data/m1a2sepv1_boxes.json` gained `cupola_pivot` and the four `m240_*` parts moved to a
+  new `cupola` group; `tools/generate_m1a2sepv1_model.py` now emits a `cupola` node under the turret
+  and rebases those cubes onto that pivot (geometry unchanged), then rotates it from the entity.
+- `MainBattleTankEntity` syncs `DATA_CUPOLA_YAW` / `DATA_CUPOLA_PITCH`: the gunner's own absolute
+  angles while he is aboard, the turret's angles otherwise. The model subtracts the turret, so an
+  empty seat is zero relative rotation and the gun rides the turret again.
+- The cupola muzzle and its rounds now use that same pintle + aim, so the barrel, the tracer and the
+  gunner's optic agree; the driver's coaxial gun is untouched (still the 120mm muzzle, gun line).
+- `MainBattleTankGeometry` gained the pintle offsets and the barrel length so the server agrees with
+  the model.
+- Not yet verified in game: hatches/clearance when the gun swings over the rear deck, and whether the
+  20 Hz aim sync looks steppy while the gunner sweeps.
+- 736 tests, build green; JAR SHA-256 `5599f618…4f030` (after the cube rebase fix).
+
+### 83.1 Muzzle fix: the lateral basis was mirrored
+
+The cupola muzzle was placed with `right = directionFromRotation(yaw - 90)`, but the renderer yaws the
+model by `180 - entityYaw` (LittleBirdModelMath), so the model's +X (vehicle right) maps to world -X at
+yaw 0. The mirror put every lateral offset on the wrong side: the tracer left the far side of the
+turret and fell inside the hull, which also read as if the wrong machine gun was swinging.
+
+- `right` is now `directionFromRotation(yaw + 90)`.
+- The muzzle is the barrel tip carried through the pintle swing: lateral and height offsets relative
+  to the pivot, the forward run rotating into the vertical with elevation (Minecraft pitch is positive
+  downwards, so the swing uses -pitch).
+- JAR SHA-256 `75177910…4fc3d`, 736 tests green.
+
+### 83.2 Seat two takes the big cupola .50 (m2), not the loader's M240
+
+The screenshot showed the wrong gun swinging. In the box data the two roof guns are `m240_*`
+(loader's, the smaller one) and `m2_*` (commander's cupola .50, the bigger one with the ammo box).
+Seat two's gun is the m2.
+
+- JSON: the six `m2_*` parts (all but the pedestal) moved to the `cupola` group, `m240_*` returned to
+  the turret; `cupola_pivot` is the pedestal's top centre (13.6, 19.68, 3.2).
+- Geometry: pivot lateral 13.6, height 19.68, forward -3.2 (behind the ring), barrel run 18.4, tip
+  height 20.64, tip lateral 13.6.
+- Height frame bug: the model hangs turret parts off the ring node, so heights are ring-relative, but
+  the accessor subtracted the ring height. That dropped the muzzle 0.35 blocks below the roof, into
+  the turret — the "muzzle inside the hull" half of the report.
+- 736 tests, build green; JAR SHA-256 `4c0686bc…42f6`.
+
+## 84. Tracers now start at the barrel the client is drawing (2026-11-12)
+
+Reported: machine gun rounds left the hull a little ahead of the model, and the model only caught up
+a moment later.
+
+Cause: the server measures the muzzle from its own tick's pose, while the client draws a tracked hull
+between its last two ticks (`lerp(xo, x, partialTick)`; vanilla interpolation runs three steps). At
+tank speed that put the tracer one to three ticks in front of the visible barrel.
+
+- `LittleBirdTracerPacket` gained `ownerId` (the firing hull), stamped centrally in
+  `ModNetwork.sendTracer`; the channel protocol version went to `"2"` because the layout changed.
+- `LittleBirdTracerRenderer` looks the owner up, rebuilds the muzzle for the hull it is actually
+  drawing (`localMuzzleNear`, which picks the coax or the cupola gun by proximity to the server's
+  point) and shifts it by `lerp(xo, x, frameTime) - position()`.
+- Both the shooter and everyone else watching the hull get the corrected start; only the visual start
+  moves, the impact point stays server authoritative.
+- 736 tests, build green; JAR SHA-256 `ae41914c…2fda`.
+
+## 85. Locally driven hulls no longer take the server's lagging position (2026-11-12)
+
+Reported: the tank's own model jumped forward every so often while driving.
+
+A ground hull is moved on its driver's client, but the server still tracks it and broadcasts its own
+copy every tick. Applying that broadcast through the normal `lerpTo` path dragged the local hull
+towards a position one round trip old, and the next prediction tick pushed it forward again - read on
+screen as the model flashing ahead.
+
+- `lerpTo` is now overridden on all five ground hulls: while `isControlledByLocalInstance()`, network
+  corrections are ignored, exactly as the Little Bird already did. Remote viewers keep normal
+  interpolation.
+- 736 tests, build green; JAR SHA-256 `e0fc1eda…c26d8`.
+
+### 85.1 The drawn gun and the round start use the same angles
+
+The local gunner's cupola is now drawn from his own view (frame rate) instead of the 20 Hz synced
+angle, but the tracer still used the synced angle for its start, so a round left the barrel a step
+behind the barrel being drawn. `MainBattleTankEntity.cupolaMuzzle(yaw, pitch)` is now public and
+`localMuzzleNear` takes the aim as an argument; the renderer passes the local gunner's
+`getViewYRot/getViewXRot` when that player is the one in the seat.
+
+## 86. Wildcat autocannon elevation: its own stops, 85 up / 10 down (2026-11-12)
+
+Reported: the Wildcat's 30mm could not be elevated much; it should reach at least 80 degrees above
+the ground.
+
+Cause: `ChainGunTurret` is shared by the Apache chain gun, the Bradley 25mm and the Wildcat, and it
+carried one set of stops (`-11 up / +60 down`, the low-angle Apache mount). The Wildcat therefore
+inherited the Apache's 11 degrees of elevation.
+
+- `ChainGunTurret.Stops(upDeg, downDeg)` names each mount's limits; `CHAIN_GUN` keeps the old
+  numbers for the Apache and Bradley, `WILDCAT` is 85 up / 10 down.
+- Every clamp call gained a stops overload (`desiredAim`, `parkedAim`, `advance`, `aimDirection`,
+  `muzzleOrigin`, `atElevationStop`); the old signatures still mean the chain gun mount, so nothing
+  else changed.
+- The Wildcat passes `WILDCAT` in its aim, cadence, muzzle, firing direction and its own interior
+  optic pitch.
+- Tests: `ChainGunTurretTest` gained the 85 degree hold, the stop detection and a guard that the
+  shared mount still stops at 11. 739 tests total.
+- Not yet verified in game: whether the 30mm barrel clips the turret roof at 85 degrees, and whether
+  the hull's own pitch on a slope still reads as "relative to the ground".
+- 739 tests, build green; JAR SHA-256 `b5579a2a…e7de1`.
+
+## 87. Wildcat elevation is hull-relative, and the sight stops with the mount (2026-11-12)
+
+Follow-up to §86. Two corrections:
+
+- The 85/10 stops were applied to absolute world pitch. They are rig limits, so they are now
+  measured from the hull: `stops()` shifts them by `getXRot()` every tick, which lets a hull on a
+  slope point the gun further down (or up) in absolute terms while staying inside the mount.
+- The driver's camera was free to climb to 90 degrees while the gun ran out at 85, so the projected
+  reticle slid to the bottom of the screen and read as "the crosshair does not follow the barrel".
+  `GroundCamera` now clamps the Wildcat driver's camera pitch to the same hull-relative stops, the
+  way a real sight stops against its mechanical limit.
+- 739 tests, build green; JAR SHA-256 `1458ff4d…1be5`.
+
+### 87.1 Reticles project against the camera on screen, not the raw mouse look
+
+The clamp in §87 fixed the camera, but `projectAimPoint` still fed the *unclamped* player look pitch
+into the projection, so the Wildcat reticle kept sliding off the bottom even though the sight had
+stopped. The projection now reads the main camera's own yaw and pitch
+(`Minecraft.gameRenderer.getMainCamera()`), i.e. the camera after every `ComputeCameraAngles` handler
+has run. Interior sights, exterior reticles and turret-line marks all share this path.
+
+- 739 tests, build green; JAR SHA-256 `9dcffb5a…37b0`.
+
+### 87.2 The Wildcat's sight is boresighted, not merely clamped
+
+Clamping the camera still left the reticle off centre because the gun line and the eye line can
+differ by the mount's remaining margin (and by the hull's own tilt). Through the optic the camera is
+now locked to the barrel's own pitch, the way its yaw is already locked to the turret: the reticle
+sits in the centre of the sight at every elevation, and the mouse simply stops against the mount.
+The third person camera keeps the clamp instead, so looking around outside is unchanged.
+
+- 739 tests, build green; JAR SHA-256 `0881bc1e…d248`.
+
+### 87.3 Local turret preview obeys the stops; temporary diagnostic readout
+
+`tickClient` wrote the driver's raw look straight into the synced turret pitch for a local preview,
+so the HUD studied an unclamped angle while the camera was clamped - the two disagreed by exactly
+the margin the mount had left. The preview now goes through `desiredAim(..., stops())` like the
+server does.
+
+A temporary yellow line top-left of the Wildcat HUD prints `cam / aim / data / hull` pitches so the
+remaining disagreement can be read off a screenshot instead of guessed. Remove it once settled.
+
+- 739 tests, build green; JAR SHA-256 `385690c9…0f6d6`.
+
+### 87.4 Root cause: the HUD probe ran through the tank turret's clamp
+
+Diagnostic readout (since removed) showed `cam -48.8 aim -48.8 data -48.8 hull 0.0` while the
+reticle still sat at the bottom of the screen. With every angle equal, only the probe could be wrong:
+`projectAimPoint` built its probe with `MainGun.aimDirection`, whose `clampPitch` is the *tank*
+turret's -30/+10 stop. The Wildcat's 48 degree sight was therefore projected as if it were 30
+degrees, 18 degrees below the camera.
+
+- The probe is now built straight from the raw aim angles (no weapon clamp).
+- The temporary `cam/aim/data/hull` readout is gone again.
+- 739 tests, build green; JAR SHA-256 `dabd8ed7…88d1`.
+
+### 87.5 Scope correction: the camera goes back to stock
+
+The camera clamp and the boresight lock from §87/§87.2 changed how the Wildcat's view behaves, which
+was never asked for. Both are reverted: the view is exactly the player's own again. What remains for
+this report is only:
+
+- the Wildcat mount's own stops (85 up / 10 down, measured from the hull) instead of the shared
+  chain gun's 11/60;
+- the HUD probe no longer passing through `MainGun.aimDirection`, whose tank-turret clamp made any
+  sight above 30 degrees project as 30 (the reticle would sit below the barrel on its own);
+- the local turret preview taking the same clamp as the server, so the HUD reads the same angle the
+  gun fires on.
+
+No other vehicle's behaviour changed: the Apache and Bradley keep `Stops.CHAIN_GUN`.
+- 739 tests, build green; JAR SHA-256 `888a4507…bd53`.
+
+## 88. The Wildcat gets its own reticle (2026-11-13)
+
+The 30mm no longer borrows the tank's projected-reticle path. `HudGround.drawIfvReticle` is its own:
+
+- probe built from the mount's raw aim angles (no weapon clamp anywhere in the chain);
+- projected against the camera on screen, with the same FOV the camera is rendered at
+  (`GroundViewMath.fovMultiplier` with the third person dial, no sight zoom in exterior view);
+- the 30mm spread gap, a range readout under the mark, and nothing drawn when the barrel is off
+  screen (third person looking away) instead of a centre fallback that would lie about the line.
+
+The interior sight still uses `drawTurretInterior`. Camera behaviour is untouched (stock).
+- 739 tests, build green; JAR SHA-256 `6d7c6fb5…c391`.
+
+## 89. The tank's sight is boresighted to the barrel (2026-11-13)
+
+Reported: the tank driver's sight could look up to 85 degrees while the 120mm stopped at 30 - a gun
+sight that does not follow its gun.
+
+- `GroundCamera`: in the tank's interior view the driver's camera pitch is now the barrel's own pitch
+  (`renderTurretPitchDeg`), the same treatment the turret yaw already had. The eye stops where the
+  gun stops; it cannot climb over a barrel that stayed put.
+- `HudGround.projectAimPoint` projects against the camera's own angles again, because the raw mouse
+  pitch is no longer what the lens shows. The Wildcat keeps its own reticle and is unaffected.
+- Scope: exterior views, the gunner seat, the Wildcat and all other vehicles are untouched.
+- 739 tests, build green; JAR SHA-256 `2aa988cc…dd03`.

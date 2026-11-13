@@ -19,4 +19,13 @@ public interface GunshipRider {
      * new vehicle keeps implementing exactly what it did before.
      */
     float getHealth();
+
+    /** Full integrity in the same points as {@link #getHealth()}, for the field repair tool. */
+    float maxHealth();
+
+    /**
+     * Sets the hull's integrity, clamped by the hull's own maximum. The repair tool is the only
+     * caller: nothing else may write health outside a hull's own damage handling.
+     */
+    void setHealth(float health);
 }

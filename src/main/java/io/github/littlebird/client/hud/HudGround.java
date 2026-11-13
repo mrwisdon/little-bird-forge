@@ -135,6 +135,10 @@ public final class HudGround implements HudView {
         MainGunAmmoType shell = MainGunAmmoType.byOrdinal(tank.getShellTypeOrdinal());
         if (TankOptic.active(tank, minecraft.player)) {
             drawTankOptic(context, tank, shell);
+        } else if (tank.isInteriorView() && GroundSeat.isTankGunner(seat)) {
+            // Seat two's own cupola optic: first person, free to look all the way round, no turret
+            // lock. The mark is the centre of his screen because the camera turns with him.
+            drawCupolaSight(context, tank);
         } else if (tank.isInteriorView()) {
             drawTurretInterior(context, tank.position(),
                     MainBattleTankGeometry.turretPivotHeightBlocks(), aimYaw, aimPitch,
@@ -148,9 +152,14 @@ public final class HudGround implements HudView {
             HudCanvas.reticle(context.graphics, context.centreX(), context.centreY(),
                     MAIN_GUN_GAP, MAIN_GUN_ARM, MAIN_GUN_COLOUR);
         } else if (GroundSeat.isTankGunner(seat)) {
+            // Seat two works his own cupola gun, so the mark follows his own view rather than the
+            // turret the driver is traversing. In the interior view the lockstep camera already
+            // makes his view and the turret one, so the branch above stays in charge there.
             Vec3 origin = tank.position().add(0.0D,
                     MainBattleTankGeometry.turretPivotHeightBlocks(), 0.0D);
-            drawProjectedReticle(context, origin, aimYaw, aimPitch, COAX_COLOUR,
+            drawProjectedReticle(context, origin,
+                    minecraft.player.getViewYRot(context.partialTick),
+                    minecraft.player.getViewXRot(context.partialTick), COAX_COLOUR,
                     GroundReticleMath.gapPixels(COAX_SPREAD_PLACEHOLDER, COAX_MIN_GAP,
                             COAX_MAX_GAP));
         } else {
@@ -275,19 +284,8 @@ public final class HudGround implements HudView {
         }
         double aimYaw = ifv.renderTurretYawDeg(context.partialTick);
         double aimPitch = ifv.renderTurretPitchDeg(context.partialTick);
-        if (ifv.isInteriorView()) {
-            drawTurretInterior(context, ifv.position(),
-                    InfantryFightingVehicleGeometry.turretPivotHeightBlocks(), aimYaw, aimPitch,
-                    COAX_COLOUR, false,
-                    MainGunShellBallistics.MUZZLE_SPEED, MainGunShellBallistics.GRAVITY,
-                    InfantryFightingVehicleGeometry.turretPivotHeightBlocks(), 0.0D,
-                    InfantryFightingVehicleGeometry.barrelBlocks());
-        } else if (GroundSeat.isIfvDriver(seat)) {
-            // The 30mm is a rapid weapon: a tight reticle rather than the tank's heavy cross.
-            int gap = GroundReticleMath.gapPixels(AUTO_SPREAD_PLACEHOLDER, AUTO_MIN_GAP,
-                    AUTO_MAX_GAP);
-            HudCanvas.reticle(context.graphics, context.centreX(), context.centreY(), gap,
-                    RETICLE_ARM, COAX_COLOUR);
+        if (GroundSeat.isIfvDriver(seat)) {
+            drawIfvReticle(context, ifv, aimYaw, aimPitch);
         } else if (GroundSeat.isIfvGunner(seat)) {
             Vec3 origin = ifv.position().add(0.0D,
                     InfantryFightingVehicleGeometry.turretPivotHeightBlocks(), 0.0D);
@@ -527,6 +525,83 @@ public final class HudGround implements HudView {
     // ------------------------------------------------------------------
 
     /** Projects a turret line onto the screen and draws the reticle where it actually points. */
+    /**
+     * The Wildcat's own reticle, deliberately not shared with the tank.
+     *
+     * <p>The 30mm mount elevates to 85 degrees and the tank's main-gun machinery clamps at 30 in
+     * several places, so anything routed through it drags this sight down. This draws the barrel's
+     * own line: raw aim angles, projected through the camera actually on screen, with the 30mm's
+     * spread gap and a range readout. The mark leaves the screen when the barrel is off screen
+     * (third person looking away from the gun) rather than lying about where the rounds go.
+     */
+    private void drawIfvReticle(HudContext context, InfantryFightingVehicleEntity ifv,
+                                double aimYawDeg, double aimPitchDeg) {
+        Vec3 origin = ifv.position().add(0.0D,
+                InfantryFightingVehicleGeometry.turretPivotHeightBlocks(), 0.0D);
+        double yaw = Math.toRadians(aimYawDeg);
+        double pitch = Math.toRadians(aimPitchDeg);
+        double cosPitch = Math.cos(pitch);
+        Vec3 probe = origin.add(
+                -Math.sin(yaw) * cosPitch * AIM_PROBE_BLOCKS,
+                -Math.sin(pitch) * AIM_PROBE_BLOCKS,
+                Math.cos(yaw) * cosPitch * AIM_PROBE_BLOCKS);
+        Camera camera = context.minecraft.gameRenderer.getMainCamera();
+        Vec3 eye = camera.getPosition();
+        // Exterior camera: no sight zoom, but the third person FOV dial still applies to the real
+        // camera, so the projection has to use the same scaled field of view and nothing else.
+        double fovFactor = io.github.littlebird.client.GroundViewMath.fovMultiplier(true, false,
+                LittleBirdConfig.thirdPersonFovMultiplier(),
+                LittleBirdConfig.groundSightFovMultiplier());
+        float verticalFov = (float) (context.minecraft.options.fov().get() * fovFactor);
+        AimProjection.Screen screen = AimProjection.project(
+                new AimProjection.Vector(probe.x, probe.y, probe.z),
+                new AimProjection.Vector(eye.x, eye.y, eye.z),
+                camera.getYRot(), camera.getXRot(), 0.0F, verticalFov,
+                context.width, context.height);
+        if (!screen.visible()) {
+            return;
+        }
+        int x = (int) Math.round(screen.x());
+        int y = (int) Math.round(screen.y());
+        int gap = GroundReticleMath.gapPixels(AUTO_SPREAD_PLACEHOLDER, AUTO_MIN_GAP,
+                AUTO_MAX_GAP);
+        HudCanvas.reticle(context.graphics, x, y, gap, RETICLE_ARM, COAX_COLOUR);
+        double range = rangeAlongGunLine(context, origin, aimYawDeg, aimPitchDeg);
+        String text = Math.round(range) + " m";
+        context.graphics.drawString(context.font, text, x - context.font.width(text) / 2,
+                y + 18, TEXT_COLOUR, false);
+    }
+
+    /**
+     * The loader/commander's cupola optic. Unlike the 120mm sight this one is not tied to the
+     * turret: it is a first person view that turns with the player, so the middle of the screen is
+     * always where his own machine gun points and he can keep the whole circle under watch.
+     */
+    private void drawCupolaSight(HudContext context, MainBattleTankEntity tank) {
+        Minecraft minecraft = context.minecraft;
+        int cx = context.centreX();
+        int cy = context.centreY();
+        HudCanvas.reticle(context.graphics, cx, cy, COAX_MIN_GAP, RETICLE_ARM, COAX_COLOUR);
+
+        float heading = net.minecraft.util.Mth.wrapDegrees(minecraft.player.getYRot());
+        String hdg = String.format(Locale.ROOT, "HDG %03d",
+                Math.round((heading + 360.0F) % 360.0F));
+        HudCanvas.line(context.graphics, context.font, cx - context.font.width(hdg) / 2,
+                cy - 56, hdg, COAX_COLOUR);
+
+        String belt = String.format(Locale.ROOT, "M2  %03d", tank.getCupolaAmmo());
+        HudCanvas.line(context.graphics, context.font, cx - context.font.width(belt) / 2,
+                cy + 48, belt, TEXT_COLOUR);
+
+        net.minecraft.world.phys.HitResult hit = minecraft.player.pick(96.0D, 0.0F, false);
+        if (hit.getType() != net.minecraft.world.phys.HitResult.Type.MISS) {
+            double range = hit.getLocation().distanceTo(minecraft.player.getEyePosition());
+            String rng = String.format(Locale.ROOT, "RNG %03d", (int) Math.round(range));
+            HudCanvas.line(context.graphics, context.font, cx - context.font.width(rng) / 2,
+                    cy + 60, rng, HudStyle.MUTED);
+        }
+    }
+
     private void drawProjectedReticle(HudContext context, Vec3 origin, double aimYawDeg,
                                       double aimPitchDeg, int colour, int gap) {
         // Exterior reticles keep the player's view yaw: the camera is not slaved to anything here.
@@ -685,12 +760,17 @@ public final class HudGround implements HudView {
                 * GunSightMath.clampMultiplier(fovMultiplier));
         double horizontalFov = GroundReticleMath.horizontalFovDeg(verticalFov, context.width,
                 context.height);
-        double bearing = GroundReticleMath.relativeBearingDeg(aimYawDeg, cameraYawDeg);
+        // Project against the camera that is actually on screen. The tank's sight camera is now
+        // boresighted to the barrel in GroundCamera, so the raw mouse pitch is no longer what the
+        // player sees; using it here would put the mark somewhere the lens does not show.
+        float cameraYaw = camera.getYRot();
+        float cameraPitch = camera.getXRot();
+        double bearing = GroundReticleMath.relativeBearingDeg(aimYawDeg, cameraYaw);
         AimProjection.Screen screen = AimProjection.project(
                 new AimProjection.Vector(probe.x, probe.y, probe.z),
                 new AimProjection.Vector(eye.x, eye.y, eye.z),
-                cameraYawDeg,
-                minecraft.player.getViewXRot(context.partialTick),
+                cameraYaw,
+                cameraPitch,
                 0.0F, verticalFov, context.width, context.height);
         if (!screen.visible() || !GroundReticleMath.withinFov(bearing, horizontalFov)) {
             return new AimProjection.Screen(0.0D, 0.0D, false);

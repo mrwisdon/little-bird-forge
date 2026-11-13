@@ -396,6 +396,21 @@ public class Phl191Entity extends Entity
         return Phl191Geometry.seatHeightBlocks(GroundSeat.PHL191_DRIVER);
     }
 
+    /**
+     * A hull driven on its own client owns its position. The server's tracking updates still arrive
+     * every tick and lag the prediction, so applying them dragged the local hull backwards and let
+     * the prediction snap it forward again - read on screen as the model flashing ahead. Remote
+     * viewers keep the normal interpolation.
+     */
+    @Override
+    public void lerpTo(double x, double y, double z, float yRot, float xRot, int steps,
+                       boolean teleport) {
+        if (level().isClientSide && isControlledByLocalInstance()) {
+            return;
+        }
+        super.lerpTo(x, y, z, yRot, xRot, steps, teleport);
+    }
+
     @Override
     public void positionRider(Entity passenger, Entity.MoveFunction moveFunction) {
         if (!hasPassenger(passenger)) {
@@ -513,6 +528,12 @@ public class Phl191Entity extends Entity
         return entityData.get(DATA_HEALTH);
     }
 
+    @Override
+    public float maxHealth() {
+        return MAX_HEALTH;
+    }
+
+    @Override
     public void setHealth(float health) {
         entityData.set(DATA_HEALTH, health);
     }

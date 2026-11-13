@@ -59,6 +59,6 @@ final class ModNetworkRegistrationTest {
         while (matcher.find()) {
             assertTrue(ids.add(matcher.group(1)), "duplicate packet id " + matcher.group(1));
         }
-        assertEquals(22, ids.size(), "expected 22 registered packets, saw " + ids);
+        assertEquals(23, ids.size(), "expected 23 registered packets, saw " + ids);
     }
 }

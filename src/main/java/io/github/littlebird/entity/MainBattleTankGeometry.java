@@ -130,6 +130,47 @@ public final class MainBattleTankGeometry {
     public static final float CUPOLA_MG_HEIGHT_UNITS = 20.64F;
     public static final float CUPOLA_MG_BARREL_UNITS = 15.2F;
 
+    // ------------------------------------------------------------------
+    // Seat two's remote gun pintle, turret-local (the model's cupola node). The whole gun swings
+    // about this pivot when a gunner is aboard; the barrel tip sits CUPOLA_BARREL_UNITS away.
+    // ------------------------------------------------------------------
+    public static final float CUPOLA_PIVOT_LATERAL_UNITS = 13.6F;
+    public static final float CUPOLA_PIVOT_HEIGHT_UNITS = 19.68F;
+    public static final float CUPOLA_PIVOT_FORWARD_UNITS = -3.2F;
+    public static final float CUPOLA_BARREL_UNITS = 18.4F;
+    public static final float CUPOLA_TIP_HEIGHT_UNITS = 20.64F;
+    public static final float CUPOLA_TIP_LATERAL_UNITS = 13.6F;
+
+    public static double cupolaPivotLateralBlocks() {
+        return toBlocks(CUPOLA_PIVOT_LATERAL_UNITS);
+    }
+
+    /**
+     * Pintle height in turret-local units: the model hangs every turret part off the ring node, so
+     * these heights are measured from the ring, not from the hull floor.
+     */
+    public static double cupolaPivotHeightAboveRingBlocks() {
+        return toBlocks(CUPOLA_PIVOT_HEIGHT_UNITS);
+    }
+
+    public static double cupolaPivotForwardBlocks() {
+        return toBlocks(CUPOLA_PIVOT_FORWARD_UNITS);
+    }
+
+    public static double cupolaBarrelBlocks() {
+        return toBlocks(CUPOLA_BARREL_UNITS);
+    }
+
+    /** Barrel tip height above the pintle, in blocks (the model's 240_barrel centre). */
+    public static double cupolaTipHeightAbovePivotBlocks() {
+        return toBlocks(CUPOLA_TIP_HEIGHT_UNITS - CUPOLA_PIVOT_HEIGHT_UNITS);
+    }
+
+    /** Barrel tip lateral offset from the pintle, in blocks: negative is the vehicle's left. */
+    public static double cupolaTipLateralFromPivotBlocks() {
+        return toBlocks(CUPOLA_TIP_LATERAL_UNITS - CUPOLA_PIVOT_LATERAL_UNITS);
+    }
+
     /** One turret machine gun's muzzle offsets relative to the turret ring, in blocks. */
     public record MachineGunMuzzle(double lateralBlocks, double heightBlocks, double barrelBlocks) {
     }

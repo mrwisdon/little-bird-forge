@@ -11,7 +11,17 @@ import net.minecraftforge.network.NetworkEvent;
 public record LittleBirdTracerPacket(
         double startX, double startY, double startZ,
         double endX, double endY, double endZ,
-        int impactType, int station) {
+        int impactType, int station, int ownerId) {
+
+    /**
+     * Tracer with no known owner: the client draws it exactly as the server measured it. Shots from
+     * a hull the client is riding carry the owner so the client can start the line at the muzzle it
+     * is actually drawing.
+     */
+    public LittleBirdTracerPacket(double startX, double startY, double startZ, double endX,
+                                  double endY, double endZ, int impactType, int station) {
+        this(startX, startY, startZ, endX, endY, endZ, impactType, station, -1);
+    }
 
     public static final int STATION_CANISTER = 2;
 
@@ -28,6 +38,7 @@ public record LittleBirdTracerPacket(
         buffer.writeDouble(packet.endZ());
         buffer.writeByte(packet.impactType());
         buffer.writeByte(packet.station());
+        buffer.writeInt(packet.ownerId());
     }
 
     public static LittleBirdTracerPacket decode(FriendlyByteBuf buffer) {
@@ -39,8 +50,9 @@ public record LittleBirdTracerPacket(
         double endZ = buffer.readDouble();
         int impact = sanitizeImpact(buffer.readUnsignedByte());
         int station = buffer.readUnsignedByte();
+        int ownerId = buffer.readInt();
         return new LittleBirdTracerPacket(startX, startY, startZ, endX, endY, endZ,
-                impact, station <= STATION_CANISTER ? station : 1);
+                impact, station <= STATION_CANISTER ? station : 1, ownerId);
     }
 
     private static int sanitizeImpact(int impactType) {

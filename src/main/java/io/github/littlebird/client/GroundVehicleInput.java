@@ -61,6 +61,16 @@ public final class GroundVehicleInput {
         }
 
         boolean controlsActive = minecraft.screen == null && minecraft.isWindowActive();
+        // The tank has two crew seats and no passenger list to shuffle while parked: the seat
+        // switch key flips which seat each rider holds. Only the tank needs it, and only its crew.
+        if (controlsActive && minecraft.player.getVehicle()
+                instanceof io.github.littlebird.entity.MainBattleTankEntity tank
+                && (tank.driver() == minecraft.player || tank.gunner() == minecraft.player)) {
+            while (LittleBirdKeyMappings.SEAT_SWITCH.consumeClick()) {
+                ModNetwork.CHANNEL.sendToServer(
+                        new io.github.littlebird.network.TankSeatSwitchPacket());
+            }
+        }
         int seat = controls.seatOf(minecraft.player);
         int axes = 0;
         if (controlsActive && controls.isDriver(seat)) {

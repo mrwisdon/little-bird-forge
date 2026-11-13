@@ -198,4 +198,31 @@ final class ChainGunTurretTest {
                 ChainGunTurret.spreadDegrees(ChainGunTurret.MAX_HEAT), EPSILON);
         assertTrue(ChainGunTurret.spreadDegrees(30) > ChainGunTurret.spreadDegrees(10));
     }
+
+    @Test
+    void theWildcatMountCanPointAlmostStraightUp() {
+        ChainGunTurret.Aim high = ChainGunTurret.desiredAim(0.0F, -88.0F,
+                ChainGunTurret.Stops.WILDCAT);
+        assertEquals(-85.0D, high.pitchDeg(), EPSILON, "85 degrees up is the mount's stop");
+        ChainGunTurret.Aim low = ChainGunTurret.desiredAim(0.0F, 40.0F,
+                ChainGunTurret.Stops.WILDCAT);
+        assertEquals(10.0D, low.pitchDeg(), EPSILON, "and 10 degrees of depression");
+        assertTrue(ChainGunTurret.atElevationStop(-85.0D, ChainGunTurret.Stops.WILDCAT));
+        assertFalse(ChainGunTurret.atElevationStop(-80.0D, ChainGunTurret.Stops.WILDCAT));
+    }
+
+    @Test
+    void aWildcatTurretHoldsTheHighAngleInsteadOfSnappingBack() {
+        ChainGunTurret.Step step = ChainGunTurret.advance(ChainGunTurret.State.initial(),
+                ChainGunTurret.desiredAim(0.0F, -80.0F, ChainGunTurret.Stops.WILDCAT), false,
+                ChainGunTurret.Stops.WILDCAT);
+        assertEquals(-80.0D, step.state().aimPitchDeg(), EPSILON,
+                "the old chain gun stops at -11, so this is what the bug report was about");
+    }
+
+    @Test
+    void theSharedChainGunMountKeepsItsOwnStops() {
+        assertEquals(-11.0D, ChainGunTurret.desiredAim(0.0F, -90.0F).pitchDeg(), EPSILON);
+        assertEquals(60.0D, ChainGunTurret.desiredAim(0.0F, 90.0F).pitchDeg(), EPSILON);
+    }
 }

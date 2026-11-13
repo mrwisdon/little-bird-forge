@@ -64,6 +64,16 @@ public final class GroundCamera {
      * barrel's elevation is still deliberately not copied - only yaw is taken, so vertical aim keeps
      * the player's own pitch.
      */
+    /**
+     * The tank's seat two has his own cupola optic: it turns with his own head, all the way round,
+     * so the camera must not be slaved to the main gun's turret for him. The driver's sight stays
+     * locked to the turret, which is what keeps the 120mm lens and the barrel in one frame.
+     */
+    private static boolean drivesGunnerOptic(net.minecraft.world.entity.player.Player player) {
+        return player.getVehicle() instanceof MainBattleTankEntity tank
+                && tank.seatOf(player) == io.github.littlebird.entity.seat.GroundSeat.TANK_GUNNER;
+    }
+
     @SubscribeEvent
     public static void computeCameraAngles(ViewportEvent.ComputeCameraAngles event) {
         Minecraft minecraft = Minecraft.getInstance();
@@ -71,7 +81,19 @@ public final class GroundCamera {
             return;
         }
         float partialTick = (float) event.getPartialTick();
-        if (minecraft.player.getVehicle() instanceof GroundView view && view.isInteriorView()) {
+
+        // The tank's sight is a gun sight: it must not swing past the barrel it is bolted to. The
+        // 120mm stops at -30/+10, so the eye stops there too instead of climbing to 85 degrees over
+        // a barrel that cannot follow.
+        if (minecraft.player.getVehicle() instanceof MainBattleTankEntity tank
+                && tank.seatOf(minecraft.player)
+                == io.github.littlebird.entity.seat.GroundSeat.TANK_DRIVER
+                && tank.isInteriorView()) {
+            event.setPitch(tank.renderTurretPitchDeg(partialTick));
+        }
+
+        if (minecraft.player.getVehicle() instanceof GroundView view && view.isInteriorView()
+                && !drivesGunnerOptic(minecraft.player)) {
             event.setYaw(GroundViewMath.followYawDeg(true, event.getYaw(),
                     view.renderTurretYawDeg(partialTick)));
         }

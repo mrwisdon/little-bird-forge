@@ -88,10 +88,36 @@ public class MainBattleTankEntity extends Entity
             SynchedEntityData.defineId(MainBattleTankEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_RESERVE_ROUNDS =
             SynchedEntityData.defineId(MainBattleTankEntity.class, EntityDataSerializers.INT);
+    /** Flips which passenger flies and which one works the cupola; see GroundSeat.tankSeatOf. */
+    private static final EntityDataAccessor<Boolean> DATA_SEATS_SWAPPED =
+            SynchedEntityData.defineId(MainBattleTankEntity.class, EntityDataSerializers.BOOLEAN);
+    /** Absolute aim of seat two's remote gun; the driver's turret angles when the seat is empty. */
+    private static final EntityDataAccessor<Float> DATA_CUPOLA_YAW =
+            SynchedEntityData.defineId(MainBattleTankEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> DATA_CUPOLA_PITCH =
+            SynchedEntityData.defineId(MainBattleTankEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Integer> DATA_COAX_AMMO =
             SynchedEntityData.defineId(MainBattleTankEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_CUPOLA_AMMO =
             SynchedEntityData.defineId(MainBattleTankEntity.class, EntityDataSerializers.INT);
+    /** Absolute yaw of seat two's remote gun, for the model and the muzzle. */
+    public float getCupolaAimYawDeg() {
+        return entityData.get(DATA_CUPOLA_YAW);
+    }
+
+    /** Absolute pitch of seat two's remote gun, in Minecraft degrees (positive downwards). */
+    public float getCupolaAimPitchDeg() {
+        return entityData.get(DATA_CUPOLA_PITCH);
+    }
+
+    public float renderCupolaYawDeg(float partialTick) {
+        return getCupolaAimYawDeg();
+    }
+
+    public float renderCupolaPitchDeg(float partialTick) {
+        return getCupolaAimPitchDeg();
+    }
+
     /** Ordinal of the loaded 120mm shell type, for the HUD. */
     private static final EntityDataAccessor<Integer> DATA_SHELL_TYPE =
             SynchedEntityData.defineId(MainBattleTankEntity.class, EntityDataSerializers.INT);
@@ -149,6 +175,9 @@ public class MainBattleTankEntity extends Entity
         entityData.define(DATA_TURRET_PITCH, 0.0F);
         entityData.define(DATA_READY_ROUNDS, 0);
         entityData.define(DATA_RESERVE_ROUNDS, 0);
+        entityData.define(DATA_CUPOLA_YAW, 0.0F);
+        entityData.define(DATA_CUPOLA_PITCH, 0.0F);
+        entityData.define(DATA_SEATS_SWAPPED, false);
         entityData.define(DATA_COAX_AMMO, 0);
         entityData.define(DATA_CUPOLA_AMMO, 0);
         entityData.define(DATA_SHELL_TYPE, 0);
@@ -254,6 +283,16 @@ public class MainBattleTankEntity extends Entity
         entityData.set(DATA_TURRET_YAW, (float) turret.aimYawDegrees());
         entityData.set(DATA_TURRET_PITCH, (float) turret.aimPitchDegrees());
 
+        // Seat two's gun is slaved to the turret while his seat is empty and takes his own head
+        // the moment he climbs in. Both are absolute angles, so the model can subtract the turret.
+        if (gunner != null) {
+            entityData.set(DATA_CUPOLA_YAW, gunner.getYRot());
+            entityData.set(DATA_CUPOLA_PITCH, gunner.getXRot());
+        } else {
+            entityData.set(DATA_CUPOLA_YAW, (float) turret.aimYawDegrees());
+            entityData.set(DATA_CUPOLA_PITCH, (float) turret.aimPitchDegrees());
+        }
+
         if (step.fire() && driver != null && mainGunAmmo.ready() > 0
                 && level() instanceof ServerLevel server) {
             mainGunAmmo.fire();
@@ -357,33 +396,93 @@ public class MainBattleTankEntity extends Entity
                 SoundSource.PLAYERS, 1.2F, pitch - 0.1F);
     }
 
-    /** One machine gun round from the firing seat's own barrel, not the main gun's muzzle. */
+    /**
+     * One machine gun round. The driver's gun is the coaxial mount on the 120mm and runs down the
+     * gun line, so his optic is correct for it. Seat two's roof gun is a separate mount: it starts
+     * at the modelled barrel and converges on the gunner's own crosshair.
+     */
     private void fireCoax(ServerLevel server, Player shooter, boolean cupola) {
-        GroundWeapons.fireHitscan(server, this, shooter, machineGunMuzzle(cupola),
-                turretDirection(),
+        Vec3 muzzle = machineGunMuzzle(cupola);
+        Vec3 direction;
+        if (cupola) {
+            direction = Vec3.directionFromRotation(getCupolaAimPitchDeg(), getCupolaAimYawDeg())
+                    .normalize();
+        } else {
+            direction = turretDirection();
+        }
+        GroundWeapons.fireHitscan(server, this, shooter, muzzle, direction,
                 io.github.littlebird.entity.weapon.VehicleDamageTable.Weapon.TANK_COAX,
                 COAX_SPLASH_RADIUS, SPLASH_DAMAGE_FRACTION, 0.9F);
     }
 
     /**
-     * Muzzle of the machine gun the given seat is firing. The driver's coaxial gun is the model's
-     * M240 beside the ring; seat two's is the cupola .50 on top. Both barrels are fixed to the
-     * turret, so the ring offset turns with the turret's aim. Two players crewing the tank must
-     * see two different muzzle points, not one shared hole at the main gun.
+     * Muzzle of the machine gun the given seat is firing. The driver's gun is coaxial with the
+     * 120mm and shares its muzzle; seat two's remote gun is the roof M240 (the model's {@code 240_*}
+     * parts), whose barrel only follows the turret's traverse. The two seats therefore never share
+     * a muzzle point.
      */
     private Vec3 machineGunMuzzle(boolean cupola) {
-        MainBattleTankGeometry.MachineGunMuzzle mg =
-                MainBattleTankGeometry.machineGunMuzzle(cupola);
+        if (!cupola) {
+            // The driver's machine gun is the true coaxial mount: it shares the 120mm's muzzle, so
+            // the round leaves where his sight says it will at every elevation and traverse.
+            return mainGunMuzzle(turret.aimYawDegrees(), turret.aimPitchDegrees());
+        }
+        return cupolaMuzzle(getCupolaAimYawDeg(), getCupolaAimPitchDeg());
+    }
+
+    /**
+     * Seat two's barrel tip for the given absolute aim. The gun swings on its pintle, so the muzzle
+     * is the barrel tip carried through that swing rather than a point on the aim axis.
+     */
+    public Vec3 cupolaMuzzle(float yawDeg, float pitchDeg) {
+        float yaw = yawDeg;
+        // Seat two's remote gun (the model's 240_* parts) swings on its own pintle. The muzzle is
+        // the barrel tip carried through that swing, not a point on the aim axis: the tip sits
+        // above and slightly beside the pivot, and ignoring that dropped the round into the hull.
+        Vec3 forward = Vec3.directionFromRotation(0.0F, yaw);
+        // The model's +X is the vehicle's right, and the renderer yaws it by (180 - yaw), so the
+        // world right hand of a hull facing +Z is -X: yaw + 90, not yaw - 90. Using the other sign
+        // put the muzzle on the far side of the turret, inside the hull.
+        Vec3 right = Vec3.directionFromRotation(0.0F, yaw + 90.0F);
+        Vec3 up = new Vec3(0.0D, 1.0D, 0.0D);
         Vec3 hullForward = Vec3.directionFromRotation(0.0F, getYRot());
         Vec3 ring = position()
                 .add(hullForward.scale(MainBattleTankGeometry.turretRingForwardBlocks()))
                 .add(0.0D, MainBattleTankGeometry.turretPivotHeightBlocks(), 0.0D);
-        Vec3 aimRight = vec(MainGun.aimDirection(turret.aimYawDegrees() - 90.0D, 0.0D));
-        if (aimRight.lengthSqr() > 1.0E-9D) {
-            ring = ring.add(aimRight.normalize().scale(mg.lateralBlocks()));
-        }
-        ring = ring.add(0.0D, mg.heightBlocks(), 0.0D);
-        return ring.add(turretDirection().scale(mg.barrelBlocks()));
+        Vec3 pivot = ring
+                .add(right.scale(MainBattleTankGeometry.cupolaPivotLateralBlocks()))
+                .add(up.scale(MainBattleTankGeometry.cupolaPivotHeightAboveRingBlocks()))
+                .add(forward.scale(MainBattleTankGeometry.cupolaPivotForwardBlocks()));
+        // Barrel tip relative to the pivot, in blocks: beside it, above it, and ahead of it.
+        double lateral = MainBattleTankGeometry.cupolaTipLateralFromPivotBlocks();
+        double height = MainBattleTankGeometry.cupolaTipHeightAbovePivotBlocks();
+        double barrel = MainBattleTankGeometry.cupolaBarrelBlocks();
+        // Minecraft pitch is positive downwards; elevation is the same swing upwards.
+        double elevation = Math.toRadians(-pitchDeg);
+        double cos = Math.cos(elevation);
+        double sin = Math.sin(elevation);
+        // Raise/lower the barrel about the pintle: the forward run tilts into the vertical and the
+        // vertical offset tilts into the forward run, the same rigid swing the model performs.
+        Vec3 tipForward = forward.scale(barrel * cos - height * sin);
+        Vec3 tipHeight = up.scale(barrel * sin + height * cos);
+        return pivot.add(right.scale(lateral)).add(tipForward).add(tipHeight);
+    }
+
+    /**
+     * The muzzle this client is drawing, for tracer correction. A hull that a client drives moves
+     * on that client first; the server measures the muzzle one round trip later, so a tracer would
+     * start behind the model. The client swaps the measured start for the barrel it can see, picking
+     * whichever of the two guns the server round came from.
+     */
+    public Vec3 localMuzzleNear(Vec3 serverStart) {
+        return localMuzzleNear(serverStart, getCupolaAimYawDeg(), getCupolaAimPitchDeg());
+    }
+
+    /** As above, but with the cupola laid on the angles being drawn for this frame. */
+    public Vec3 localMuzzleNear(Vec3 serverStart, float cupolaYawDeg, float cupolaPitchDeg) {
+        Vec3 coax = mainGunMuzzle(turret.aimYawDegrees(), turret.aimPitchDegrees());
+        Vec3 cupola = cupolaMuzzle(cupolaYawDeg, cupolaPitchDeg);
+        return coax.distanceToSqr(serverStart) <= cupola.distanceToSqr(serverStart) ? coax : cupola;
     }
 
     private Vec3 turretDirection() {
@@ -597,6 +696,21 @@ public class MainBattleTankEntity extends Entity
         return MainBattleTankGeometry.seatHeightBlocks(GroundSeat.TANK_DRIVER);
     }
 
+    /**
+     * A hull driven on its own client owns its position. The server's tracking updates still arrive
+     * every tick and lag the prediction, so applying them dragged the local hull backwards and let
+     * the prediction snap it forward again - read on screen as the model flashing ahead. Remote
+     * viewers keep the normal interpolation.
+     */
+    @Override
+    public void lerpTo(double x, double y, double z, float yRot, float xRot, int steps,
+                       boolean teleport) {
+        if (level().isClientSide && isControlledByLocalInstance()) {
+            return;
+        }
+        super.lerpTo(x, y, z, yRot, xRot, steps, teleport);
+    }
+
     @Override
     public void positionRider(Entity passenger, Entity.MoveFunction moveFunction) {
         if (!hasPassenger(passenger)) {
@@ -643,7 +757,30 @@ public class MainBattleTankEntity extends Entity
     @Override
     public int seatOf(Entity passenger) {
         int index = getPassengers().indexOf(passenger);
-        return index < 0 ? -1 : GroundSeat.seatOf(index, GroundSeat.TANK_SEATS);
+        return index < 0 ? -1 : GroundSeat.tankSeatOf(index, isSeatsSwapped());
+    }
+
+    /** True while the driver and cupola seats have been exchanged by the seat switch key. */
+    public boolean isSeatsSwapped() {
+        return entityData.get(DATA_SEATS_SWAPPED);
+    }
+
+    /**
+     * Server: one press of the seat switch key. Only the crew may do it, and only while the hull is
+     * standing still - swapping a moving tank would hand the controls to a seat that is not looking
+     * where the hull is going.
+     */
+    public void switchSeats(Player sender) {
+        if (level().isClientSide || isRemoved() || sender == null) {
+            return;
+        }
+        if (sender != driver() && sender != gunner()) {
+            return;
+        }
+        if (getDeltaMovement().horizontalDistanceSqr() > 0.0025D) {
+            return;
+        }
+        entityData.set(DATA_SEATS_SWAPPED, !isSeatsSwapped());
     }
 
     @Override
@@ -657,13 +794,17 @@ public class MainBattleTankEntity extends Entity
     }
 
     public Player driver() {
-        return getPassengers().isEmpty() || !(getPassengers().get(0) instanceof Player player)
-                ? null : player;
+        return playerInSeat(GroundSeat.TANK_DRIVER);
+    }
+
+    /** The player in the given effective seat, or null when that seat is empty. */
+    private Player playerInSeat(int seat) {
+        int index = GroundSeat.tankIndexOf(seat, isSeatsSwapped(), getPassengers().size());
+        return index >= 0 && getPassengers().get(index) instanceof Player player ? player : null;
     }
 
     public Player gunner() {
-        return getPassengers().size() < 2 || !(getPassengers().get(1) instanceof Player player)
-                ? null : player;
+        return playerInSeat(GroundSeat.TANK_GUNNER);
     }
 
     // ------------------------------------------------------------------
@@ -736,6 +877,12 @@ public class MainBattleTankEntity extends Entity
         return entityData.get(DATA_HEALTH);
     }
 
+    @Override
+    public float maxHealth() {
+        return MAX_HEALTH;
+    }
+
+    @Override
     public void setHealth(float health) {
         entityData.set(DATA_HEALTH, Math.max(0.0F, Math.min(MAX_HEALTH, health)));
     }
@@ -805,6 +952,7 @@ public class MainBattleTankEntity extends Entity
     @Override
     protected void readAdditionalSaveData(CompoundTag tag) {
         setHealth(tag.contains("Health") ? tag.getFloat("Health") : MAX_HEALTH);
+        entityData.set(DATA_SEATS_SWAPPED, tag.getBoolean("SeatsSwapped"));
         turret = new MainGun.State(tag.getFloat("TurretYaw"), tag.getFloat("TurretPitch"),
                 tag.getInt("TurretCooldown"));
         entityData.set(DATA_TURRET_YAW, (float) turret.aimYawDegrees());
@@ -862,6 +1010,7 @@ public class MainBattleTankEntity extends Entity
                 tag.putInt("SmokeActive", smoke.activeTicks());
             }
         }
+        tag.putBoolean("SeatsSwapped", isSeatsSwapped());
     }
 
     @Override

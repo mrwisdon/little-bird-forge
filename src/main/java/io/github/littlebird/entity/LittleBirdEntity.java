@@ -675,6 +675,12 @@ public class LittleBirdEntity extends Entity implements GunshipRider {
     }
 
     /** Also used by the deploy item, so a packed airframe keeps the health it was packed at. */
+    @Override
+    public float maxHealth() {
+        return MAX_HEALTH;
+    }
+
+    @Override
     public void setHealth(float health) {
         entityData.set(DATA_HEALTH, Math.max(0.0F, Math.min(MAX_HEALTH, health)));
     }

@@ -256,6 +256,15 @@ public class ModRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_su57_airframe", has(ModItems.SU57_AIRFRAME.get()))
                 .save(writer);
 
+        // Field repair torch: a copper nozzle on an iron frame, lit by redstone.
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ModItems.REPAIR_TORCH.get())
+                .define('C', Items.COPPER_INGOT)
+                .define('I', Items.IRON_INGOT)
+                .define('R', Items.REDSTONE)
+                .pattern(" C ").pattern("IRI").pattern(" I ")
+                .unlockedBy("has_iron_ingot", has(Items.IRON_INGOT))
+                .save(writer);
+
         // The factory itself: an iron and redstone frame around a crafting table.
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ModItems.VEHICLE_FACTORY.get())
                 .define('I', Items.IRON_BLOCK)

@@ -33,6 +33,10 @@ TURRET_Y = PIVOT[1]
 TURRET_Z = PIVOT[2]
 GUN_Y = TRUNNION[1] - TURRET_Y
 GUN_Z = TRUNNION[2] - TURRET_Z
+CUPOLA = SPEC_JSON.get("cupola_pivot", [-16.64, 16.64, -0.96])
+CUPOLA_X = CUPOLA[0]
+CUPOLA_Y = CUPOLA[1]
+CUPOLA_Z = CUPOLA[2]
 
 
 def jf(x):
@@ -88,16 +92,22 @@ public final class MainBattleTankModel extends EntityModel<MainBattleTankEntity>
     /** Gun trunnion, turret-local: matching MainBattleTankGeometry.GUN_TRUNNION_*. */
     private static final float GUN_TRUNNION_Y = %s;
     private static final float GUN_TRUNNION_Z = %s;
+    /** Cupola machine gun pintle, turret-local: seat two's remote mount. */
+    private static final float CUPOLA_X = %s;
+    private static final float CUPOLA_Y = %s;
+    private static final float CUPOLA_Z = %s;
 
     private final ModelPart root;
     private final ModelPart turret;
     private final ModelPart gun;
+    private final ModelPart cupola;
 
     public MainBattleTankModel(ModelPart root) {
         this.root = root;
         ModelPart body = root.getChild("body");
         this.turret = body.getChild("turret");
         this.gun = this.turret.getChild("gun");
+        this.cupola = this.turret.getChild("cupola");
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -109,12 +119,19 @@ public final class MainBattleTankModel extends EntityModel<MainBattleTankEntity>
                 PartPose.offset(0.0F, TURRET_Y, TURRET_Z));
         PartDefinition gun = turret.addOrReplaceChild("gun", CubeListBuilder.create(),
                 PartPose.offset(0.0F, GUN_TRUNNION_Y, GUN_TRUNNION_Z));
+        PartDefinition cupola = turret.addOrReplaceChild("cupola", CubeListBuilder.create(),
+                PartPose.offset(CUPOLA_X, CUPOLA_Y, CUPOLA_Z));
 '''
 
 
 def emit(part):
     box = part["box"]
     off = part["origin"]
+    if part["group"] == "cupola":
+        # The remote gun sits on its own pintle node, so its cubes are stored relative to that
+        # pivot and the node rotation swings the whole gun (barrel included), not the turret.
+        box = [box[0] - CUPOLA_X, box[1] - CUPOLA_Y, box[2] - CUPOLA_Z,
+               box[3], box[4], box[5]]
     cb = ".texOffs(%d, %d).addBox(%s, %s, %s, %s, %s, %s)" % (
         UV[part["uv"]][0], UV[part["uv"]][1], jf(box[0]), jf(box[1]), jf(box[2]),
         jf(box[3]), jf(box[4]), jf(box[5]))
@@ -128,7 +145,8 @@ def emit(part):
             jf(off[0]), jf(off[1]), jf(off[2]), rot["x"], rot["y"], rot["z"])
     return ('        %s.addOrReplaceChild("%s", CubeListBuilder.create()\n'
             '                %s,\n                %s);' % (
-                {"body": "body", "turret": "turret", "gun": "gun"}[part["group"]],
+                {"body": "body", "turret": "turret", "gun": "gun",
+                 "cupola": "cupola"}[part["group"]],
                 jname(part["name"]), cb, pose))
 
 
@@ -168,8 +186,9 @@ def main():
     if bad:
         raise SystemExit("UV footprint outside its texture zone: %s" % bad[:8])
 
-    lines = [JAVA_HEAD % (TEXTURE_SIZE, jf(TURRET_Y), jf(TURRET_Z), jf(GUN_Y), jf(GUN_Z))]
-    for group in ("body", "turret", "gun"):
+    lines = [JAVA_HEAD % (TEXTURE_SIZE, jf(TURRET_Y), jf(TURRET_Z), jf(GUN_Y), jf(GUN_Z),
+                      jf(CUPOLA_X), jf(CUPOLA_Y), jf(CUPOLA_Z))]
+    for group in ("body", "turret", "gun", "cupola"):
         lines.append("        // ---- %s (%d parts) ----" % (
             group, sum(1 for b in boxes if b["group"] == group)))
         for b in boxes:
@@ -188,6 +207,23 @@ def main():
         turret.xRot = 0.0F;
         gun.xRot = ApacheModelMath.turretPitchRadians(
                 entity.renderTurretPitchDeg(partialTick), entity.getXRot());
+        // Seat two's remote gun rides its own pintle. On the machine of the player who is actually
+        // sitting there, drive it from his own view so the barrel tracks the mouse at frame rate
+        // instead of stepping on the 20 Hz synced angle; everyone else uses the synced value.
+        net.minecraft.client.Minecraft minecraftClient = net.minecraft.client.Minecraft.getInstance();
+        boolean localGunner = minecraftClient.player != null
+                && minecraftClient.player.getVehicle() == entity
+                && entity.seatOf(minecraftClient.player)
+                == io.github.littlebird.entity.seat.GroundSeat.TANK_GUNNER;
+        float cupolaYaw = localGunner
+                ? minecraftClient.player.getViewYRot(partialTick)
+                : entity.renderCupolaYawDeg(partialTick);
+        float cupolaPitch = localGunner
+                ? minecraftClient.player.getViewXRot(partialTick)
+                : entity.renderCupolaPitchDeg(partialTick);
+        cupola.yRot = ApacheModelMath.turretYawRadians(cupolaYaw,
+                entity.renderTurretYawDeg(partialTick));
+        cupola.xRot = ApacheModelMath.turretPitchRadians(cupolaPitch, entity.getXRot());
     }
 
     @Override

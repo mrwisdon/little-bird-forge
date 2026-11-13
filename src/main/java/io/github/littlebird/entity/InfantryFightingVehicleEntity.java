@@ -176,10 +176,11 @@ public class InfantryFightingVehicleEntity extends Entity
         }
 
         ChainGunTurret.Aim desired = driver == null
-                ? ChainGunTurret.parkedAim(getYRot(), getXRot())
-                : ChainGunTurret.desiredAim(driver.getYRot(), driver.getXRot());
+                ? ChainGunTurret.parkedAim(getYRot(), getXRot(), stops())
+                : ChainGunTurret.desiredAim(driver.getYRot(), driver.getXRot(),
+                        stops());
         ChainGunTurret.Step step = ChainGunTurret.advance(turret, desired,
-                driverTrigger && driver != null);
+                driverTrigger && driver != null, stops());
         turret = step.state();
         entityData.set(DATA_TURRET_YAW, (float) turret.aimYawDeg());
         entityData.set(DATA_TURRET_PITCH, (float) turret.aimPitchDeg());
@@ -202,9 +203,23 @@ public class InfantryFightingVehicleEntity extends Entity
         }
     }
 
+    /**
+     * The mount's stops measured against the hull, not the horizon: 85 degrees of elevation and 10 of
+     * depression are rig limits, so a hull nose-down on a slope can point the gun further down in
+     * absolute terms and still be inside them. The chain gun clamp works on absolute pitch, so the
+     * stops are shifted by the hull's own pitch for this tick.
+     */
+    private ChainGunTurret.Stops stops() {
+        float hullPitch = getXRot();
+        return new ChainGunTurret.Stops(
+                ChainGunTurret.Stops.WILDCAT.upDeg() - hullPitch,
+                ChainGunTurret.Stops.WILDCAT.downDeg() + hullPitch);
+    }
+
     /** One 30mm round, spread by heat exactly like the Apache's chain gun. */
     private void fireAutocannon(ServerLevel server, Player driver) {
-        Vec3 aim = vec(ChainGunTurret.aimDirection(turret.aimYawDeg(), turret.aimPitchDeg()));
+        Vec3 aim = vec(ChainGunTurret.aimDirection(turret.aimYawDeg(), turret.aimPitchDeg(),
+                stops()));
         Vec3 direction = vec(LittleBirdBallistics.spreadDirection(
                 vector(aim), ChainGunTurret.spreadDegrees(turret.heat()),
                 random.nextDouble(), random.nextDouble()));
@@ -221,7 +236,8 @@ public class InfantryFightingVehicleEntity extends Entity
     }
 
     private Vec3 turretDirection() {
-        return vec(ChainGunTurret.aimDirection(turret.aimYawDeg(), turret.aimPitchDeg()));
+        return vec(ChainGunTurret.aimDirection(turret.aimYawDeg(), turret.aimPitchDeg(),
+                stops()));
     }
 
     private Vec3 muzzle() {
@@ -230,7 +246,7 @@ public class InfantryFightingVehicleEntity extends Entity
                 new LittleBirdBallistics.Vector3(0.0D, 1.0D, 0.0D),
                 InfantryFightingVehicleGeometry.turretPivotHeightBlocks(), 0.0D,
                 InfantryFightingVehicleGeometry.barrelBlocks(),
-                turret.aimYawDeg(), turret.aimPitchDeg()));
+                turret.aimYawDeg(), turret.aimPitchDeg(), stops()));
     }
 
     private void tickAmmoSupply() {
@@ -281,8 +297,13 @@ public class InfantryFightingVehicleEntity extends Entity
                 : Math.max(getDeltaMovement().y - FALL_GRAVITY, -MAX_FALL_SPEED);
         Vec3 drive = new Vec3(step.dx(), dy, step.dz());
         GroundMover.moveDrive(this, drive, LittleBirdConfig.ifvStepHeightBlocks(), slopeTracker);
-        entityData.set(DATA_TURRET_YAW, driver.getYRot());
-        entityData.set(DATA_TURRET_PITCH, driver.getXRot());
+        // Local preview of the turret must obey the mount's stops: writing the raw look here made
+        // the HUD aim (and the camera clamp) disagree with the gun the server actually fires, which
+        // is what put the reticle off the barrel whenever the barrel ran out of elevation.
+        ChainGunTurret.Aim preview = ChainGunTurret.desiredAim(driver.getYRot(),
+                driver.getXRot(), stops());
+        entityData.set(DATA_TURRET_YAW, (float) preview.yawDeg());
+        entityData.set(DATA_TURRET_PITCH, (float) preview.pitchDeg());
     }
 
     @Override
@@ -327,7 +348,7 @@ public class InfantryFightingVehicleEntity extends Entity
         if (interiorView && isControlledByLocalInstance()
                 && getControllingPassenger() instanceof Player driver) {
             return (float) ChainGunTurret.desiredAim(0.0F,
-                    driver.getViewXRot(partialTick)).pitchDeg();
+                    driver.getViewXRot(partialTick), stops()).pitchDeg();
         }
         return getTurretPitchDeg();
     }
@@ -389,6 +410,21 @@ public class InfantryFightingVehicleEntity extends Entity
     @Override
     public double getPassengersRidingOffset() {
         return InfantryFightingVehicleGeometry.seatHeightBlocks(GroundSeat.IFV_DRIVER);
+    }
+
+    /**
+     * A hull driven on its own client owns its position. The server's tracking updates still arrive
+     * every tick and lag the prediction, so applying them dragged the local hull backwards and let
+     * the prediction snap it forward again - read on screen as the model flashing ahead. Remote
+     * viewers keep the normal interpolation.
+     */
+    @Override
+    public void lerpTo(double x, double y, double z, float yRot, float xRot, int steps,
+                       boolean teleport) {
+        if (level().isClientSide && isControlledByLocalInstance()) {
+            return;
+        }
+        super.lerpTo(x, y, z, yRot, xRot, steps, teleport);
     }
 
     @Override
@@ -523,6 +559,12 @@ public class InfantryFightingVehicleEntity extends Entity
         return entityData.get(DATA_HEALTH);
     }
 
+    @Override
+    public float maxHealth() {
+        return MAX_HEALTH;
+    }
+
+    @Override
     public void setHealth(float health) {
         entityData.set(DATA_HEALTH, Math.max(0.0F, Math.min(MAX_HEALTH, health)));
     }

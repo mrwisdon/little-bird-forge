@@ -224,5 +224,6 @@
   "entity.battlefield.smoke_grenade": "Smoke Grenade",
   "entity.battlefield.smoke_cloud": "Smoke Cloud",
   "item.battlefield.smoke_grenade": "Smoke Grenade",
+  "item.battlefield.repair_torch": "Repair Torch",
   "key.battlefield.hud_settings": "Scope settings (F10)"
 }

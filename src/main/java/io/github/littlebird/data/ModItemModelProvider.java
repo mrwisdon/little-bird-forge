@@ -34,5 +34,6 @@ public class ModItemModelProvider extends ItemModelProvider {
         basicItem(ModItems.CANNON_BARREL.get());
         basicItem(ModItems.TANK_HULL.get());
         basicItem(ModItems.IFV_HULL.get());
+        basicItem(ModItems.REPAIR_TORCH.get());
     }
 }

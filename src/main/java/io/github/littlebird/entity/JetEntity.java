@@ -878,6 +878,12 @@ public class JetEntity extends Entity implements GunshipRider {
         return entityData.get(DATA_HEALTH);
     }
 
+    @Override
+    public float maxHealth() {
+        return MAX_HEALTH;
+    }
+
+    @Override
     public void setHealth(float health) {
         entityData.set(DATA_HEALTH, Math.max(0.0F, Math.min(MAX_HEALTH, health)));
     }

@@ -224,5 +224,6 @@
   "entity.battlefield.smoke_grenade": "烟雾弹",
   "entity.battlefield.smoke_cloud": "烟幕",
   "item.battlefield.smoke_grenade": "烟雾弹",
+  "item.battlefield.repair_torch": "焊枪",
   "key.battlefield.hud_settings": "镜面配色（F10）"
 }

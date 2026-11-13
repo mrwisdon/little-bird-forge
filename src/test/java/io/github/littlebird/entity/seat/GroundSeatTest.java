@@ -21,6 +21,17 @@ class GroundSeatTest {
     }
 
     @Test
+    void theTankSeatSwitchFlipsTheTwoCrewSeats() {
+        assertEquals(GroundSeat.TANK_GUNNER, GroundSeat.tankSeatOf(0, true));
+        assertEquals(GroundSeat.TANK_DRIVER, GroundSeat.tankSeatOf(1, true));
+        assertEquals(GroundSeat.TANK_DRIVER, GroundSeat.tankSeatOf(0, false));
+        assertEquals(1, GroundSeat.tankIndexOf(GroundSeat.TANK_DRIVER, true, 2));
+        assertEquals(0, GroundSeat.tankIndexOf(GroundSeat.TANK_GUNNER, true, 2));
+        assertEquals(-1, GroundSeat.tankIndexOf(GroundSeat.TANK_DRIVER, true, 1));
+        assertEquals(0, GroundSeat.tankIndexOf(GroundSeat.TANK_GUNNER, true, 1));
+    }
+
+    @Test
     void operatorSeatsAreIdentified() {
         assertTrue(GroundSeat.isTankDriver(0));
         assertTrue(GroundSeat.isTankGunner(1));

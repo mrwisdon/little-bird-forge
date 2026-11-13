@@ -1,4 +1,4 @@
-// 1.20.1	2026-09-27T19:15:46.437875913	Recipes
+// 1.20.1	2026-11-12T12:26:29.2832875	Recipes
 3833c887fcbb30fc1af3b5b2cbec92d106cad558 data/battlefield/advancements/recipes/misc/aircraft_engine.json
 07818d61b4d46c12b4ca3078e9a1b87a275cb1d9 data/battlefield/advancements/recipes/misc/airframe_section.json
 e4a51c9d043ef819375e5d463e1b6065b21d7d26 data/battlefield/advancements/recipes/misc/ammo_crate.json
@@ -17,6 +17,7 @@ dabc61668d3b70eab55235d42697a208d6c27f5d data/battlefield/advancements/recipes/m
 187ab9d5ad6553591f3949823d12d3199451d397 data/battlefield/advancements/recipes/misc/infantry_fighting_vehicle.json
 18d6928805e642cdc9ceea8ddc23aeea717fb09c data/battlefield/advancements/recipes/misc/little_bird.json
 029f8be8f713b53e37ed7d4eeeb440933ddd1d46 data/battlefield/advancements/recipes/misc/main_battle_tank.json
+1b8911f0b79eecea223ac3882333db579142f5fb data/battlefield/advancements/recipes/misc/repair_torch.json
 886a1f3b2a4ae94a51952f11d218861ff612f188 data/battlefield/advancements/recipes/misc/rotor_assembly.json
 3d97d7e9543ec49adfd548276a95d5b39c4b046b data/battlefield/advancements/recipes/misc/su57.json
 be38740202c2f84a1d395851e891964919088f8d data/battlefield/advancements/recipes/misc/su57_airframe.json
@@ -46,6 +47,7 @@ aff4d54ec341a9f12297dc319103fa019c182468 data/battlefield/recipes/ifv_hull.json
 d81d28d746f4f7b4d81e354570cde26b511c14ea data/battlefield/recipes/infantry_fighting_vehicle.json
 dc3946c4838d937a9e08d7068ee5064c669b5d4e data/battlefield/recipes/little_bird.json
 0578c385dad78cf61317bc0b2b97f5cf5611f225 data/battlefield/recipes/main_battle_tank.json
+819a854ed4a442ef4e04afe03e4e189e85b0b91d data/battlefield/recipes/repair_torch.json
 b8029f12335e5e44aab22d9feee8df502aba32fd data/battlefield/recipes/rotor_assembly.json
 9ac7962b42dc6fa3954643cc500c662d2f9d815b data/battlefield/recipes/su57.json
 6b9ce77decc9af402e638d99e8c2ce3b5e22d70c data/battlefield/recipes/su57_airframe.json

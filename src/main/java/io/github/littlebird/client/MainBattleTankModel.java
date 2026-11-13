@@ -36,16 +36,22 @@ public final class MainBattleTankModel extends EntityModel<MainBattleTankEntity>
     /** Gun trunnion, turret-local: matching MainBattleTankGeometry.GUN_TRUNNION_*. */
     private static final float GUN_TRUNNION_Y = 7.04F;
     private static final float GUN_TRUNNION_Z = -29.6F;
+    /** Cupola machine gun pintle, turret-local: seat two's remote mount. */
+    private static final float CUPOLA_X = 13.6F;
+    private static final float CUPOLA_Y = 19.68F;
+    private static final float CUPOLA_Z = 3.2F;
 
     private final ModelPart root;
     private final ModelPart turret;
     private final ModelPart gun;
+    private final ModelPart cupola;
 
     public MainBattleTankModel(ModelPart root) {
         this.root = root;
         ModelPart body = root.getChild("body");
         this.turret = body.getChild("turret");
         this.gun = this.turret.getChild("gun");
+        this.cupola = this.turret.getChild("cupola");
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -57,6 +63,8 @@ public final class MainBattleTankModel extends EntityModel<MainBattleTankEntity>
                 PartPose.offset(0.0F, TURRET_Y, TURRET_Z));
         PartDefinition gun = turret.addOrReplaceChild("gun", CubeListBuilder.create(),
                 PartPose.offset(0.0F, GUN_TRUNNION_Y, GUN_TRUNNION_Z));
+        PartDefinition cupola = turret.addOrReplaceChild("cupola", CubeListBuilder.create(),
+                PartPose.offset(CUPOLA_X, CUPOLA_Y, CUPOLA_Z));
 
         // ---- body (284 parts) ----
         body.addOrReplaceChild("track_l_top_0", CubeListBuilder.create()
@@ -911,7 +919,7 @@ public final class MainBattleTankModel extends EntityModel<MainBattleTankEntity>
         body.addOrReplaceChild("geo_blackout_r", CubeListBuilder.create()
                 .texOffs(0, 0).addBox(21.36F, 17.44F, -59.76F, 1.12F, 1.6F, 1.76F),
                 PartPose.offset(0.0F, 0.0F, 0.0F));
-        // ---- turret (86 parts) ----
+        // ---- turret (80 parts) ----
         turret.addOrReplaceChild("turret_seg0_low", CubeListBuilder.create()
                 .texOffs(0, 0).addBox(-23.52F, -0.32F, -31.52F, 47.04F, 9.04F, 2.56F),
                 PartPose.offset(0.0F, 0.0F, 0.0F));
@@ -1037,24 +1045,6 @@ public final class MainBattleTankModel extends EntityModel<MainBattleTankEntity>
                 PartPose.offset(0.0F, 0.0F, 0.0F));
         turret.addOrReplaceChild("240_pintle", CubeListBuilder.create()
                 .texOffs(0, 320).addBox(-17.28F, 15.36F, -1.6F, 1.28F, 2.56F, 1.28F),
-                PartPose.offset(0.0F, 0.0F, 0.0F));
-        turret.addOrReplaceChild("2_ammo", CubeListBuilder.create()
-                .texOffs(0, 0).addBox(15.2F, 17.36F, 2.72F, 2.88F, 3.04F, 4.8F),
-                PartPose.offset(0.0F, 0.0F, 0.0F));
-        turret.addOrReplaceChild("2_barrel", CubeListBuilder.create()
-                .texOffs(0, 320).addBox(13.232F, 20.272F, -15.2F, 0.736F, 0.736F, 5.44F),
-                PartPose.offset(0.0F, 0.0F, 0.0F));
-        turret.addOrReplaceChild("2_body", CubeListBuilder.create()
-                .texOffs(0, 0).addBox(12.72F, 19.6F, -4.96F, 1.76F, 2.08F, 9.28F),
-                PartPose.offset(0.0F, 0.0F, 0.0F));
-        turret.addOrReplaceChild("2_cradle", CubeListBuilder.create()
-                .texOffs(0, 0).addBox(12.72F, 19.2F, 1.6F, 1.76F, 1.6F, 2.56F),
-                PartPose.offset(0.0F, 0.0F, 0.0F));
-        turret.addOrReplaceChild("2_grip", CubeListBuilder.create()
-                .texOffs(0, 0).addBox(11.68F, 19.76F, 4.48F, 3.84F, 1.76F, 1.6F),
-                PartPose.offset(0.0F, 0.0F, 0.0F));
-        turret.addOrReplaceChild("2_jacket", CubeListBuilder.create()
-                .texOffs(0, 0).addBox(12.928F, 19.985F, -10.4F, 1.344F, 1.31F, 5.44F),
                 PartPose.offset(0.0F, 0.0F, 0.0F));
         turret.addOrReplaceChild("2_pedestal", CubeListBuilder.create()
                 .texOffs(0, 0).addBox(12.742F, 16.16F, 2.32F, 1.716F, 3.52F, 1.76F),
@@ -1201,6 +1191,25 @@ public final class MainBattleTankModel extends EntityModel<MainBattleTankEntity>
         gun.addOrReplaceChild("un_tube", CubeListBuilder.create()
                 .texOffs(0, 320).addBox(-1.36F, -1.36F, -56.08F, 2.72F, 2.72F, 19.28F),
                 PartPose.offset(0.0F, 0.0F, 0.0F));
+        // ---- cupola (6 parts) ----
+        cupola.addOrReplaceChild("2_ammo", CubeListBuilder.create()
+                .texOffs(0, 0).addBox(1.6F, -2.32F, -0.48F, 2.88F, 3.04F, 4.8F),
+                PartPose.offset(0.0F, 0.0F, 0.0F));
+        cupola.addOrReplaceChild("2_barrel", CubeListBuilder.create()
+                .texOffs(0, 320).addBox(-0.368F, 0.592F, -18.4F, 0.736F, 0.736F, 5.44F),
+                PartPose.offset(0.0F, 0.0F, 0.0F));
+        cupola.addOrReplaceChild("2_body", CubeListBuilder.create()
+                .texOffs(0, 0).addBox(-0.88F, -0.08F, -8.16F, 1.76F, 2.08F, 9.28F),
+                PartPose.offset(0.0F, 0.0F, 0.0F));
+        cupola.addOrReplaceChild("2_cradle", CubeListBuilder.create()
+                .texOffs(0, 0).addBox(-0.88F, -0.48F, -1.6F, 1.76F, 1.6F, 2.56F),
+                PartPose.offset(0.0F, 0.0F, 0.0F));
+        cupola.addOrReplaceChild("2_grip", CubeListBuilder.create()
+                .texOffs(0, 0).addBox(-1.92F, 0.08F, 1.28F, 3.84F, 1.76F, 1.6F),
+                PartPose.offset(0.0F, 0.0F, 0.0F));
+        cupola.addOrReplaceChild("2_jacket", CubeListBuilder.create()
+                .texOffs(0, 0).addBox(-0.672F, 0.305F, -13.6F, 1.344F, 1.31F, 5.44F),
+                PartPose.offset(0.0F, 0.0F, 0.0F));
         return LayerDefinition.create(mesh, TEXTURE_SIZE, TEXTURE_SIZE);
     }
 
@@ -1214,6 +1223,23 @@ public final class MainBattleTankModel extends EntityModel<MainBattleTankEntity>
         turret.xRot = 0.0F;
         gun.xRot = ApacheModelMath.turretPitchRadians(
                 entity.renderTurretPitchDeg(partialTick), entity.getXRot());
+        // Seat two's remote gun rides its own pintle. On the machine of the player who is actually
+        // sitting there, drive it from his own view so the barrel tracks the mouse at frame rate
+        // instead of stepping on the 20 Hz synced angle; everyone else uses the synced value.
+        net.minecraft.client.Minecraft minecraftClient = net.minecraft.client.Minecraft.getInstance();
+        boolean localGunner = minecraftClient.player != null
+                && minecraftClient.player.getVehicle() == entity
+                && entity.seatOf(minecraftClient.player)
+                == io.github.littlebird.entity.seat.GroundSeat.TANK_GUNNER;
+        float cupolaYaw = localGunner
+                ? minecraftClient.player.getViewYRot(partialTick)
+                : entity.renderCupolaYawDeg(partialTick);
+        float cupolaPitch = localGunner
+                ? minecraftClient.player.getViewXRot(partialTick)
+                : entity.renderCupolaPitchDeg(partialTick);
+        cupola.yRot = ApacheModelMath.turretYawRadians(cupolaYaw,
+                entity.renderTurretYawDeg(partialTick));
+        cupola.xRot = ApacheModelMath.turretPitchRadians(cupolaPitch, entity.getXRot());
     }
 
     @Override

@@ -2923,7 +2923,7 @@
  },
  {
   "name": "GEO-m2_ammo",
-  "group": "turret",
+  "group": "cupola",
   "uv": "olive",
   "origin": [
    0.0,
@@ -2942,7 +2942,7 @@
  },
  {
   "name": "GEO-m2_barrel",
-  "group": "turret",
+  "group": "cupola",
   "uv": "gunmetal",
   "origin": [
    0.0,
@@ -2961,7 +2961,7 @@
  },
  {
   "name": "GEO-m2_body",
-  "group": "turret",
+  "group": "cupola",
   "uv": "olive",
   "origin": [
    0.0,
@@ -2980,7 +2980,7 @@
  },
  {
   "name": "GEO-m2_cradle",
-  "group": "turret",
+  "group": "cupola",
   "uv": "olive",
   "origin": [
    0.0,
@@ -2999,7 +2999,7 @@
  },
  {
   "name": "GEO-m2_grip",
-  "group": "turret",
+  "group": "cupola",
   "uv": "olive",
   "origin": [
    0.0,
@@ -3018,7 +3018,7 @@
  },
  {
   "name": "GEO-m2_jacket",
-  "group": "turret",
+  "group": "cupola",
   "uv": "olive",
   "origin": [
    0.0,

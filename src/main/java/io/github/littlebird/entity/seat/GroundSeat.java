@@ -50,6 +50,25 @@ public final class GroundSeat {
         return Math.min(passengerIndex, Math.max(0, seats - 1));
     }
 
+    /**
+     * Tank seat of the nth passenger once the driver/gunner switch flag is applied. The flag is
+     * what lets a lone player move to the cupola without a second rider: it flips the meaning of
+     * the seats, never the passenger list.
+     */
+    public static int tankSeatOf(int passengerIndex, boolean swapped) {
+        int seat = seatOf(passengerIndex, TANK_SEATS);
+        return swapped ? TANK_SEATS - 1 - seat : seat;
+    }
+
+    /** Index in the tank's passenger list of whoever sits in the given seat, or -1 if empty. */
+    public static int tankIndexOf(int seat, boolean swapped, int passengers) {
+        if (seat < 0 || seat >= TANK_SEATS || passengers <= 0) {
+            return -1;
+        }
+        int index = swapped ? TANK_SEATS - 1 - seat : seat;
+        return index < passengers ? index : -1;
+    }
+
     public static boolean isTankDriver(int seat) {
         return seat == TANK_DRIVER;
     }

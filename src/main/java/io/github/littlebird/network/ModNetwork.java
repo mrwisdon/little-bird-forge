@@ -8,7 +8,7 @@ import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 public final class ModNetwork {
-    private static final String PROTOCOL_VERSION = "1";
+    private static final String PROTOCOL_VERSION = "2";
 
     public static final SimpleChannel CHANNEL = NetworkRegistry.ChannelBuilder
             .named(ResourceLocation.fromNamespaceAndPath(LittleBird.MOD_ID, "main"))
@@ -72,6 +72,11 @@ public final class ModNetwork {
                 .encoder(GroundWeaponInputPacket::encode)
                 .decoder(GroundWeaponInputPacket::decode)
                 .consumerMainThread(GroundWeaponInputPacket::handle)
+                .add();
+        CHANNEL.messageBuilder(TankSeatSwitchPacket.class, 43, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(TankSeatSwitchPacket::encode)
+                .decoder(TankSeatSwitchPacket::decode)
+                .consumerMainThread(TankSeatSwitchPacket::handle)
                 .add();
         CHANNEL.messageBuilder(Plz05ElevationPacket.class, 41,
                         NetworkDirection.PLAY_TO_SERVER)
@@ -145,7 +150,12 @@ public final class ModNetwork {
     /** Bullet traces go to everyone tracking the aircraft, shooter included. */
     public static void sendTracer(
             net.minecraft.world.entity.Entity shooter, LittleBirdTracerPacket packet) {
-        CHANNEL.send(PacketDistributor.TRACKING_ENTITY.with(() -> shooter), packet);
+        // Stamp the firing hull so the client riding it can rebuild the start point from the model
+        // it is drawing (the hull moves on its driver's client, one round trip ahead of the server).
+        LittleBirdTracerPacket stamped = new LittleBirdTracerPacket(packet.startX(), packet.startY(),
+                packet.startZ(), packet.endX(), packet.endY(), packet.endZ(),
+                packet.impactType(), packet.station(), shooter.getId());
+        CHANNEL.send(PacketDistributor.TRACKING_ENTITY.with(() -> shooter), stamped);
     }
 
     /**
